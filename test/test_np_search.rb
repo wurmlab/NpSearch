@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'bio'
-require './../lib/np_search/library.rb'
+require "np_search/library"
 require 'test/unit'
 
 class InputChanged 
