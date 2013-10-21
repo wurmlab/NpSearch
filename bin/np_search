@@ -78,7 +78,6 @@ input_validators_new.output_dir_validator(output_dir)
 input_validators_new.orf_min_length_validator(orf_min_length)
 input_validators_new.input_file_validator(input)
 input_validators_new.input_type_validator(input_type)
-input_validators_new.motif_validator(motif, input_type) ### motif_validator method currently commented out...
 
 ############# MAIN ##############
 output_new = NpSearch::Output.new
