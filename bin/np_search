@@ -21,7 +21,7 @@ orf_min_length = 10
 
 options = {}
 optparse = OptionParser.new do|opts|
-   	opts.banner = "Usage: np_search.rb [options] InputFile InputType Motif"
+   	opts.banner = "Usage: np_search [options] InputFile InputType Motif"
  	opts.separator "Where:"
  	opts.separator "InputFile = The input query file"
  	opts.separator "InputType = The type of data in the input query file. The only two options available are \"genetic\" and \"protein\""
@@ -50,6 +50,16 @@ optparse.parse!
 unless ARGV.size == 3 
 	puts "Incorrect number of Arguments"
 	puts "Usage: np_search.rb [options] InputFile InputType Motif"
+	puts "Where:"
+	puts "InputFile = The input query file"
+	puts "InputType = The type of data in the input query file. The only two options available are \"genetic\" and \"protein\""
+	puts "Motif = The query motif to be searched for. The period \".\" can be used to stands for any character. Multiple motifs query can be used by using a pipeline character (\"|\") between each query and putting the motif query in speech marks e.g. \"KR|RR|R..R\""
+	puts "Advanced Users: Regex is supported in the motif query"
+	puts # a blank line
+	puts "Options:"
+	puts "    -v, --verbose                    Provides more information on each step taken in this program."
+	puts "    -a, --output_all                 Outputs all possible files"
+	puts "    -h, --help                       Display this screen"
 	exit
 end
 
