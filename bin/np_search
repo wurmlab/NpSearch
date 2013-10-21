@@ -133,4 +133,7 @@ puts "#{Time.now}: Writing Ouput files to the fasta files \"#{output_dir}/output
 output_new.to_fasta(flattened_seq, "#{output_dir}/output.fa")
 output_new.to_doc(flattened_seq, "#{output_dir}/output.docx", motif)
 ############# Success #############
+
+input_validators_new.success_or_fail(output_dir)
+
 puts "\nSuccess: All output files created in the directory: \"#{output_dir}\" \n "

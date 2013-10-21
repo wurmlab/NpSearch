@@ -95,6 +95,7 @@ module NpSearch
       end
     end
 
+    # Ensure that the right version of signal is used.
     def signalp_version_validator(signalp_output_file)
       abort "\nError: The wrong version of the signal p has been linked. Version 4.1 is the version of signalp currently supported.\n" unless signalp_version(signalp_output_file)
     end
