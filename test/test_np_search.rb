@@ -31,12 +31,12 @@ class UnitTests < Test::Unit::TestCase
     @motif                       = "KK|KR|RR|R..R|R....R|R......R|H..R|H....R|H......R|K..R|K....R|K......R|GK|L"
   end
   
-  ####### Testing input for normal & weird cases ####### 
+  ####### Testing input for normal & weird cases ####### => commented out since it uses absolute directories
 # => Test if the signalp validator method works in verifying whether the directory contains the signal p script. 
-  def test_signalp_validator
-    test_validators = NpSearch::InputValidators.new
-    assert_equal("./../../../signalp", test_validators.signalp_validator("./../../../signalp"))
-  end
+#  def test_signalp_validator
+#    test_validators = NpSearch::InputValidators.new
+#    assert_equal("./../../../signalp", test_validators.signalp_validator("./../../../signalp"))
+#  end
 
 # => Test if the output directory validator works, in ensuring whether an output directory can be found. 
   def test_output_dir_validator
