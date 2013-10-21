@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = NpSearch::VERSION
   spec.authors       = ["IsmailM"]
   spec.email         = ["ismail.moghul@gmail.com"]
-  spec.description   = %q{TODO: Write a gem description}
-  spec.summary       = %q{TODO: Write a gem summary}
+  spec.description   = %q{Search for Neuropeptides based solely on the common neuropeptide markers (e.g. signal peptide, dibasic cleavage sites etc.) i.e. not based on homology to known neuropeptides.}
+  spec.summary       = %q{Search for Neuropeptides based on the common neuropeptides markers}
   spec.homepage      = ""
   spec.license       = "MIT"
 
@@ -20,4 +20,5 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.3"
   spec.add_development_dependency "rake"
+  spec.add_dependency "bio"
 end

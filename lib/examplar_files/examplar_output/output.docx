@@ -1,0 +1,10 @@
+<!DOCTYPE html><html><head><style> .id{font-weight: bold;} .signalp{color:#000099; font-weight: bold;} .motif{color:#FF3300; font-weight: bold;} h3 {word-wrap: break-word;} p {word-wrap: break-word; font-family:Courier New, Courier, Mono;}</style></head><body>
+<p><span class="id"> >isotig00009_f2_3</span><span> - S.P. Cleavage Site: 22:23 - S.P. D-value: 0.532</span><br>
+<span class="signalp">
+MLKCFSIIMGLILLLEIGGGCA</span>IYFYRAQIQAQFQKSLTDVTITDYRENADFQDLIDALQSGLSCCGVNSYEDWDNNIYFNCSGPANNPEALWCAFLLLYTGSS<span class="motif">KR</span>SSQ<span class="motif">HPVR</span>LWSSFPRTTKYFPHKDLHHWLCGYVYNVD
+</p>
+<p><span class="id"> >isotig00009_f3_9</span><span> - S.P. Cleavage Site: 16:17 - S.P. D-value: 0.643</span><br>
+<span class="signalp">
+MKTGIIIFISTVVVLP</span>ITLKPCGVPFSCCIPDQASGVANTQCGYGVRSPEQQNTFHTKIYTTGCADMFTMWINRYLYYIAGIAGVIVLVELFGFCFAHSLINDI<span class="motif">KR</span>QKARWAHR
+</p>
+</body></html>

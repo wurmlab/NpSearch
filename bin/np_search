@@ -1,0 +1,137 @@
+#!/usr/bin/env ruby
+
+require 'bio'
+require "np_search/version"
+require "np_search/library"
+require 'fileutils'
+require 'optparse'
+
+################# Set directorys ... ##################
+signalp_dir = "./../../../signalp"                    
+output_dir = "./output"                               
+################# Change Defaults... ##################
+# Change the cut-off length for the Open Reading frame
+# The default used by Online Signal P 4.0 Server is 10
+orf_min_length = 10                                   
+#######################################################
+#######################################################
+#####YOU DO NOT NEED TO CHANGE ANYHTING BELOW THIS#####
+#######################################################
+#######################################################
+
+options = {}
+optparse = OptionParser.new do|opts|
+   	opts.banner = "Usage: np_search.rb [options] InputFile InputType Motif"
+ 	opts.separator "Where:"
+ 	opts.separator "InputFile = The input query file"
+ 	opts.separator "InputType = The type of data in the input query file. The only two options available are \"genetic\" and \"protein\""
+ 	opts.separator "Motif = The query motif to be searched for. The period \".\" can be used to stands for any character. Multiple motifs query can be used by using a pipeline character (\"|\") between each query and putting the motif query in speech marks e.g. \"KR|RR|R..R\""
+ 	opts.separator "Advanced Users: Regex is supported in the motif query"
+ 	opts.separator ""
+ 	opts.separator "Options:"
+
+	options[:verbose] = false
+	opts.on( '-v', '--verbose', 'Provides more information on each step taken in this program.' ) do
+		options[:verbose] = true
+   	end
+
+	options[:output_all] = false
+	opts.on( '-a', '--output_all', 'Outputs all possible files' ) do
+		options[:output_all] = true
+   	end
+ 	
+   	opts.on( '-h', '--help', 'Display this screen' ) do
+    	puts opts
+		exit
+	end
+end
+optparse.parse!
+
+unless ARGV.size == 3 
+	puts "Incorrect number of Arguments"
+	puts "Usage: np_search.rb [options] InputFile InputType Motif"
+	exit
+end
+
+input = ARGV[0] # e.g. "example_files/genetic.fa"
+input_type = ARGV[1] # e.g. "genetic" or "protein"
+motif_query = ARGV[2] # e.g. neuro_clv
+
+if motif_query == "neuro_clv" 
+	motif = "KK|KR|RR|R..R|R....R|R......R|H..R|H....R|H......R|K..R|K....R|K......R"
+else
+	motif = motif_query
+end
+
+############# Input Validation...##############
+input_validators_new = NpSearch::InputValidators.new
+signalp_directory = input_validators_new.signalp_validator(signalp_dir)
+input_validators_new.output_dir_validator(output_dir)
+input_validators_new.orf_min_length_validator(orf_min_length)
+input_validators_new.input_file_validator(input)
+input_validators_new.input_type_validator(input_type)
+input_validators_new.motif_validator(motif, input_type) ### motif_validator method currently commented out...
+
+
+############# MAIN ##############
+output_new = NpSearch::Output.new
+
+if input_type.downcase == "genetic"
+	############# Converting input file to Bio::FastaFormat.   ##############
+	puts "#{Time.now}: Reading Input file #{input}" if options[:verbose]
+	input_new = NpSearch::Input.new
+	input_read = input_new.read(input, input_type)
+
+	############# Translation & Open Reading Frame Extraction. ##############
+	translation_new = NpSearch::Translation.new
+	puts "#{Time.now}: Translating the genomic data in all 6 frames" if options[:verbose]
+	 	translated_sequences = translation_new.translate(input_read)
+	puts "#{Time.now}: Writing the translated sequences to the file: \"#{output_dir}/protein.fa\"." if options[:verbose] && options[:output_all] 
+		output_new.to_fasta(translated_sequences, "#{output_dir}/protein.fa") if options[:output_all] 
+
+	puts "#{Time.now}: Extracting all Open Reading Frames from all 6 possible frames. This is every methionine residue to the next stop codon." if options[:verbose]
+		orf = translation_new.extract_orf(translated_sequences)
+	puts "#{Time.now}: Writing the extracted Open Reading Frames to the file \"#{output_dir}/orf.fa\"."if options[:verbose] && options[:output_all] 
+		output_new.to_fasta(orf, "#{output_dir}/orf.fa") if options[:output_all] 
+	puts "#{Time.now}: Removing all Open Reading Frames that are shorter than #{orf_min_length}." if options[:verbose]
+		orf_condensed = translation_new.orf_cleaner(orf, orf_min_length)
+	### Perhaps make a temp file for the orf_condensed and then remove it once the signal p has seen it... And only output this file if options[:verbose]
+	puts "#{Time.now}: Writing the condensed Open Reading Frames to the file \"#{output_dir}/orf_condensed.fa\"."if options[:verbose] 
+		output_new.to_fasta(orf_condensed, "#{output_dir}/orf_condensed.fa") 
+	############# Signal P  ##############
+	signalp_new = NpSearch::Signalp.new
+	puts "#{Time.now}: Running a Signal Peptide test on each condensed open reading frame." if options[:verbose]
+	signalp_new.signal_p(signalp_directory, "#{output_dir}/orf_condensed.fa", "#{output_dir}/signalp_out.txt")
+
+input_validators_new.signalp_version_validator("#{output_dir}/signalp_out.txt")
+
+elsif input_type.downcase == "protein"
+	puts "#{Time.now}: Reading Input file #{input}" if options[:verbose]
+	############# Signal P  ##############
+	signalp_new = NpSearch::Signalp.new
+	puts "#{Time.now}: Running a Signal Peptide test on each sequence." if options[:verbose]
+	signalp_new.signal_p(signalp_directory, input, "#{output_dir}/signalp_out.txt")
+end
+
+############# Data Analysis  (common for genetic and protein data) ##############
+puts "#{Time.now}: Writing the Signal Peptide test results to the file \"#{output_dir}/signalp_out.txt\"." if options[:verbose]
+
+identified_positives_length = signalp_new.signalp_positives_extractor("#{output_dir}/signalp_out.txt") 
+
+puts "#{Time.now}: Extracting all Open Reading Frames that have a Signal Peptide." if options[:verbose]
+signalp = signalp_new.array_generator(identified_positives_length)
+
+############# Final Outputs. (more or less)  ##############
+puts "#{Time.now}: Extracting sequences that have at least 1 neuropeptide cleavage site after the signal peptide cleavage site" if options[:verbose]
+signalp_with_seq = signalp_new.parse(signalp, orf_condensed, motif)
+puts "#{Time.now}: Writing sequences that have at least 1 neuropeptide cleavage site after the signal peptide cleavage site to the file \"#{output_dir}/signalp_with_seq.fa\"" if options[:verbose] && options[:output_all] 
+	output_new.to_fasta(signalp_with_seq, "#{output_dir}/signalp_with_seq.fa") if options[:output_all] 
+
+puts "#{Time.now}: Removing all duplicate entries." if options[:verbose]
+flattened_seq = signalp_new.flattener(signalp_with_seq)
+
+puts "#{Time.now}: Writing Ouput files to the fasta files \"#{output_dir}/output.fa\" and to the word document: \"#{output_dir}/output.docx\"." if options[:verbose]
+	output_new.to_fasta(flattened_seq, "#{output_dir}/output.fa")
+	output_new.to_doc(flattened_seq, "#{output_dir}/output.docx", motif)
+
+puts "\nSuccess: All output files created in the directory: \"#{output_dir}\" \n "
