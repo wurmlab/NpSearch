@@ -19,14 +19,14 @@ end
 class UnitTests < Test::Unit::TestCase
   def setup # read all expected files
     test_input                   = NpSearch::Input.new
-    @test_genetic_input_read     = test_input.read("./test_inputs/genetic.fa", "genetic")
-    @expected_translation_hash   = test_input.read("./test_files/protein.fa", "protein")
-    @expected_orf_hash           = test_input.read("./test_files/orf.fa", "protein")
-    @expected_orf_condensed_hash = test_input.read("./test_files/orf_condensed.fa", "protein")    
-    @expected_signalp_file       = File.read("./test_files/signalp_out.txt")
+    @test_genetic_input_read     = test_input.read("test/test_inputs/genetic.fa", "genetic")
+    @expected_translation_hash   = test_input.read("test/test_files/protein.fa", "protein")
+    @expected_orf_hash           = test_input.read("test/test_files/orf.fa", "protein")
+    @expected_orf_condensed_hash = test_input.read("test/test_files/orf_condensed.fa", "protein")    
+    @expected_signalp_file       = File.read("test/test_files/signalp_out.txt")
     test_input1                  = InputChanged.new
-    @expected_signalp_with_seq   = test_input1.read("./test_files/signalp_with_seq.fa", "protein")
-    @expected_flattened_output   = test_input1.read("./test_files/output.fa", "protein")
+    @expected_signalp_with_seq   = test_input1.read("test/test_files/signalp_with_seq.fa", "protein")
+    @expected_flattened_output   = test_input1.read("test/test_files/output.fa", "protein")
     @expected_positives_number   = 10
     @motif                       = "KK|KR|RR|R..R|R....R|R......R|H..R|H....R|H......R|K..R|K....R|K......R|GK|L"
   end
@@ -35,13 +35,13 @@ class UnitTests < Test::Unit::TestCase
 # => Test if the signalp validator method works in verifying whether the directory contains the signal p script. 
 #  def test_signalp_validator
 #    test_validators = NpSearch::InputValidators.new
-#    assert_equal("./../../../signalp", test_validators.signalp_validator("./../../../signalp"))
+#    assert_equal("test/.test/.test/.test/signalp", test_validators.signalp_validator("test/.test/.test/.test/signalp"))
 #  end
 
 # => Test if the output directory validator works, in ensuring whether an output directory can be found. 
   def test_output_dir_validator
     test_validators = NpSearch::InputValidators.new
-    assert_equal(nil, test_validators.output_dir_validator("./test_out"))
+    assert_equal(nil, test_validators.output_dir_validator("test/test_out"))
   end
 
 # => Test if the orf_min_length validator works, in ensuring that the value is number
@@ -59,20 +59,20 @@ class UnitTests < Test::Unit::TestCase
 # => Test if the input_file_validator works properly, in ensuring that input file is not missing, empty or is in the wrong format. 
   def test_input_file_validator_1
     test_validators = NpSearch::InputValidators.new
-    assert_equal(nil, test_validators.input_file_validator("./test_inputs/genetic.fa"))
-    assert_equal(nil, test_validators.input_file_validator("./test_inputs/protein.fa"))
-    assert_raise( SystemExit ) {test_validators.input_file_validator("./test_inputs/missing_input.fa")}
-    assert_raise( SystemExit ) {test_validators.input_file_validator("./test_inputs/empty_file.fa")}
-    assert_raise( SystemExit ) {test_validators.input_file_validator("./test_inputs/missing_input.fa")}
-    assert_raise( SystemExit ) {test_validators.input_file_validator("./test_inputs/not_fasta.fa")}
+    assert_equal(nil, test_validators.input_file_validator("test/test_inputs/genetic.fa"))
+    assert_equal(nil, test_validators.input_file_validator("test/test_inputs/protein.fa"))
+    assert_raise( SystemExit ) {test_validators.input_file_validator("test/test_inputs/missing_input.fa")}
+    assert_raise( SystemExit ) {test_validators.input_file_validator("test/test_inputs/empty_file.fa")}
+    assert_raise( SystemExit ) {test_validators.input_file_validator("test/test_inputs/missing_input.fa")}
+    assert_raise( SystemExit ) {test_validators.input_file_validator("test/test_inputs/not_fasta.fa")}
   end
 
 # => Test if the probably_fasta method works in ensuring that the input file is in the fasta format.
   def test_probably_fasta
     test_validators = NpSearch::InputValidators.new
-    assert_equal(TRUE, test_validators.probably_fasta("./test_inputs/genetic.fa"))
-    assert_equal(TRUE, test_validators.probably_fasta("./test_inputs/protein.fa"))
-    assert_equal(FALSE, test_validators.probably_fasta("./test_inputs/not_fasta.fa"))
+    assert_equal(TRUE, test_validators.probably_fasta("test/test_inputs/genetic.fa"))
+    assert_equal(TRUE, test_validators.probably_fasta("test/test_inputs/protein.fa"))
+    assert_equal(FALSE, test_validators.probably_fasta("test/test_inputs/not_fasta.fa"))
   end
 
 # => Test if the input type validator works properly in that only the recognised formats can be used.
@@ -113,29 +113,29 @@ class UnitTests < Test::Unit::TestCase
   end
 
 # => Test if the external signal p script runs correctly and produces the expected results - asserts that the produced sigalp p output file is identical to the expected file.w
-  def test_signalp() # external script
-    signalp_dir = "./../../../signalp"
-    signalp_test = NpSearch::Signalp.new
-    signalp_test.signal_p(signalp_dir, "./test_files/orf_condensed.fa", "./test_out/signalp_out.txt")
-    test_signalp_file = File.read("./test_out/signalp_out.txt")
-    assert_equal(@expected_signalp_file, test_signalp_file)
-  end
+#  def test_signalp() # external script
+#    signalp_dir = "test/.test/.test/.test/signalp"
+#    signalp_test = NpSearch::Signalp.new
+#    signalp_test.signal_p(signalp_dir, "test/test_files/orf_condensed.fa", "test/test_out/signalp_out.txt")
+#    test_signalp_file = File.read("test/test_out/signalp_out.txt")
+#    assert_equal(@expected_signalp_file, test_signalp_file)
+#  end
 
 # => Tests that the signalp positives extractor methods works properly - asserts that the produced signalp_positives hash is identical to the expected result. 
-  def test_signalp_positives_extractor()
-    signalp_test = NpSearch::Signalp.new
-    @test_positives_number = signalp_test.signalp_positives_extractor("./test_out/signalp_out.txt").to_i
-    assert_equal(@expected_positives_number, @test_positives_number)
-  end
+#  def test_signalp_positives_extractor()
+#    signalp_test = NpSearch::Signalp.new
+#    @test_positives_number = signalp_test.signalp_positives_extractor("test/test_out/signalp_out.txt").to_i
+#    assert_equal(@expected_positives_number, @test_positives_number)
+#  end
 
 # => Tests that the parsing method works properly - asserts that the produced signalp_positives_with_seq hash is identical to the expected result. 
-  def test_parse()
-    signalp_test = NpSearch::Signalp.new
-    test_positives_number = signalp_test.signalp_positives_extractor("./test_out/signalp_out.txt").to_i
-    signalp = signalp_test.array_generator(@expected_positives_number.to_i)
-    signalp_with_seq_test = signalp_test.parse(signalp, @expected_orf_condensed_hash, @motif)
-    assert_equal(@expected_signalp_with_seq, signalp_with_seq_test)
-  end
+#  def test_parse()
+#    signalp_test = NpSearch::Signalp.new
+#    test_positives_number = signalp_test.signalp_positives_extractor("test/test_out/signalp_out.txt").to_i
+#    signalp = signalp_test.array_generator(@expected_positives_number.to_i)
+#    signalp_with_seq_test = signalp_test.parse(signalp, @expected_orf_condensed_hash, @motif)
+#    assert_equal(@expected_signalp_with_seq, signalp_with_seq_test)
+#  end
 
 # => Tests that the flattener method works properly - asserts that the produced flattened results is identical to the excpected results.
   def test_flattener()
