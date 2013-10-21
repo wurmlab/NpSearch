@@ -18,7 +18,7 @@ end
 
 class UnitTests < Test::Unit::TestCase
 	def setup # read all expected files
-		test_input = Input.new
+		test_input = NpSearch::Input.new
 		@test_genetic_input_read = test_input.read("./test_inputs/genetic.fa", "genetic")
 		@expected_translation_hash = test_input.read("./test_files/protein.fa", "protein")
 		@expected_orf_hash = test_input.read("./test_files/orf.fa", "protein")
@@ -36,19 +36,19 @@ class UnitTests < Test::Unit::TestCase
 	####### Testing input for normal & weird cases ####### 
 # => Test if the 
 	def test_signalp_validator
-		test_validators = InputValidators.new
+		test_validators = NpSearch::InputValidators.new
 		assert_equal("./../../../signalp", test_validators.signalp_validator("./../../../signalp"))
 	end
 
 # => Test if the 
 	def test_output_dir_validator
-		test_validators = InputValidators.new
+		test_validators = NpSearch::InputValidators.new
 		assert_equal(nil, test_validators.output_dir_validator("./test_out"))
 	end
 
 # => Test if the 
 	def test_orf_min_length_validator
-		test_validators = InputValidators.new
+		test_validators = NpSearch::InputValidators.new
 		assert_equal(nil, test_validators.orf_min_length_validator("622"))
 		assert_equal(nil, test_validators.orf_min_length_validator("10"))
 		assert_equal(nil, test_validators.orf_min_length_validator("2.567"))
@@ -60,7 +60,7 @@ class UnitTests < Test::Unit::TestCase
 
 # => Test if the 
 	def test_input_file_validator_1
-		test_validators = InputValidators.new
+		test_validators = NpSearch::InputValidators.new
 		assert_equal(nil, test_validators.input_file_validator("./test_inputs/genetic.fa"))
 		assert_equal(nil, test_validators.input_file_validator("./test_inputs/protein.fa"))
 		assert_raise( SystemExit ) {test_validators.input_file_validator("./test_inputs/missing_input.fa")}
@@ -71,7 +71,7 @@ class UnitTests < Test::Unit::TestCase
 
 # => Test if the 
 	def test_probably_fasta
-		test_validators = InputValidators.new
+		test_validators = NpSearch::InputValidators.new
 		assert_equal(TRUE, test_validators.probably_fasta("./test_inputs/genetic.fa"))
 		assert_equal(TRUE, test_validators.probably_fasta("./test_inputs/protein.fa"))
 		assert_equal(FALSE, test_validators.probably_fasta("./test_inputs/not_fasta.fa"))
@@ -79,7 +79,7 @@ class UnitTests < Test::Unit::TestCase
 
 # => Test if the 
 	def test_input_type_validator
-		test_validators = InputValidators.new
+		test_validators = NpSearch::InputValidators.new
 		assert_equal(nil, test_validators.input_type_validator("genetic"))
 		assert_equal(nil, test_validators.input_type_validator("GENETIC"))
 		assert_equal(nil, test_validators.input_type_validator("Genetic"))
@@ -95,21 +95,21 @@ class UnitTests < Test::Unit::TestCase
 	####### Testing individual parts of the script ####### 
 # => Test if the translation method works properly - assert that the produced translation is equal to the expected translation hash 
 	def test_translate()
-		translation_test = Translation.new
+		translation_test = NpSearch::Translation.new
 		translation_hash_test = translation_test.translate(@test_genetic_input_read)
 		assert_equal(@expected_translation_hash , translation_hash_test)
 	end
 
 # => Test if the extract_orf method works properly - assert that the produced orf hash is equal to the expected orf hash.
 	def test_extract_orf()
-		translation_test = Translation.new
+		translation_test = NpSearch::Translation.new
 		orf_hash_test = translation_test.extract_orf(@expected_translation_hash)
 		assert_equal(@expected_orf_hash.to_s, orf_hash_test.to_s.gsub("[", "").gsub("]", "")) #in orf method, an array is produced while in the expected file read, an array isn't produced, thus it s necessary to remove "[  ]" from either end.
 	end		
 
 # => Test if the orf cleaner method works properly - assert that the produced orf_cleaer hash is equal to the expected hash.
 	def test_orf_cleaner()
-		translation_test = Translation.new
+		translation_test = NpSearch::Translation.new
 		orf_condensed_hash_test = translation_test.orf_cleaner(@expected_orf_hash, (10 - 4)) 
 		assert_equal(@expected_orf_condensed_hash, orf_condensed_hash_test)
 	end
@@ -117,7 +117,7 @@ class UnitTests < Test::Unit::TestCase
 # => Test if the external signal p script runs correctly and produces the expected results - asserts that the produced sigalp p output file is identical to the expected file.w
 	def test_signalp() # external script
 		signalp_dir = "./../../../signalp"
-		signalp_test = Signalp.new
+		signalp_test = NpSearch::Signalp.new
 		signalp_test.signal_p(signalp_dir, "./test_files/orf_condensed.fa", "./test_out/signalp_out.txt")
 		test_signalp_file = File.read("./test_out/signalp_out.txt")
 		assert_equal(@expected_signalp_file, test_signalp_file)
@@ -125,14 +125,14 @@ class UnitTests < Test::Unit::TestCase
 
 # => Tests that the signalp positives extractor methods works properly - asserts that the produced signalp_positives hash is identical to the expected result. 
 	def test_signalp_positives_extractor()
-		signalp_test = Signalp.new
+		signalp_test = NpSearch::Signalp.new
 		@test_positives_number = signalp_test.signalp_positives_extractor("./test_out/signalp_out.txt").to_i
 		assert_equal(@expected_positives_number, @test_positives_number)
 	end
 
 # => Tests that the parsing method works properly - asserts that the produced signalp_positives_with_seq hash is identical to the expected result. 
 	def test_parse()
-		signalp_test = Signalp.new
+		signalp_test = NpSearch::Signalp.new
 		test_positives_number = signalp_test.signalp_positives_extractor("./test_out/signalp_out.txt").to_i
 		signalp = signalp_test.array_generator(@expected_positives_number.to_i)
 		signalp_with_seq_test = signalp_test.parse(signalp, @expected_orf_condensed_hash, @motif)
@@ -141,7 +141,7 @@ class UnitTests < Test::Unit::TestCase
 
 # => Tests that the flattener method works properly - asserts that the produced flattened results is identical to the excpected results.
 	def test_flattener()
-		signalp_test = Signalp.new
+		signalp_test = NpSearch::Signalp.new
 		flattened_output_test = signalp_test.flattener(@expected_signalp_with_seq)
 		assert_equal(@expected_flattened_output, flattened_output_test)
 	end

@@ -7,8 +7,8 @@ require 'fileutils'
 require 'optparse'
 
 ################# Set directorys ... ##################
-signalp_dir = "./../../../signalp"                    
-output_dir = "./output"                               
+signalp_dir = "#{Dir.home}/signalp"                    
+output_dir = "#{Dir.home}/output"                               
 ################# Change Defaults... ##################
 # Change the cut-off length for the Open Reading frame
 # The default used by Online Signal P 4.0 Server is 10
@@ -48,18 +48,23 @@ end
 optparse.parse!
 
 unless ARGV.size == 3 
+	puts # a blank line
 	puts "Incorrect number of Arguments"
 	puts "Usage: np_search.rb [options] InputFile InputType Motif"
+	puts # a blank line
 	puts "Where:"
 	puts "InputFile = The input query file"
 	puts "InputType = The type of data in the input query file. The only two options available are \"genetic\" and \"protein\""
-	puts "Motif = The query motif to be searched for. The period \".\" can be used to stands for any character. Multiple motifs query can be used by using a pipeline character (\"|\") between each query and putting the motif query in speech marks e.g. \"KR|RR|R..R\""
+	puts "Motif = The query motif to be searched for. The period \".\" can be used to stands for any character."
+	puts "        Multiple motifs query can be used by using a pipeline character (\"|\") between each query and putting the motif query in speech marks."
+	puts "        For example the  motif query \"KR|RR|R..R\" will search for \"KR\", \"RR\" and \"R..R\" (where . is any character)"
 	puts "Advanced Users: Regex is supported in the motif query"
 	puts # a blank line
 	puts "Options:"
 	puts "    -v, --verbose                    Provides more information on each step taken in this program."
 	puts "    -a, --output_all                 Outputs all possible files"
 	puts "    -h, --help                       Display this screen"
+	puts # a blank line
 	exit
 end
 
