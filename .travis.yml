@@ -2,4 +2,4 @@ language: ruby
 rvm:
   - "2.0.0"
 before_install: gem install bundler
-script: ./tests/run
+script: ./test/test_np_search.rb
