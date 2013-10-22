@@ -33,10 +33,10 @@ class UnitTests < Test::Unit::TestCase
   
   ####### Testing input for normal & weird cases ####### => commented out since it uses absolute directories
 # => Test if the signalp validator method works in verifying whether the directory contains the signal p script. 
-#  def test_signalp_validator
-#    test_validators = NpSearch::InputValidators.new
-#    assert_equal("test/.test/.test/.test/signalp", test_validators.signalp_validator("test/.test/.test/.test/signalp"))
-#  end
+  def test_signalp_validator
+    test_validators = NpSearch::InputValidators.new
+    assert_equal("test/test_files/signalp", test_validators.signalp_validator("test/test_files/signalp"))
+  end
 
 # => Test if the output directory validator works, in ensuring whether an output directory can be found. 
   def test_output_dir_validator
@@ -112,6 +112,7 @@ class UnitTests < Test::Unit::TestCase
     assert_equal(@expected_orf_condensed_hash, orf_condensed_hash_test)
   end
 
+####### Need the Signalp script to run. #######
 # => Test if the external signal p script runs correctly and produces the expected results - asserts that the produced sigalp p output file is identical to the expected file.w
 #  def test_signalp() # external script
 #    signalp_dir = "test/.test/.test/.test/signalp"
@@ -122,20 +123,20 @@ class UnitTests < Test::Unit::TestCase
 #  end
 
 # => Tests that the signalp positives extractor methods works properly - asserts that the produced signalp_positives hash is identical to the expected result. 
-#  def test_signalp_positives_extractor()
-#    signalp_test = NpSearch::Signalp.new
-#    @test_positives_number = signalp_test.signalp_positives_extractor("test/test_out/signalp_out.txt").to_i
-#    assert_equal(@expected_positives_number, @test_positives_number)
-#  end
+  def test_signalp_positives_extractor()
+    signalp_test = NpSearch::Signalp.new
+    @test_positives_number = signalp_test.signalp_positives_extractor("test/test_files/signalp_out.txt").to_i
+    assert_equal(@expected_positives_number, @test_positives_number)
+  end
 
 # => Tests that the parsing method works properly - asserts that the produced signalp_positives_with_seq hash is identical to the expected result. 
-#  def test_parse()
-#    signalp_test = NpSearch::Signalp.new
-#    test_positives_number = signalp_test.signalp_positives_extractor("test/test_out/signalp_out.txt").to_i
-#    signalp = signalp_test.array_generator(@expected_positives_number.to_i)
-#    signalp_with_seq_test = signalp_test.parse(signalp, @expected_orf_condensed_hash, @motif)
-#    assert_equal(@expected_signalp_with_seq, signalp_with_seq_test)
-#  end
+  def test_parse()
+    signalp_test = NpSearch::Signalp.new
+    test_positives_number = signalp_test.signalp_positives_extractor("test/test_files/signalp_out.txt").to_i
+    signalp = signalp_test.array_generator(@expected_positives_number.to_i)
+    signalp_with_seq_test = signalp_test.parse(signalp, @expected_orf_condensed_hash, @motif)
+    assert_equal(@expected_signalp_with_seq, signalp_with_seq_test)
+  end
 
 # => Tests that the flattener method works properly - asserts that the produced flattened results is identical to the excpected results.
   def test_flattener()
