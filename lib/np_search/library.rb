@@ -40,6 +40,7 @@ module NpSearch
         until inp.downcase == "n" || inp.downcase == "y"
             puts # a blank line
             puts "The input \"#{inp}\" is not recognised - \"y\" or \"n\" are the only recognisable inputs."
+            puts "Please try again."
             puts "The directory \"#{output_dir}\" will be created in this location."
             puts "Do you to continue? [y/n]"
             print "> "
@@ -56,7 +57,7 @@ module NpSearch
 
     # Checks whether the ORF minimum length is a number. Note any digits after the decimal place are ignored.
     def orf_min_length_validator(orf_min_length)
-      abort "Error: The Open Reading Frame (ORF) minimum length must be a whole integer.\n\n" if orf_min_length.to_i < 1 # The .to_i method converts all non-numbers to 0
+      abort "\nError: The Open Reading Frame (ORF) minimum length must be a whole integer.\n\n" if orf_min_length.to_i < 1 # The .to_i method converts all non-numbers to 0
     end
 
     # Checks if the file is in fasta format by checking whether the first character on the first line is a ">"
@@ -82,8 +83,8 @@ module NpSearch
     def input_type_validator(input_type)
       abort "\nError: The Input type \"#{input_type}\" is not recognised - the only two recognised options are \"genetic\" and \"protein\".\n\n" unless input_type.downcase == "genetic" || input_type.downcase == "protein"
     end
-    
-    # checks if the correct signal p version is used.
+
+    #
     def signalp_version(input_file)
       File.open(input_file, 'r') do |file_stream|
         first_line = file_stream.readline
@@ -95,9 +96,47 @@ module NpSearch
       end
     end
 
+    #
+    def signalp_column_validator(input_file)
+      File.open("signalp_out.txt", 'r') do |file_stream|
+        secondline = file_stream.readlines[1]
+        row = secondline.gsub(/\s+/m, ' ').chomp.split(" ")
+        unless row[1] == "name" && row[4] == "Ymax" && row[5] == "pos" && row[9] == "D" 
+          return FALSE
+        else
+          return TRUE 
+        end 
+      end
+    end
+
     # Ensure that the right version of signal is used.
     def signalp_version_validator(signalp_output_file)
-      abort "\nError: The wrong version of the signal p has been linked. Version 4.1 is the version of signalp currently supported.\n" unless signalp_version(signalp_output_file)
+      unless signalp_version(signalp_output_file) # if it is the wrong version 
+        #check the columns titles...
+        unless signalp_column_validator(signalp_output_file) # i.e. if it has the wrong columns 
+          puts # a blank line
+          puts "Warning: The wrong version of the signal p has been linked and the signal peptide output is in an unrecognised format."
+          puts "Continuing may give you meaningless results."
+          puts # a blank line
+        else
+          puts # a blank line
+          puts "Warning: The wrong version of signalp has been linked. However, the signal peptide output file still seems to be in the right format."
+          puts # a blank line
+        end
+        puts "Do you still want to continue? [Y/n]"
+        print "> "
+        inp = $stdin.gets.chomp
+        until inp.downcase == "n" || inp.downcase == "y"
+          puts # a blank line
+          puts "The input \"#{inp}\" is not recognised - \"y\" or \"n\" are the only recognisable inputs."
+          puts "Please try again."
+        end
+        if inp.downcase == "y"
+          puts "Continuing..."
+        elsif inp.downcase == "n" 
+          abort "\nError: The wrong version of Signal Peptide has been linked. Version 4.1 is the version of signalp currently supported.\n\n"
+        end
+      end
     end
   end
 
