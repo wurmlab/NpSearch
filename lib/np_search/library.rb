@@ -13,11 +13,11 @@ module NpSearch
         print "> "
         inp = $stdin.gets.chomp
         until (File.exist? "#{signalp_dir}/signalp") || (File.exist? "#{inp}/signalp")
-            puts # a blank line 
-            puts "The Signal P directory cannot be found at the following location: \"#{inp}/\""
-            puts "Please enter the full path or a relative path to the Signal P directory again..."
-            print "> "
-            inp = $stdin.gets.chomp
+          puts # a blank line 
+          puts "The Signal P directory cannot be found at the following location: \"#{inp}/\""
+          puts "Please enter the full path or a relative path to the Signal P directory again..."
+          print "> "
+          inp = $stdin.gets.chomp
         end       
         signalp_directory = inp
         puts # a blank line
@@ -38,19 +38,19 @@ module NpSearch
         print "> "
         inp = $stdin.gets.chomp
         until inp.downcase == "n" || inp.downcase == "y"
-            puts # a blank line
-            puts "The input \"#{inp}\" is not recognised - \"y\" or \"n\" are the only recognisable inputs."
-            puts "Please try again."
-            puts "The directory \"#{output_dir}\" will be created in this location."
-            puts "Do you to continue? [y/n]"
-            print "> "
-            inp = $stdin.gets.chomp
+          puts # a blank line
+          puts "The input \"#{inp}\" is not recognised - \"y\" or \"n\" are the only recognisable inputs."
+          puts "Please try again."
+          puts "The directory \"#{output_dir}\" will be created in this location."
+          puts "Do you to continue? [y/n]"
+          print "> "
+          inp = $stdin.gets.chomp
         end
         if inp.downcase == "y"
-            FileUtils.mkdir_p "#{output_dir}" # mkdir_p => make each level of the directory
-            puts "Created output directory..."
+          FileUtils.mkdir_p "#{output_dir}" # mkdir_p => make each level of the directory
+          puts "Created output directory..."
         elsif inp.downcase == "n"
-            abort "\nError: A output directory is required - please create one and then try again.\n\n"
+          abort "\nError: A output directory is required - please create one and then try again.\n\n"
         end            
       end
     end
@@ -84,7 +84,7 @@ module NpSearch
       abort "\nError: The Input type \"#{input_type}\" is not recognised - the only two recognised options are \"genetic\" and \"protein\".\n\n" unless input_type.downcase == "genetic" || input_type.downcase == "protein"
     end
 
-    #
+    # Checks whether the right version of Signal P has been linked to the program.
     def signalp_version(input_file)
       File.open(input_file, 'r') do |file_stream|
         first_line = file_stream.readline
@@ -96,7 +96,7 @@ module NpSearch
       end
     end
 
-    #
+    # Checks whether the signal p output is in the right format by checking whether the necessary columns are exactly the same.
     def signalp_column_validator(input_file)
       File.open("signalp_out.txt", 'r') do |file_stream|
         secondline = file_stream.readlines[1]
@@ -111,14 +111,13 @@ module NpSearch
 
     # Ensure that the right version of signal is used.
     def signalp_version_validator(signalp_output_file)
-      unless signalp_version(signalp_output_file) # if it is the wrong version 
-        #check the columns titles...
-        unless signalp_column_validator(signalp_output_file) # i.e. if it has the wrong columns 
+      unless signalp_version(signalp_output_file) # i.e. if it is the wrong version
+        unless signalp_column_validator(signalp_output_file) # i.e. if it has the wrong columns titles, then
           puts # a blank line
           puts "Warning: The wrong version of the signal p has been linked and the signal peptide output is in an unrecognised format."
           puts "Continuing may give you meaningless results."
           puts # a blank line
-        else
+        else # i.e. if TRUE
           puts # a blank line
           puts "Warning: The wrong version of signalp has been linked. However, the signal peptide output file still seems to be in the right format."
           puts # a blank line
