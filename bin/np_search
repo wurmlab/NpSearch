@@ -6,6 +6,7 @@ require "np_search/library"
 require 'fileutils'
 require 'optparse'
 require 'slim'
+require 'logger'
 
 ################# Default Options ... ##################
 signalp_dir = "#{Dir.home}/signalp"                    
@@ -25,12 +26,17 @@ optparse = OptionParser.new do|opts|
   opts.separator "Options:"
 
   options[:verbose] = false
-    opts.on( '-v', '--verbose', 'Provides more information on each step taken in this program.' ) do
+  opts.on( '-v', '--verbose', 'Provides more information on each step taken in this program.' ) do
     options[:verbose] = true
   end
 
   options[:output_all] = false
-    opts.on( '-a', '--output_all', 'Outputs all possible files' ) do
+  opts.on( '-a', '--output_all', 'Outputs all possible files' ) do
+    options[:output_all] = true
+  end
+  
+  options[:debug] = false
+  opts.on( '-d', '--debug', 'Debugs the program' ) do
     options[:output_all] = true
   end
   
@@ -56,20 +62,34 @@ unless ARGV.size == 3
   puts # a blank line
   puts "Options:"
   puts "    -v, --verbose                    Provides more information on each step taken in this program."
-  puts "    -a, --output_all                 Outputs all possible files"
+  puts "    -a, --output_all                 Out# puts all possible files"
   puts "    -h, --help                       Display this screen"
   puts # a blank line
   exit
 end
 
+
 input = ARGV[0] # e.g. "example_files/genetic.fa"
 input_type = ARGV[1] # e.g. "genetic" or "protein"
 motif_query = ARGV[2] # e.g. neuro_clv
+#orf_min_length = ""
 
 if motif_query == "neuro_clv" 
   motif = "KK|KR|RR|R..R|R....R|R......R|H..R|H....R|H......R|K..R|K....R|K......R"
 else
   motif = motif_query
+end
+
+logger = Logger.new(STDOUT)
+logger.formatter = proc do |severity, datetime, progname, msg|
+  "#{datetime}: #{msg}\n"
+end
+if options[:verbose]
+  logger.level = Logger::INFO
+elsif options[:debug]
+  logger.level = Logger::DEBUG
+else
+  logger.level = Logger::FATAL
 end
 
 ############# Input Validation...##############
@@ -82,66 +102,66 @@ input_validators_new.input_type_validator(input_type)
 
 ############# MAIN ##############
 output_new = NpSearch::Output.new
-
 if input_type.downcase == "genetic"
   ############# Converting input file to Bio::FastaFormat.   ##############
-  puts "#{Time.now}: Reading Input file #{input}" if options[:verbose]
+logger.info { "Reading Input file: \"#{input}\"" }
+  logger.info { "Reading Input file #{input}" }
   input_new = NpSearch::Input.new
   input_read = input_new.read(input, input_type)
 
   ############# Translation  ##############
   translation_new = NpSearch::Translation.new
-  puts "#{Time.now}: Translating the genomic data in all 6 frames" if options[:verbose]
+  logger.info { "Translating the genomic data in all 6 frames" }
   translated_sequences = translation_new.translate(input_read)
-  puts "#{Time.now}: Writing the translated sequences to the file: \"#{output_dir}/protein.fa\"." if options[:verbose] && options[:output_all] 
+  logger.info { "Writing the translated sequences to the file: \"#{output_dir}/protein.fa\"." } if options[:output_all] 
   output_new.to_fasta(translated_sequences, "#{output_dir}/protein.fa") if options[:output_all] 
   ############# Open Reading Frame Extraction. #############
-  puts "#{Time.now}: Extracting all Open Reading Frames from all 6 possible frames. This is every methionine residue to the next stop codon." if options[:verbose]
+  logger.info { "Extracting all Open Reading Frames from all 6 possible frames. This is every methionine residue to the next stop codon." }
   orf = translation_new.extract_orf(translated_sequences)
-  puts "#{Time.now}: Writing the extracted Open Reading Frames to the file \"#{output_dir}/orf.fa\"."if options[:verbose] && options[:output_all] 
+  logger.info { "Writing the extracted Open Reading Frames to the file \"#{output_dir}/orf.fa\"." } if options[:output_all] 
   output_new.to_fasta(orf, "#{output_dir}/orf.fa") if options[:output_all] 
-  puts "#{Time.now}: Removing all Open Reading Frames that are shorter than #{orf_min_length}." if options[:verbose]
+  logger.info { "Removing all Open Reading Frames that are shorter than #{orf_min_length}." }
   orf_condensed = translation_new.orf_cleaner(orf, orf_min_length)
   ### Perhaps make a temp file for the orf_condensed and then remove it once the signal p has seen it... And only output this file if options[:verbose]
-  puts "#{Time.now}: Writing the condensed Open Reading Frames to the file \"#{output_dir}/orf_condensed.fa\"."if options[:verbose] 
+  logger.info { "Writing the condensed Open Reading Frames to the file \"#{output_dir}/orf_condensed.fa\"." }
   output_new.to_fasta(orf_condensed, "#{output_dir}/orf_condensed.fa") 
   ############# Signal P  ##############
   signalp_new = NpSearch::Signalp.new
-  puts "#{Time.now}: Running a Signal Peptide test on each condensed open reading frame." if options[:verbose]
+  logger.info { "Running a Signal Peptide test on each condensed open reading frame." }
   signalp_new.signal_p(signalp_directory, "#{output_dir}/orf_condensed.fa", "#{output_dir}/signalp_out.txt")
   input_validators_new.signalp_version_validator("#{output_dir}/signalp_out.txt")
 elsif input_type.downcase == "protein"
-  puts "#{Time.now}: Reading Input file #{input}" if options[:verbose]
+  logger.info { "Reading Input file #{input}" }
   ############# Signal P  ##############
   signalp_new = NpSearch::Signalp.new
-  puts "#{Time.now}: Running a Signal Peptide test on each sequence." if options[:verbose]
+  logger.info { "Running a Signal Peptide test on each sequence." }
   signalp_new.signal_p(signalp_directory, input, "#{output_dir}/signalp_out.txt")
 end
 
 ############# Data Analysis  (common for genetic and protein data) ##############
-puts "#{Time.now}: Writing the Signal Peptide test results to the file \"#{output_dir}/signalp_out.txt\"." if options[:verbose]
+logger.info { "Writing the Signal Peptide test results to the file \"#{output_dir}/signalp_out.txt\"." }
 if options[:output_all] 
   identified_positives_length = signalp_new.signalp_positives_extractor("#{output_dir}/signalp_out.txt", "#{output_dir}/signalp_positives.txt", "signalp_positives_file") 
 elsif
   identified_positives_length = signalp_new.signalp_positives_extractor("#{output_dir}/signalp_out.txt", "#{output_dir}/signalp_positives.txt", "no_signalp_positives_file")
 end
+logger.info { "Extracting all Open Reading Frames that have a Signal Peptide." }
 
-puts "#{Time.now}: Extracting all Open Reading Frames that have a Signal Peptide." if options[:verbose]
 signalp = signalp_new.array_generator(identified_positives_length)
 
-#signalp_file = signalp_new.signalp_positives_file
-#output_new.to_fasta(signalp_file, "#{output_dir}/signalp_positives")
-
 ############# Final Outputs. (more or less)  ##############
-puts "#{Time.now}: Extracting sequences that have at least 1 neuropeptide cleavage site after the signal peptide cleavage site" if options[:verbose]
+logger.info { "Extracting sequences that have at least 1 neuropeptide cleavage site after the signal peptide cleavage site" }
 signalp_with_seq = signalp_new.parse(signalp, orf_condensed, motif)
-puts "#{Time.now}: Writing sequences that have at least 1 neuropeptide cleavage site after the signal peptide cleavage site to the file \"#{output_dir}/signalp_with_seq.fa\"" if options[:verbose] && options[:output_all] 
+logger.info { "Writing sequences that have at least 1 neuropeptide cleavage site after the signal peptide cleavage site to the file \"#{output_dir}/signalp_with_seq.fa\"" } if options[:output_all] 
 output_new.to_fasta(signalp_with_seq, "#{output_dir}/signalp_with_seq.fa") if options[:output_all] 
-puts "#{Time.now}: Removing all duplicate entries." if options[:verbose]
+logger.info { "Removing all duplicate entries." }
 flattened_seq = signalp_new.flattener(signalp_with_seq)
-puts "#{Time.now}: Writing Ouput files to the fasta files \"#{output_dir}/output.fa\" and to the word document: \"#{output_dir}/output.docx\"." if options[:verbose]
+logger.info { "Writing Ouput files to the fasta files \"#{output_dir}/output.fa\" and to the word document: \"#{output_dir}/output.docx\"." }
 output_new.to_fasta(flattened_seq, "#{output_dir}/output.fa")
 output_new.to_doc(flattened_seq, "#{output_dir}/output.docx", motif)
+
 ############# Success #############
 
-puts "\nSuccess: All output files created in the directory: \"#{output_dir}\" \n "
+puts "Success: All output files created in the directory: \"#{output_dir}\" \n "
+
+logger.close
