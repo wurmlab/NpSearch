@@ -125,14 +125,14 @@ class UnitTests < Test::Unit::TestCase
 # => Tests that the signalp positives extractor methods works properly - asserts that the produced signalp_positives hash is identical to the expected result. 
   def test_signalp_positives_extractor()
     signalp_test = NpSearch::Signalp.new
-    @test_positives_number = signalp_test.signalp_positives_extractor("test/test_files/signalp_out.txt", "#{output_dir}/signalp_positives.txt", "signalp_positives_file").to_i
+    @test_positives_number = signalp_test.signalp_positives_extractor("test/test_files/signalp_out.txt", "test/test_out/signalp_positives.txt", "signalp_positives_file").to_i
     assert_equal(@expected_positives_number, @test_positives_number)
   end
 
 # => Tests that the parsing method works properly - asserts that the produced signalp_positives_with_seq hash is identical to the expected result. 
   def test_parse()
     signalp_test = NpSearch::Signalp.new
-    test_positives_number = signalp_test.signalp_positives_extractor("test/test_files/signalp_out.txt", "#{output_dir}/signalp_positives.txt", "signalp_positives_file").to_i
+    test_positives_number = signalp_test.signalp_positives_extractor("test/test_files/signalp_out.txt", "test/test_out/signalp_positives.txt", "signalp_positives_file").to_i
     signalp = signalp_test.array_generator(@expected_positives_number.to_i)
     signalp_with_seq_test = signalp_test.parse(signalp, @expected_orf_condensed_hash, @motif)
     assert_equal(@expected_signalp_with_seq, signalp_with_seq_test)
