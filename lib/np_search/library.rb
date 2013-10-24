@@ -14,14 +14,14 @@ module NpSearch
         inp = $stdin.gets.chomp
         until (File.exist? "#{signalp_dir}/signalp") || (File.exist? "#{inp}/signalp")
           puts # a blank line 
-          puts "The Signal P directory cannot be found at the following location: \"#{inp}/\""
+          puts "The Signal P directory cannot be found at the following location: \"#{inp}\""
           puts "Please enter the full path or a relative path to the Signal P directory again..."
           print "> "
           inp = $stdin.gets.chomp
         end       
-        signalp_directory = inp
+        signalp_directory = inp#.sub()
         puts # a blank line
-        puts "The Signal P directory has been found at \"#{signalp_directory}/\"..."
+        puts "The Signal P directory has been found at \"#{signalp_directory}\"..."
         puts # a blank line
       end
       return signalp_directory 
@@ -206,14 +206,28 @@ module NpSearch
     end
 
     # Extracts all lines from that Signal P test that show a positives Signal P.
-    def signalp_positives_extractor(input)
+    def signalp_positives_extractor(input, output_file, make_file)
       @positives = Hash.new
       signalp_file = File.read(input)
       identified_positives = signalp_file.scan(/^.* Y .*$/)
+      if make_file == "signalp_positives_file" 
+        signalp_positives_file_writer(input, identified_positives, output_file)
+      end
       for i in (0..(identified_positives.length - 1))
         @positives[i] = identified_positives[i]
       end
       return identified_positives.length
+    end
+
+    def signalp_positives_file_writer(input, identified_positives, output)
+      output_file = File.new(output, "w")
+      File.open(input, 'r') do |file_stream|
+        first_line = file_stream.readline
+        secondline = file_stream.readlines[0]
+        output_file.puts first_line
+        output_file.puts secondline
+      end  
+      output_file.puts identified_positives
     end
      
     # Convert the Signal P positives results (from the Signal P results) into an array and then put all the useful info into a hash

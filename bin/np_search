@@ -5,6 +5,7 @@ require "np_search/version"
 require "np_search/library"
 require 'fileutils'
 require 'optparse'
+require 'slim'
 
 ################# Default Options ... ##################
 signalp_dir = "#{Dir.home}/signalp"                    
@@ -119,9 +120,18 @@ end
 
 ############# Data Analysis  (common for genetic and protein data) ##############
 puts "#{Time.now}: Writing the Signal Peptide test results to the file \"#{output_dir}/signalp_out.txt\"." if options[:verbose]
-identified_positives_length = signalp_new.signalp_positives_extractor("#{output_dir}/signalp_out.txt") 
+if options[:output_all] 
+  identified_positives_length = signalp_new.signalp_positives_extractor("#{output_dir}/signalp_out.txt", "#{output_dir}/signalp_positives.txt", "signalp_positives_file") 
+elsif
+  identified_positives_length = signalp_new.signalp_positives_extractor("#{output_dir}/signalp_out.txt", "#{output_dir}/signalp_positives.txt", "no_signalp_positives_file")
+end
+
 puts "#{Time.now}: Extracting all Open Reading Frames that have a Signal Peptide." if options[:verbose]
 signalp = signalp_new.array_generator(identified_positives_length)
+
+#signalp_file = signalp_new.signalp_positives_file
+#output_new.to_fasta(signalp_file, "#{output_dir}/signalp_positives")
+
 ############# Final Outputs. (more or less)  ##############
 puts "#{Time.now}: Extracting sequences that have at least 1 neuropeptide cleavage site after the signal peptide cleavage site" if options[:verbose]
 signalp_with_seq = signalp_new.parse(signalp, orf_condensed, motif)
@@ -133,7 +143,5 @@ puts "#{Time.now}: Writing Ouput files to the fasta files \"#{output_dir}/output
 output_new.to_fasta(flattened_seq, "#{output_dir}/output.fa")
 output_new.to_doc(flattened_seq, "#{output_dir}/output.docx", motif)
 ############# Success #############
-
-input_validators_new.success_or_fail(output_dir)
 
 puts "\nSuccess: All output files created in the directory: \"#{output_dir}\" \n "

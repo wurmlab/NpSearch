@@ -31,7 +31,7 @@ class UnitTests < Test::Unit::TestCase
     @motif                       = "KK|KR|RR|R..R|R....R|R......R|H..R|H....R|H......R|K..R|K....R|K......R|GK|L"
   end
   
-  ####### Testing input for normal & weird cases ####### => commented out since it uses absolute directories
+  ####### Testing input for normal & weird cases
 # => Test if the signalp validator method works in verifying whether the directory contains the signal p script. 
   def test_signalp_validator
     test_validators = NpSearch::InputValidators.new
@@ -115,7 +115,7 @@ class UnitTests < Test::Unit::TestCase
 ####### Need the Signalp script to run. #######
 # => Test if the external signal p script runs correctly and produces the expected results - asserts that the produced sigalp p output file is identical to the expected file.w
 #  def test_signalp() # external script
-#    signalp_dir = "test/.test/.test/.test/signalp"
+#    signalp_dir = "./../../../signalp"
 #    signalp_test = NpSearch::Signalp.new
 #    signalp_test.signal_p(signalp_dir, "test/test_files/orf_condensed.fa", "test/test_out/signalp_out.txt")
 #    test_signalp_file = File.read("test/test_out/signalp_out.txt")
