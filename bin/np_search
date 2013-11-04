@@ -5,7 +5,6 @@ require "np_search/version"
 require "np_search/library"
 require 'fileutils'
 require 'optparse'
-require 'slim'
 require 'logger'
 
 ################# Default Options ... ##################
@@ -68,11 +67,10 @@ unless ARGV.size == 3
   exit
 end
 
-
 input = ARGV[0] # e.g. "example_files/genetic.fa"
 input_type = ARGV[1] # e.g. "genetic" or "protein"
 motif_query = ARGV[2] # e.g. neuro_clv
-#orf_min_length = ""
+
 
 if motif_query == "neuro_clv" 
   motif = "KK|KR|RR|R..R|R....R|R......R|H..R|H....R|H......R|K..R|K....R|K......R"
@@ -93,17 +91,17 @@ else
 end
 
 ############# Input Validation...##############
-input_validators_new = NpSearch::InputValidators.new
-signalp_directory = input_validators_new.signalp_validator(signalp_dir)
-input_validators_new.output_dir_validator(output_dir)
-input_validators_new.orf_min_length_validator(orf_min_length)
-input_validators_new.input_file_validator(input)
-input_validators_new.input_type_validator(input_type)
+input_validators_new = NpSearch::InputValidators.new 
+signalp_directory = input_validators_new.signalp_validator(signalp_dir) 
+input_validators_new.output_dir_validator(output_dir) 
+input_validators_new.orf_min_length_validator(orf_min_length) 
+input_validators_new.input_file_validator(input) 
+input_validators_new.input_type_validator(input_type) 
 
 ############# MAIN ##############
 output_new = NpSearch::Output.new
 if input_type.downcase == "genetic"
-  ############# Converting input file to Bio::FastaFormat.   ##############
+  ############# Converting input file to Bio::FastaFormat.   ############## 
 logger.info { "Reading Input file: \"#{input}\"" }
   logger.info { "Reading Input file #{input}" }
   input_new = NpSearch::Input.new
@@ -162,6 +160,6 @@ output_new.to_doc(flattened_seq, "#{output_dir}/output.docx", motif)
 
 ############# Success #############
 
-puts "Success: All output files created in the directory: \"#{output_dir}\" \n "
+puts "\nSuccess: All output files created in the directory: \"#{output_dir}\" \n "
 
 logger.close

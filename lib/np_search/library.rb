@@ -19,7 +19,7 @@ module NpSearch
           print "> "
           inp = $stdin.gets.chomp
         end       
-        signalp_directory = inp#.sub()
+        signalp_directory = inp
         puts # a blank line
         puts "The Signal P directory has been found at \"#{signalp_directory}\"..."
         puts # a blank line
@@ -228,6 +228,7 @@ module NpSearch
         output_file.puts secondline
       end  
       output_file.puts identified_positives
+      output_file.close
     end
      
     # Convert the Signal P positives results (from the Signal P results) into an array and then put all the useful info into a hash
@@ -243,16 +244,17 @@ module NpSearch
         seq_id = g[0] 
         cut_off = g[4]
         d_value = g[8]
-        signalp[seq_id] = "#{cut_off}//#{d_value}"
+        signalp[seq_id] = "#{cut_off}~#{d_value}"
       end
       return signalp
     end
-
+  
     # Uses the info in the signalp hash to present the data as seq ID (with useful info) on one line and the sequence on the next.
     def parse(signalp, open_reading_frames_condensed, motif)
+    puts @seq_id
       signalp_with_seq = Hash.new
       signalp.each do |id, cut_off_d_value|
-        cut_off_d_value.scan(/(\d+)\/\/(\d+.\d+)/) do |cut_off, d_value| # splits the cut_off_d_value into the cut_off and the d_value... 
+        cut_off_d_value.scan(/(\d+)~(\d+.\d+)/) do |cut_off, d_value| # splits the cut_off_d_value into the cut_off and the d_value... 
           sp_cleavage = cut_off.to_i - 1
           open_reading_frames_condensed.each do |seq_id, seq|
             sequence = seq.to_s.gsub(/\[\"/, "").gsub(/\"\]/, "") # sequence is in an hash (see method "extract_orf()"), so need to take into account leading [" and trailing "].
@@ -264,7 +266,7 @@ module NpSearch
       end
       return signalp_with_seq
     end 
-     
+ 
     # As usually working with transcriptome data, alternative splicing means that quite usually, you get exactly the same sequence (open reading frame) with different ids. Thus this collapses the seqs into one id.
     def flattener(hash)
       flattened_seq = Hash.new
