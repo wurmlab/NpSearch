@@ -257,7 +257,7 @@ module NpSearch
         open_reading_frames_condensed.each do |seq_id, seq|
           sequence = seq.to_s.gsub(/\[\"/, "").gsub(/\"\]/, "") # sequence is in an hash (see method "extract_orf()"), so need to take into account leading [" and trailing "].
           sequence.scan(/(.{#{infohash[0][:cut_off].to_i - 1}})(.*)/) do |signalp, seq_end|
-            signalp_with_seq[id + " - S.P. Cleavage Site: #{infohash[0][:cut_off].to_i - 1}:#{infohash[0][:cut_off]} - S.P. D-value: #{infohash[0][:d_value]}"] = "#{signalp}-#{seq_end}" if id == seq_id && seq_end.match(/#{motif}/)
+            signalp_with_seq[id + "~- S.P. Cleavage Site: #{infohash[0][:cut_off].to_i - 1}:#{infohash[0][:cut_off]} - S.P. D-value: #{infohash[0][:d_value]}"] = "#{signalp}~#{seq_end}" if id == seq_id && seq_end.match(/#{motif}/)
           end
         end
       end
@@ -265,9 +265,9 @@ module NpSearch
     end 
  
     # As usually working with transcriptome data, alternative splicing means that quite usually, you get exactly the same sequence (open reading frame) with different ids. Thus this collapses the seqs into one id.
-    def flattener(hash)
+    def flattener(signalp_with_seq)
       flattened_seq = Hash.new
-      hash.each do |id, seq|
+      signalp_with_seq.each do |id, seq|
         flattened_seq[seq] = [] unless flattened_seq[seq]
         flattened_seq[seq] = id 
       end
@@ -282,34 +282,49 @@ module NpSearch
     def to_fasta(hash, output)
       output_file = File.new(output, "w")
       hash.each do |id, seq|
-        output_file.puts ">" + id
-        sequence = seq.to_s.gsub("-", "").gsub("\[\"", "").gsub("\"\]", "")
+        output_file.puts ">" + id.gsub('~', '')
+        sequence = seq.to_s.gsub("~", "").gsub("\[\"", "").gsub("\"\]", "")
         output_file.puts sequence
       end
       output_file.close
     end
 
-    # converts the hash into a word document 
-    def to_doc(hash, output, motif)
-      output_file = File.new(output, "w")
-      output_file.puts "<!DOCTYPE html><html><head><style> .id{font-weight: bold;} .signalp{color:#000099; font-weight: bold;} .motif{color:#FF3300; font-weight: bold;} h3 {word-wrap: break-word;} p {word-wrap: break-word; font-family:Courier New, Courier, Mono;}</style></head><body>"
+    def make_doc_hash(hash, motif)
+      doc_hash = Hash.new
       hash.each do |id, seq|
-        sequence = seq.to_s.gsub("\[\"", "").gsub("\"\]", "")
-        id.scan(/(\w+)(.*)/) do |id_start, id_end|
-          output_file.puts "<p><span class=\"id\"> >#{id_start}</span><span>#{id_end}</span><br>"
-          if sequence.match(/-/) # the presence of the "-" means that the signal peptide has been found in the peptide
-            output_file.puts "<span class=\"signalp\">"
-            sequence.scan(/(\w+)-(\w+)/) do |signalp, seq_end|
-              output_file.puts signalp + "</span>" + seq_end.gsub(/#{motif}/, '<span class="motif">\0</span>')
-              output_file.puts "</p>"
-            end
-          else
-            output_file.puts sequence + "</p>"
-          end
-        end
+        id_hash = Hash[[[:id_start, :id_end], id.split("~").map(&:strip)].transpose]
+        seq_hash = Hash[[[:signalp, :seq_end], seq.split("~").map(&:strip)].transpose]
+        signalp = seq_hash[:signalp] 
+        new_seq_end = seq_hash[:seq_end].gsub(/#{motif}/, '<span class="motif">\0</span>')
+        new_seq_hash = Hash[:signalp => signalp, :new_seq_end => new_seq_end ]
+        doc_hash[id_hash] = [new_seq_hash]
       end
-      output_file.puts "</body></html>"
-      output_file.close   
+      return doc_hash
+    end
+
+    # converts the hash into a word document 
+    def to_doc(doc_hash, output)
+haml_doc = <<EOT
+!!!
+%html
+  %head
+    :css
+      .id {font-weight: bold;}
+      .signalp {color:#000099; font-weight: bold;}
+      .motif {color:#FF3300; font-weight: bold;}
+      p {word-wrap: break-word; font-family:Courier New, Courier, Mono;}
+  %body
+    - doc_hash.each do |id_hash, seq_hash|
+      %p
+        %span.id= id_hash[:id_start]
+        %span= id_hash[:id_end]
+        %br/
+        %span.signalp= seq_hash[0][:signalp] + "</span><span>" + seq_hash[0][:new_seq_end]
+EOT
+      engine = Haml::Engine.new(haml_doc)
+      output_file = File.new(output, "w")
+      output_file.puts engine.render(Object.new, :doc_hash => doc_hash)
+      output_file.close
     end
   end 
 end

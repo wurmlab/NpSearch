@@ -6,6 +6,7 @@ require "np_search"
 require 'fileutils'
 require 'optparse'
 require 'logger'
+require 'haml'
 
 ################# Default Options ... ##################
 signalp_dir = "#{Dir.home}/signalp"                    
@@ -156,7 +157,15 @@ logger.info { "Removing all duplicate entries." }
 flattened_seq = signalp_new.flattener(signalp_with_seq)
 logger.info { "Writing Ouput files to the fasta files \"#{output_dir}/output.fa\" and to the word document: \"#{output_dir}/output.docx\"." }
 output_new.to_fasta(flattened_seq, "#{output_dir}/output.fa")
-output_new.to_doc(flattened_seq, "#{output_dir}/output.docx", motif)
+
+
+
+doc_hash = output_new.make_doc_hash(flattened_seq, motif)
+
+output_new.to_doc(doc_hash, "#{output_dir}/output.docx")
+
+
+
 
 ############# Success #############
 
