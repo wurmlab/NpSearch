@@ -2,7 +2,7 @@
 
 require 'bio'
 require "np_search/version"
-require "np_search/library"
+require "np_search"
 require 'fileutils'
 require 'optparse'
 require 'logger'

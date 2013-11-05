@@ -18,17 +18,10 @@ The default output is just a fasta file and a colour-formatted word document. Ho
     
 ## Installation
 
-Add this line to your application's Gemfile:
+Simply open the Terminal and type this
+	
+	$ gem install np_search
 
-    gem 'np_search'
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install np_search
 
 ## Usage
 
@@ -48,13 +41,12 @@ Options
     -h, --help                       Display this screen
 
 ## Test_Example
-An Examplar set of input data is provided above.
 
-This could be run by typing in the lib directory
+An example set of data can be downloaded from ... The script can be run on the examplar data by typing this into the terminal.
 
-    ruby np_search.rb -v -a example_files/genetic.fa dna neuro_clv
+    $ np_search -v -a genetic.fa genetic neuro_clv
 
-This creates an ./output directory and places all files within this directory. The content of this folder should be identical to that provided at "lib/example_files/examplar_output".
+Further information on running the script on test material is provided within the test suite download.
 
 ## Contributing
 
