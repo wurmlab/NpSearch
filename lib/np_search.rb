@@ -1,67 +1,68 @@
 module NpSearch
-  ############# Validating methods ... ##############
   class InputValidators
-    # check for the presence of the signal P script.
+    # Checks for the presence of the Signal Peptide Script.
     def signalp_validator(signalp_dir)
       if File.exist? "#{signalp_dir}/signalp"
         signalp_directory = signalp_dir
       else
         puts # a blank line
-        puts "Error: The Signal P directory cannot be found in the following location: \"#{signalp_dir}/\"."
+        puts "Error: The Signal P directory cannot be found in the following location: '{signalp_dir}/'."
         puts # a blank line
-        puts "Please enter the full path or a relative path to the Signal P directory." 
-        print "> "
+        puts 'Please enter the full path or a relative path to the Signal P directory (i.e. to the folder containing the signalp script).'
+        print '> '
         inp = $stdin.gets.chomp
         until (File.exist? "#{signalp_dir}/signalp") || (File.exist? "#{inp}/signalp")
           puts # a blank line 
-          puts "The Signal P directory cannot be found at the following location: \"#{inp}\""
-          puts "Please enter the full path or a relative path to the Signal P directory again..."
-          print "> "
+          puts "The Signal P directory cannot be found at the following location: '#{inp}'"
+          puts 'Please enter the full path or a relative path to the Signal P directory again.'
+          print '> '
           inp = $stdin.gets.chomp
         end       
         signalp_directory = inp
         puts # a blank line
-        puts "The Signal P directory has been found at \"#{signalp_directory}\"..."
+        puts "The Signal P directory has been found at '#{signalp_directory}'"
         puts # a blank line
       end
       return signalp_directory 
     end
 
-    # checks for the presence of the output directory - if not found, it asks the user whether they want to create the output directory in that directory.
+    # Checks for the presence of the output directory; if not found, it asks
+    #   the user whether they want to create the output directory.
     def output_dir_validator(output_dir)
       unless File.directory? output_dir
         puts # a blank line
-        puts "The output directory does not exist."
+        puts 'The output directory does not exist.'
         puts # a blank line
-        puts "The directory \"#{output_dir}\" will be created in this location."
-        puts "Do you to continue? [y/n]"
-        print "> "
+        puts "The directory '#{output_dir}' will be created in this location."
+        puts 'Do you to continue? [y/n]'
+        print '> '
         inp = $stdin.gets.chomp
-        until inp.downcase == "n" || inp.downcase == "y"
+        until inp.downcase == 'n' || inp.downcase == 'y'
           puts # a blank line
-          puts "The input \"#{inp}\" is not recognised - \"y\" or \"n\" are the only recognisable inputs."
-          puts "Please try again."
-          puts "The directory \"#{output_dir}\" will be created in this location."
-          puts "Do you to continue? [y/n]"
-          print "> "
+          puts "The input: '#{inp}' is not recognised - 'y' or 'n' are the only recognisable inputs."
+          puts 'Please try again.'
+          puts "The directory '#{output_dir}' will be created in this location."
+          puts 'Do you to continue? [y/n]'
+          print '> '
           inp = $stdin.gets.chomp
         end
-        if inp.downcase == "y"
-          FileUtils.mkdir_p "#{output_dir}" # mkdir_p => make each level of the directory
-          puts "Created output directory..."
-        elsif inp.downcase == "n"
+        if inp.downcase == 'y'
+          FileUtils.mkdir_p "#{output_dir}" 
+          puts 'Created output directory...'
+        elsif inp.downcase == 'n'
           abort "\nError: A output directory is required - please create one and then try again.\n\n"
         end            
       end
     end
 
-    # Checks whether the ORF minimum length is a number. Note any digits after the decimal place are ignored.
+    # Ensures that the ORF minimum length is a number. Any digits after the
+    #   decimal place are ignored.
     def orf_min_length_validator(orf_min_length)
-      abort "\nError: The Open Reading Frame (ORF) minimum length must be a whole integer.\n\n" if orf_min_length.to_i < 1 # The .to_i method converts all non-numbers to 0
+      abort "\nError: The Open Reading Frame (ORF) minimum length must be a whole integer.\n\n" if orf_min_length.to_i < 1
     end
 
-    # Checks if the file is in fasta format by checking whether the first character on the first line is a ">"
-    def probably_fasta(input_file) ### taken from 'database_formatter.rb' from sequenceserver (currently without permission...)
+    # Taken from 'database_formatter.rb' from sequenceserver.
+    def probably_fasta(input_file) 
       File.open(input_file, 'r') do |file_stream|
         first_line = file_stream.readline
         if first_line.slice(0,1) == '>'
@@ -72,19 +73,21 @@ module NpSearch
       end
     end
 
-    # Checks whether the input file exists; whether it is empty and whether it is likely a fasta file.
+    # Checks whether the input file exists; whether it is empty and whether it
+    #   is likely a fasta file.
     def input_file_validator(input_file)
-      abort "\nError: Input file \"#{input_file}\" does not exist.\n\n" unless File.exist?(input_file)
-      abort "\nError: Input file is empty. Please correct this and try again.\n\n" if File.zero?(input_file)
-      abort "\nError: The Input file does not seem to be a fasta file. Only fasta files are supported.\n\n" unless probably_fasta(input_file)
+      abort "\nError: The input file '#{input_file}' does not exist.\n\n" unless File.exist?(input_file)
+      abort "\nError: The input file is empty. Please correct this and try again.\n\n" if File.zero?(input_file)
+      abort "\nError: The input file does not seem to be a fasta file. Only fasta files are supported.\n\n" unless probably_fasta(input_file)
     end
 
     # Checks whether the input_type has been provided in the correct format.
     def input_type_validator(input_type)
-      abort "\nError: The Input type \"#{input_type}\" is not recognised - the only two recognised options are \"genetic\" and \"protein\".\n\n" unless input_type.downcase == "genetic" || input_type.downcase == "protein"
+      abort "\nError: The input type: '#{input_type}' is not recognised; the only recognised options are 'genetic' and 'protein'.\n\n" unless input_type.downcase == 'genetic' || input_type.downcase == 'protein'
     end
 
-    # Checks whether the right version of Signal P has been linked to the program.
+    # Checks whether the right version of Signal Peptide Script has been  
+    #   linked to the program.
     def signalp_version(input_file)
       File.open(input_file, 'r') do |file_stream|
         first_line = file_stream.readline
@@ -96,12 +99,13 @@ module NpSearch
       end
     end
 
-    # Checks whether the signal p output is in the right format by checking whether the necessary columns are exactly the same.
+    # Checks whether the Signal P script output is in the right format by 
+    #   checking whether the necessary columns are exactly the same.
     def signalp_column_validator(input_file)
-      File.open("signalp_out.txt", 'r') do |file_stream|
+      File.open('signalp_out.txt', 'r') do |file_stream|
         secondline = file_stream.readlines[1]
-        row = secondline.gsub(/\s+/m, ' ').chomp.split(" ")
-        unless row[1] == "name" && row[4] == "Ymax" && row[5] == "pos" && row[9] == "D" 
+        row = secondline.gsub(/\s+/m, ' ').chomp.split(' ')
+        unless row[1] == 'name' && row[4] == 'Ymax' && row[5] == 'pos' && row[9] == 'D' 
           return FALSE
         else
           return TRUE 
@@ -111,28 +115,28 @@ module NpSearch
 
     # Ensure that the right version of signal is used.
     def signalp_version_validator(signalp_output_file)
-      unless signalp_version(signalp_output_file) # i.e. if it is the wrong version
-        unless signalp_column_validator(signalp_output_file) # i.e. if it has the wrong columns titles, then
+      unless signalp_version(signalp_output_file) # i.e. if Signal P is the wrong version
+        unless signalp_column_validator(signalp_output_file)
           puts # a blank line
-          puts "Warning: The wrong version of the signal p has been linked and the signal peptide output is in an unrecognised format."
-          puts "Continuing may give you meaningless results."
+          puts 'Warning: The wrong version of the signal p has been linked and the signal peptide output is in an unrecognised format.'
+          puts 'Continuing may give you meaningless results.'
           puts # a blank line
-        else # i.e. if TRUE
+        else 
           puts # a blank line
-          puts "Warning: The wrong version of signalp has been linked. However, the signal peptide output file still seems to be in the right format."
+          puts 'Warning: The wrong version of signalp has been linked. However, the signal peptide output file still seems to be in the right format.'
           puts # a blank line
         end
-        puts "Do you still want to continue? [Y/n]"
-        print "> "
+        puts 'Do you still want to continue? [y/n]'
+        print '> '
         inp = $stdin.gets.chomp
-        until inp.downcase == "n" || inp.downcase == "y"
+        until inp.downcase == 'n' || inp.downcase == 'y'
           puts # a blank line
-          puts "The input \"#{inp}\" is not recognised - \"y\" or \"n\" are the only recognisable inputs."
-          puts "Please try again."
+          puts "The input: '#{inp}' is not recognised - 'y' or 'n' are the only recognisable inputs."
+          puts 'Please try again.'
         end
-        if inp.downcase == "y"
-          puts "Continuing..."
-        elsif inp.downcase == "n" 
+        if inp.downcase == 'y'
+          puts 'Continuing.'
+        elsif inp.downcase == 'n' 
           abort "\nError: The wrong version of Signal Peptide has been linked. Version 4.1 is the version of signalp currently supported.\n\n"
         end
       end
@@ -140,7 +144,6 @@ module NpSearch
   end
 
   
-  ############# Converting Input into proper format... ##############
   class Input
     # Reads the input file converting it into hash.
     def read(input_file, type)
@@ -160,13 +163,12 @@ module NpSearch
   end
 
 
-  ############# Translating genetic data into proteome data. ##############
   class Translation 
-    # Translate in all 6 frames - with * standing for stop codons
+    # Translates in all 6 frames - with * standing for stop codons
     def translate(input_read)
       protein_data = Hash.new
       input_read.each do |id, sequence|
-        for f in (1..6)   # loops, translating in all 6 frames
+        for f in (1..6)
           protein_data[id + '_f' + f.to_s] = sequence.translate(f)
         end     
       end
@@ -177,26 +179,25 @@ module NpSearch
     def extract_orf(protein_data)
       orf = Hash.new
       protein_data.each do |id, sequence|
-        identified_orfs = sequence.scan(/(?=(M\w*))./) # Look-Ahead regex scans the sequence for every possible methionine residue to the next stop codon.   
+        identified_orfs = sequence.scan(/(?=(M\w*))./)
         for i in (0..(identified_orfs.length - 1))
-          orf[id + '_' + i.to_s] = identified_orfs[i] # the sequence is put in the array i 
+          orf[id + '_' + i.to_s] = identified_orfs[i]
         end
       end
       return orf
     end
 
-    # Extract all those Open Reading Frames that are longer than the minimum length.
+    # Extracts all Open Reading Frames that are longer than the minimum length.
     def orf_cleaner(orf, minimum_length)
       orf_condensed = Hash.new
       orf.each do |id, sequence|
-        orf_condensed[id] = sequence if (sequence.to_s).length >= (minimum_length + 4) # sequence is in an hash (see method "extract_orf()"), so need to take into account leading [" and trailing "]
+        orf_condensed[id] = sequence if (sequence.to_s).length >= (minimum_length + 4) # sequence is in an hash, so need to take into account leading [" and trailing "]
       end
       return orf_condensed
     end
   end
 
 
-  ############# Signal P and Signal P data extraction. ##############
   class Signalp
     @positives = nil
     
@@ -207,7 +208,7 @@ module NpSearch
 
     # Part of the next method - it is used to create a signalp positives file if required.
     def signalp_positives_file_writer(input, identified_positives, output)
-      output_file = File.new(output, "w")
+      output_file = File.new(output, 'w')
       File.open(input, 'r') do |file_stream|
         first_line = file_stream.readline
         secondline = file_stream.readlines[0]
@@ -218,12 +219,12 @@ module NpSearch
       output_file.close
     end
 
-    # Extracts all lines from that Signal P test that show a positives Signal P.
+    # Extracts rows from the Signal P test that are positive.
     def signalp_positives_extractor(input, output_file, make_file)
       @positives = Hash.new
       signalp_file = File.read(input)
       identified_positives = signalp_file.scan(/^.* Y .*$/)
-      if make_file == "signalp_positives_file" 
+      if make_file == 'signalp_positives_file' 
         signalp_positives_file_writer(input, identified_positives, output_file)
       end
       for i in (0..(identified_positives.length - 1))
@@ -232,30 +233,32 @@ module NpSearch
       return identified_positives.length
     end
      
-    # Convert the Signal P positives results (from the Signal P results) into an array and then put all the useful info into a hash
+    # Converts the Signal P positives results into an array and then put all 
+    #   the useful info into a hash
     def array_generator(identified_positives_length)
       signalp_array = Array.new(identified_positives_length){ Array.new(identified_positives_length,0) }
       signalp = Hash.new
       @positives.each do|idx, line|
-        row = line.gsub(/\s+/m, ' ').chomp.split(" ") # split the line into a array based on white space.
-        raise IO Error, "Badly formatted signal P file - there must be 12 collumns" if row.length != 12
+        row = line.gsub(/\s+/m, ' ').chomp.split(' ')
         signalp_array[idx][0..row.length - 1] = row # Merge into existing array
       end
-      signalp_array.each do |g|
-        seq_id = g[0] 
-        cut_off = g[4]
-        d_value = g[8]
+      signalp_array.each do |h|
+        seq_id = h[0] 
+        cut_off = h[4]
+        d_value = h[8]
         signalp[seq_id] = [:cut_off => cut_off, :d_value => d_value ]
       end
       return signalp
     end
   
-    # Uses the info in the signalp hash to present the data as seq ID (with useful info) on one line and the sequence on the next.
+    # Presents the signal P positives data with seq Id on onto line and the
+    #   sequence on the next. 
     def parse(signalp, open_reading_frames_condensed, motif)
       signalp_with_seq = Hash.new
       signalp.each do |id, infohash|
+          puts id
         open_reading_frames_condensed.each do |seq_id, seq|
-          sequence = seq.to_s.gsub(/\[\"/, "").gsub(/\"\]/, "") # sequence is in an hash (see method "extract_orf()"), so need to take into account leading [" and trailing "].
+          sequence = seq.to_s.gsub('["', '').gsub('"]', '') # seq is in a hash
           sequence.scan(/(.{#{infohash[0][:cut_off].to_i - 1}})(.*)/) do |signalp, seq_end|
             signalp_with_seq[id + "~- S.P. Cleavage Site: #{infohash[0][:cut_off].to_i - 1}:#{infohash[0][:cut_off]} - S.P. D-value: #{infohash[0][:d_value]}"] = "#{signalp}~#{seq_end}" if id == seq_id && seq_end.match(/#{motif}/)
           end
@@ -264,26 +267,25 @@ module NpSearch
       return signalp_with_seq
     end 
  
-    # As usually working with transcriptome data, alternative splicing means that quite usually, you get exactly the same sequence (open reading frame) with different ids. Thus this collapses the seqs into one id.
+    # With transcriptome data, alternative splicing means duplicates ORF, so
+    #   this method collapses duplicates into one reading.
     def flattener(signalp_with_seq)
       flattened_seq = Hash.new
       signalp_with_seq.each do |id, seq|
         flattened_seq[seq] = [] unless flattened_seq[seq]
         flattened_seq[seq] = id 
       end
-      return flattened_seq.invert # hash is inverted to get HASH[id] = seq which is required for the outputting. 
+      return flattened_seq.invert # Format required for the outputting. 
     end
   end
 
 
-  ############# Producing the output files ##############
   class Output 
-    # converts the hash into a fasta file
     def to_fasta(hash, output)
-      output_file = File.new(output, "w")
+      output_file = File.new(output, 'w')
       hash.each do |id, seq|
-        output_file.puts ">" + id.gsub('~', '')
-        sequence = seq.to_s.gsub("~", "").gsub("\[\"", "").gsub("\"\]", "")
+        output_file.puts '>' + id.gsub('~', '')
+        sequence = seq.to_s.gsub('~', '').gsub('["', '').gsub('"]', '')
         output_file.puts sequence
       end
       output_file.close
@@ -292,17 +294,14 @@ module NpSearch
     def make_doc_hash(hash, motif)
       doc_hash = Hash.new
       hash.each do |id, seq|
-        id_hash = Hash[[[:id_start, :id_end], id.split("~").map(&:strip)].transpose]
-        seq_hash = Hash[[[:signalp, :seq_end], seq.split("~").map(&:strip)].transpose]
-        signalp = seq_hash[:signalp] 
-        new_seq_end = seq_hash[:seq_end].gsub(/#{motif}/, '<span class="motif">\0</span>')
-        new_seq_hash = Hash[:signalp => signalp, :new_seq_end => new_seq_end ]
-        doc_hash[id_hash] = [new_seq_hash]
+        id, id_end = id.split('~').map(&:strip)
+        signalp, seq_end = seq.split('~').map(&:strip)
+        seq = seq_end.gsub(/#{motif}/, '<span class="motif">\0</span>')
+        doc_hash[id] = [:id_end => id_end, :signalp => signalp, :seq => seq]
       end
       return doc_hash
     end
 
-    # converts the hash into a word document 
     def to_doc(doc_hash, output)
 haml_doc = <<EOT
 !!!
@@ -314,15 +313,15 @@ haml_doc = <<EOT
       .motif {color:#FF3300; font-weight: bold;}
       p {word-wrap: break-word; font-family:Courier New, Courier, Mono;}
   %body
-    - doc_hash.each do |id_hash, seq_hash|
+    - doc_hash.each do |id, hash|
       %p
-        %span.id= id_hash[:id_start]
-        %span= id_hash[:id_end]
+        %span.id= id
+        %span= hash[0][:id_end]
         %br/
-        %span.signalp= seq_hash[0][:signalp] + "</span><span>" + seq_hash[0][:new_seq_end]
+        %span.signalp= hash[0][:signalp] + "</span><span>" + hash[0][:seq]
 EOT
       engine = Haml::Engine.new(haml_doc)
-      output_file = File.new(output, "w")
+      output_file = File.new(output, 'w')
       output_file.puts engine.render(Object.new, :doc_hash => doc_hash)
       output_file.close
     end
