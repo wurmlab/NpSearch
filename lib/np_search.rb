@@ -180,7 +180,7 @@ module NpSearch
       orf = {}
       protein_data.each do |id, sequence|
         identified_orfs = sequence.scan(/(?=(M\w*))./)
-        for i in (0..(identified_orfs.length - 1))
+        (0..(identified_orfs.length - 1)).each do |i|
           orf[id + '_' + i.to_s] = identified_orfs[i]
         end
       end
@@ -227,7 +227,7 @@ module NpSearch
       if make_file == 'signalp_positives_file'
         signalp_positives_file_writer(input, identified_positives, output_file)
       end
-      for i in (0..(identified_positives.length - 1))
+      (0..(identified_positives.length - 1)).each do |i|
         @positives[i] = identified_positives[i]
       end
       return identified_positives.length
@@ -297,7 +297,7 @@ module NpSearch
       hash.each do |id, seq|
         id, id_end = id.split('~').map(&:strip)
         signalp, seq_end = seq.split('~').map(&:strip)
-        seq = seq_end.gsub(/#{motif}/, '<span class="motif">\0</span>')
+        seq = seq_end.gsub(/#{motif}/, '<span class="motif">\0</span>').gsub('G<span class="motif">', '<span class="glycine">G</span><span class="motif">')
         doc_hash[id] = [id_end: id_end, signalp: signalp, seq: seq]
       end
       return doc_hash
@@ -312,6 +312,7 @@ haml_doc = <<EOT
       .id {font-weight: bold;}
       .signalp {color:#000099; font-weight: bold;}
       .motif {color:#FF3300; font-weight: bold;}
+      .glycine {color:#000099; font-weight: bold;}
       p {word-wrap: break-word; font-family:Courier New, Courier, Mono;}
   %body
     - doc_hash.each do |id, hash|
