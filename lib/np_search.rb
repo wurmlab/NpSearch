@@ -132,7 +132,7 @@ module NpSearch
 
     # Ensure that the right version of signal is used.
     def signalp_version_validator(signalp_output_file)
-      unless signalp_version(signalp_output_file) 
+      unless signalp_version(signalp_output_file)
       # i.e. if Signal P is the wrong version
         if signalp_column_validator(signalp_output_file)
           puts # a blank line
@@ -215,7 +215,7 @@ module NpSearch
       orf.each do |id, sequence|
         # sequence is in an hash, so need to take into account ^[" and  "]$
         orf_condensed[id] = sequence if (sequence.to_s).length >= \
-                            (minimum_length + 4) 
+                            (minimum_length + 4)
       end
       return orf_condensed
     end
@@ -282,7 +282,7 @@ module NpSearch
       signalp_hash.each do |id, h|
         open_reading_frames_condensed.each do |seq_id, seq|
           if id == seq_id
-            sequence = seq.to_s.gsub('["', '').gsub('"]', '') # seq is in a hash
+            sequence = seq.to_s.gsub('["', '').gsub('"]', '')
             sp_clv = h[0][:cut_off].to_i - 1
             sequence.scan(/(.{#{sp_clv}})(.*)/) do |signalp, seq_end|
               signalp_with_seq[id + "~- S.P. Cleavage Site: #{sp_clv}:" \
@@ -325,7 +325,7 @@ module NpSearch
         signalp, seq_end = seq.split('~').map(&:strip)
         seq = seq_end.gsub(/#{motif}/, '<span class="motif">\0</span>')\
         .gsub('G<span class="motif">', \
-          '<span class="glycine">G</span><span class="motif">')
+              '<span class="glycine">G</span><span class="motif">')
         doc_hash[id] = [id_end: id_end, signalp: signalp, seq: seq]
       end
       return doc_hash
