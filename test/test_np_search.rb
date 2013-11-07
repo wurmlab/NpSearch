@@ -34,19 +34,19 @@ class UnitTests < Test::Unit::TestCase
   ####### Testing input for normal & weird cases
 # => Test if the signalp validator method works in verifying whether the directory contains the signal p script. 
   def test_signalp_validator
-    test_validators = NpSearch::InputValidators.new
+    test_validators = NpSearch::Validators.new
     assert_equal("test/test_files/signalp", test_validators.signalp_validator("test/test_files/signalp"))
   end
 
 # => Test if the output directory validator works, in ensuring whether an output directory can be found. 
   def test_output_dir_validator
-    test_validators = NpSearch::InputValidators.new
+    test_validators = NpSearch::Validators.new
     assert_equal(nil, test_validators.output_dir_validator("test/test_out"))
   end
 
 # => Test if the orf_min_length validator works, in ensuring that the value is number
   def test_orf_min_length_validator
-    test_validators = NpSearch::InputValidators.new
+    test_validators = NpSearch::Validators.new
     assert_equal(nil, test_validators.orf_min_length_validator("622"))
     assert_equal(nil, test_validators.orf_min_length_validator("10"))
     assert_equal(nil, test_validators.orf_min_length_validator("2.567"))
@@ -58,7 +58,7 @@ class UnitTests < Test::Unit::TestCase
 
 # => Test if the input_file_validator works properly, in ensuring that input file is not missing, empty or is in the wrong format. 
   def test_input_file_validator_1
-    test_validators = NpSearch::InputValidators.new
+    test_validators = NpSearch::Validators.new
     assert_equal(nil, test_validators.input_file_validator("test/test_inputs/genetic.fa"))
     assert_equal(nil, test_validators.input_file_validator("test/test_inputs/protein.fa"))
     assert_raise( SystemExit ) {test_validators.input_file_validator("test/test_inputs/missing_input.fa")}
@@ -69,7 +69,7 @@ class UnitTests < Test::Unit::TestCase
 
 # => Test if the probably_fasta method works in ensuring that the input file is in the fasta format.
   def test_probably_fasta
-    test_validators = NpSearch::InputValidators.new
+    test_validators = NpSearch::Validators.new
     assert_equal(TRUE, test_validators.probably_fasta("test/test_inputs/genetic.fa"))
     assert_equal(TRUE, test_validators.probably_fasta("test/test_inputs/protein.fa"))
     assert_equal(FALSE, test_validators.probably_fasta("test/test_inputs/not_fasta.fa"))
@@ -77,7 +77,7 @@ class UnitTests < Test::Unit::TestCase
 
 # => Test if the input type validator works properly in that only the recognised formats can be used.
   def test_input_type_validator
-    test_validators = NpSearch::InputValidators.new
+    test_validators = NpSearch::Validators.new
     assert_equal(nil, test_validators.input_type_validator("genetic"))
     assert_equal(nil, test_validators.input_type_validator("GENETIC"))
     assert_equal(nil, test_validators.input_type_validator("Genetic"))
