@@ -340,7 +340,7 @@ haml_doc = <<EOT
       .id {font-weight: bold;}
       .signalp {color:#000099; font-weight: bold;}
       .motif {color:#FF3300; font-weight: bold;}
-      .glycine {color:#19FFFF; font-weight: bold;}
+      .glycine {color:#00FF00; font-weight: bold;}
       p {word-wrap: break-word; font-family:Courier New, Courier, Mono;}
   %body
     - doc_hash.each do |id, hash|
