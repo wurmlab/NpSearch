@@ -6,15 +6,21 @@ module NpSearch
         signalp_directory = signalp_dir
       else
         puts # a blank line
-        puts "Error: The Signal P directory cannot be found in the following location: '{signalp_dir}/'."
+        puts "Error: The Signal Peptide Script directory cannot be found" \
+             " in the following location: '{signalp_dir}/'."
         puts # a blank line
-        puts 'Please enter the full path or a relative path to the Signal P directory (i.e. to the folder containing the signalp script).'
+        puts 'Please enter the full path or a relative path to the Signal' \
+             ' Peptide Script directory (i.e. to the folder containing the' \
+             ' SignalP script).'
         print '> '
         inp = $stdin.gets.chomp
-        until (File.exist? "#{signalp_dir}/signalp") || (File.exist? "#{inp}/signalp")
+        until (File.exist? "#{signalp_dir}/signalp") || \
+              (File.exist? "#{inp}/signalp")
           puts # a blank line
-          puts "The Signal P directory cannot be found at the following location: '#{inp}'"
-          puts 'Please enter the full path or a relative path to the Signal P directory again.'
+          puts "The Signal P directory cannot be found at the following" \
+               " location: '#{inp}'"
+          puts 'Please enter the full path or a relative path to the Signal'\
+               ' Peptide directory again.'
           print '> '
           inp = $stdin.gets.chomp
         end
@@ -39,9 +45,11 @@ module NpSearch
         inp = $stdin.gets.chomp
         until inp.downcase == 'n' || inp.downcase == 'y'
           puts # a blank line
-          puts "The input: '#{inp}' is not recognised - 'y' or 'n' are the only recognisable inputs."
+          puts "The input: '#{inp}' is not recognised - 'y' or 'n' are the" \
+               " only recognisable inputs."
           puts 'Please try again.'
-          puts "The directory '#{output_dir}' will be created in this location."
+          puts "The directory '#{output_dir}' will be created in this" \
+               " location."
           puts 'Do you to continue? [y/n]'
           print '> '
           inp = $stdin.gets.chomp
@@ -50,7 +58,8 @@ module NpSearch
           FileUtils.mkdir_p "#{output_dir}"
           puts 'Created output directory...'
         elsif inp.downcase == 'n'
-          abort "\nError: A output directory is required - please create one and then try again.\n\n"
+          abort "\nError: A output directory is required - please create" \
+                "one and then try again.\n\n"
         end
       end
     end
@@ -58,7 +67,8 @@ module NpSearch
     # Ensures that the ORF minimum length is a number. Any digits after the
     #   decimal place are ignored.
     def orf_min_length_validator(orf_min_length)
-      abort "\nError: The Open Reading Frame (ORF) minimum length must be a whole integer.\n\n" if orf_min_length.to_i < 1
+      abort "\nError: The Open Reading Frame (ORF) minimum length must be a" \
+            " whole integer.\n\n" if orf_min_length.to_i < 1
     end
 
     # Taken from 'database_formatter.rb' from sequenceserver.
@@ -76,14 +86,20 @@ module NpSearch
     # Checks whether the input file exists; whether it is empty and whether it
     #   is likely a fasta file.
     def input_file_validator(input_file)
-      abort "\nError: The input file '#{input_file}' does not exist.\n\n" unless File.exist?(input_file)
-      abort "\nError: The input file is empty. Please correct this and try again.\n\n" if File.zero?(input_file)
-      abort "\nError: The input file does not seem to be a fasta file. Only fasta files are supported.\n\n" unless probably_fasta(input_file)
+      abort "\nError: The input file '#{input_file}' does not exist.\n\n" \
+            unless File.exist?(input_file)
+      abort "\nError: The input file is empty. Please correct this and" \
+            " try again.\n\n" if File.zero?(input_file)
+      abort "\nError: The input file does not seem to be a fasta file. Only" \
+            " fasta files are supported.\n\n" unless probably_fasta(input_file)
     end
 
     # Checks whether the input_type has been provided in the correct format.
     def input_type_validator(input_type)
-      abort "\nError: The input type: '#{input_type}' is not recognised; the only recognised options are 'genetic' and 'protein'.\n\n" unless input_type.downcase == 'genetic' || input_type.downcase == 'protein'
+      abort "\nError: The input type: '#{input_type}' is not recognised;" \
+            " the only recognised options are 'genetic' and 'protein'.\n\n" \
+            unless input_type.downcase == 'genetic' || \
+            input_type.downcase == 'protein'
     end
 
     # Checks whether the right version of Signal Peptide Script has been
@@ -105,7 +121,8 @@ module NpSearch
       File.open('signalp_out.txt', 'r') do |file_stream|
         secondline = file_stream.readlines[1]
         row = secondline.gsub(/\s+/m, ' ').chomp.split(' ')
-        if row[1] != 'name' && row[4] != 'Ymax' && row[5] != 'pos' && row[9] != 'D'
+        if row[1] != 'name' && row[4] != 'Ymax' && row[5] != 'pos' && \
+           row[9] != 'D'
           return TRUE
         else
           return FALSE
@@ -115,14 +132,18 @@ module NpSearch
 
     # Ensure that the right version of signal is used.
     def signalp_version_validator(signalp_output_file)
-      unless signalp_version(signalp_output_file) # i.e. if Signal P is the wrong version
+      unless signalp_version(signalp_output_file) 
+      # i.e. if Signal P is the wrong version
         if signalp_column_validator(signalp_output_file)
           puts # a blank line
-          puts 'Warning: The wrong version of signalp has been linked. However, the signal peptide output file still seems to be in the right format.'
+          puts 'Warning: The wrong version of signalp has been linked.' \
+               ' However, the signal peptide output file still seems to' \
+               ' be in the right format.'
           puts # a blank line
         else
           puts # a blank line
-          puts 'Warning: The wrong version of the signal p has been linked and the signal peptide output is in an unrecognised format.'
+          puts 'Warning: The wrong version of the signal p has been linked' \
+               ' and the signal peptide output is in an unrecognised format.'
           puts 'Continuing may give you meaningless results.'
           puts # a blank line
         end
@@ -131,18 +152,20 @@ module NpSearch
         inp = $stdin.gets.chomp
         until inp.downcase == 'n' || inp.downcase == 'y'
           puts # a blank line
-          puts "The input: '#{inp}' is not recognised - 'y' or 'n' are the only recognisable inputs."
+          puts "The input: '#{inp}' is not recognised - 'y' or 'n' are the" \
+               " only recognisable inputs."
           puts 'Please try again.'
         end
         if inp.downcase == 'y'
           puts 'Continuing.'
         elsif inp.downcase == 'n'
-          abort "\nError: The wrong version of Signal Peptide has been linked. Version 4.1 is the version of signalp currently supported.\n\n"
+          abort "\nError: The wrong version of Signal Peptide has been " \
+                "linked. Version 4.1 is the version of signalp currently" \
+                "supported.\n\n"
         end
       end
     end
   end
-
 
   class Input
     # Reads the input file converting it into hash.
@@ -162,13 +185,12 @@ module NpSearch
     end
   end
 
-
   class Translation
     # Translates in all 6 frames - with * standing for stop codons
     def translate(input_read)
       protein_data = {}
       input_read.each do |id, sequence|
-        for f in (1..6)
+        (1..6).each do |f|
           protein_data[id + '_f' + f.to_s] = sequence.translate(f)
         end
       end
@@ -191,12 +213,13 @@ module NpSearch
     def orf_cleaner(orf, minimum_length)
       orf_condensed = {}
       orf.each do |id, sequence|
-        orf_condensed[id] = sequence if (sequence.to_s).length >= (minimum_length + 4) # sequence is in an hash, so need to take into account leading [" and trailing "]
+        # sequence is in an hash, so need to take into account ^[" and  "]$
+        orf_condensed[id] = sequence if (sequence.to_s).length >= \
+                            (minimum_length + 4) 
       end
       return orf_condensed
     end
   end
-
 
   class Signalp
     @positives = nil
@@ -206,7 +229,7 @@ module NpSearch
       system("#{signalp_dir}/signalp -t euk -f short #{input} > #{output}")
     end
 
-    # Part of the next method - it is used to create a signalp positives file if required.
+    # Creates a signalp positives file, if required.
     def signalp_positives_file_writer(input, identified_positives, output)
       output_file = File.new(output, 'w')
       File.open(input, 'r') do |file_stream|
@@ -236,8 +259,9 @@ module NpSearch
     # Converts the Signal P positives results into an array and then put all
     #   the useful info into a hash
     def array_generator(identified_positives_length)
-      signalp_array = Array.new(identified_positives_length) { Array.new(identified_positives_length, 0) }
-      signalp = {}
+      signalp_array = Array.new(identified_positives_length)\
+                      { Array.new(identified_positives_length, 0) }
+      signalp_hash = {}
       @positives.each do|idx, line|
         row = line.gsub(/\s+/m, ' ').chomp.split(' ')
         signalp_array[idx][0..row.length - 1] = row # Merge into existing array
@@ -246,21 +270,24 @@ module NpSearch
         seq_id = h[0]
         cut_off = h[4]
         d_value = h[8]
-        signalp[seq_id] = [cut_off: cut_off, d_value: d_value]
+        signalp_hash[seq_id] = [cut_off: cut_off, d_value: d_value]
       end
-      return signalp
+      return signalp_hash
     end
 
     # Presents the signal P positives data with seq Id on onto line and the
     #   sequence on the next.
-    def parse(signalp, open_reading_frames_condensed, motif)
+    def parse(signalp_hash, open_reading_frames_condensed, motif)
       signalp_with_seq = {}
-      signalp.each do |id, infohash|
+      signalp_hash.each do |id, h|
         open_reading_frames_condensed.each do |seq_id, seq|
           if id == seq_id
             sequence = seq.to_s.gsub('["', '').gsub('"]', '') # seq is in a hash
-            sequence.scan(/(.{#{infohash[0][:cut_off].to_i - 1}})(.*)/) do |signalp, seq_end|
-              signalp_with_seq[id + "~- S.P. Cleavage Site: #{infohash[0][:cut_off].to_i - 1}:#{infohash[0][:cut_off]} - S.P. D-value: #{infohash[0][:d_value]}"] = "#{signalp}~#{seq_end}" if seq_end.match(/#{motif}/)
+            sp_clv = h[0][:cut_off].to_i - 1
+            sequence.scan(/(.{#{sp_clv}})(.*)/) do |signalp, seq_end|
+              signalp_with_seq[id + "~- S.P. Cleavage Site: #{sp_clv}:" \
+                "#{h[0][:cut_off]} - S.P. D-value: #{h[0][:d_value]}"] = \
+                "#{signalp}~#{seq_end}" if seq_end.match(/#{motif}/)
             end
           end
         end
@@ -280,7 +307,6 @@ module NpSearch
     end
   end
 
-
   class Output
     def to_fasta(hash, output)
       output_file = File.new(output, 'w')
@@ -297,7 +323,9 @@ module NpSearch
       hash.each do |id, seq|
         id, id_end = id.split('~').map(&:strip)
         signalp, seq_end = seq.split('~').map(&:strip)
-        seq = seq_end.gsub(/#{motif}/, '<span class="motif">\0</span>').gsub('G<span class="motif">', '<span class="glycine">G</span><span class="motif">')
+        seq = seq_end.gsub(/#{motif}/, '<span class="motif">\0</span>')\
+        .gsub('G<span class="motif">', \
+          '<span class="glycine">G</span><span class="motif">')
         doc_hash[id] = [id_end: id_end, signalp: signalp, seq: seq]
       end
       return doc_hash
@@ -312,7 +340,7 @@ haml_doc = <<EOT
       .id {font-weight: bold;}
       .signalp {color:#000099; font-weight: bold;}
       .motif {color:#FF3300; font-weight: bold;}
-      .glycine {color:#000099; font-weight: bold;}
+      .glycine {color:#19FFFF; font-weight: bold;}
       p {word-wrap: break-word; font-family:Courier New, Courier, Mono;}
   %body
     - doc_hash.each do |id, hash|

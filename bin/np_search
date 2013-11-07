@@ -8,25 +8,30 @@ require 'optparse'
 require 'logger'
 require 'haml'
 
-################# Default Options ... ##################
+# Default Options
 signalp_dir = "#{Dir.home}/SignalPeptide"                    
 output_dir = "#{Dir.home}/output"                               
-orf_min_length = 10  # This is the cut-off length for the Open Reading frame The default used by Online Signal P 4.0 Server is 10
-########################################################
+orf_min_length = 10
 
 options = {}
 optparse = OptionParser.new do|opts|
   opts.banner = 'Usage: np_search [options] InputFile InputType Motif'
   opts.separator 'Where:'
   opts.separator 'InputFile = The input query file'
-  opts.separator 'InputType = The type of data in the input query file. The only two options available are "genetic" and "protein"'
-  opts.separator 'Motif = The query motif to be searched for. The period "." can be used to stands for any character. Multiple motifs query can be used by using a pipeline character ("|") between each query and putting the motif query in speech marks e.g. "KR|RR|R..R"'
+  opts.separator 'InputType = The type of data in the input query file.' \
+                 ' The only two options available are "genetic" and "protein"' 
+  opts.separator 'Motif = The query motif to be searched for.'\
+                 ' The period "." can be used to stands for any character.' \
+                 ' Multiple motifs query can be used by using a pipeline' \
+                 ' character ("|") between each query and putting the motif' \
+                 'query in speech marks e.g. "KR|RR|R..R"'
   opts.separator 'Advanced Users: Regex is supported in the motif query'
   opts.separator ''
   opts.separator 'Options:'
 
   options[:verbose] = false
-  opts.on( '-v', '--verbose', 'Provides more information on each step taken in this program.' ) do
+  opts.on( '-v', '--verbose', 'Provides more information on each step taken'\
+                              ' in this program.' ) do
     options[:verbose] = true
   end
 
@@ -54,14 +59,20 @@ unless ARGV.size == 3
   puts # a blank line
   puts 'Where:'
   puts 'InputFile = The input query file'
-  puts 'InputType = The type of data in the input query file. The only two options available are "genetic" and "protein"'
-  puts 'Motif = The query motif to be searched for. The period "." can be used to stands for any character.'
-  puts '        Multiple motifs query can be used by using a pipeline character ("|") between each query and putting the motif query in speech marks.'
-  puts '        For example the  motif query "KR|RR|R..R" will search for "KR", "RR" and "R..R" (where . is any character)'
+  puts 'InputType = The type of data in the input query file.' \
+       'The only two options available are "genetic" and "protein"'
+  puts 'Motif = The query motif to be searched for.' \
+       'The period "." can be used to stands for any character.'
+  puts '        Multiple motifs query can be used by using a pipeline' \
+       ' character ("|") between each query and putting the motif query' \
+       ' in speech marks.'
+  puts '        For example the  motif query "KR|RR|R..R" will search for' \
+       '"KR", "RR" and "R..R" (where . is any character)'
   puts 'Advanced Users: Regex is supported in the motif query'
   puts # a blank line
   puts 'Options:'
-  puts '    -v, --verbose                    Provides more information on each step taken in this program.'
+  puts '    -v, --verbose                    Provides more information on' \
+       ' each step taken in this program.'
   puts '    -a, --output_all                 Out# puts all possible files'
   puts '    -h, --help                       Display this screen'
   puts # a blank line
@@ -74,7 +85,8 @@ motif_query = ARGV[2] # e.g. 'neuro_clv'
 
 
 if motif_query == 'neuro_clv'
-  motif = 'KK|KR|RR|R..R|R....R|R......R|H..R|H....R|H......R|K..R|K....R|K......R'
+  motif = 'KK|KR|RR|'\
+          'R..R|R....R|R......R|H..R|H....R|H......R|K..R|K....R|K......R'
 else
   motif = motif_query
 end
@@ -99,22 +111,22 @@ input_validators_new.orf_min_length_validator(orf_min_length)
 input_validators_new.input_file_validator(input) 
 input_validators_new.input_type_validator(input_type) 
 
-############# MAIN ##############
+# MAIN 
 output_new = NpSearch::Output.new
 if input_type.downcase == 'genetic'
-  ############# Converting input file to Bio::FastaFormat.   ############## 
+  # Converting input file to Bio::FastaFormat.
 logger.info { "Reading Input file: '#{input}'." }
   logger.info { "Reading Input file '#{input}'." } 
   input_new = NpSearch::Input.new
   input_read = input_new.read(input, input_type)
 
-  ############# Translation  ##############
+  # Translation
   translation_new = NpSearch::Translation.new
   logger.info { 'Translating the genomic data in all 6 frames.' }
   translated_sequences = translation_new.translate(input_read)
-  logger.info { "Writing the translated sequences to the file: '#{output_dir}/protein.fa'." } if options[:output_all] 
+  logger.info { "Writing the translated sequences to the file:'#{output_dir}/protein.fa'." } if options[:output_all] 
   output_new.to_fasta(translated_sequences, "#{output_dir}/protein.fa") if options[:output_all] 
-  ############# Open Reading Frame Extraction. #############
+  # Open Reading Frame Extraction.
   logger.info { 'Extracting all Open Reading Frames from all 6 possible frames. This is every methionine residue to the next stop codon.' }
   orf = translation_new.extract_orf(translated_sequences)
   logger.info { "Writing the extracted Open Reading Frames to the file '#{output_dir}/orf.fa'." } if options[:output_all] 
@@ -123,21 +135,22 @@ logger.info { "Reading Input file: '#{input}'." }
   orf_condensed = translation_new.orf_cleaner(orf, orf_min_length)
   logger.info { "Writing the condensed Open Reading Frames to the file '#{output_dir}/orf_condensed.fa'." }
   output_new.to_fasta(orf_condensed, "#{output_dir}/orf_condensed.fa") 
-  ############# Signal P  ##############
+  # Signal P
   signalp_new = NpSearch::Signalp.new
   logger.info { 'Running a Signal Peptide test on each condensed open reading frame.' }
   signalp_new.signal_p(signalp_directory, "#{output_dir}/orf_condensed.fa", "#{output_dir}/signalp_out.txt")
   input_validators_new.signalp_version_validator("#{output_dir}/signalp_out.txt")
 elsif input_type.downcase == 'protein'
   logger.info { "Reading Input file '#{input}'." }
-  ############# Signal P  ##############
+  # Signal P
   signalp_new = NpSearch::Signalp.new
   logger.info { 'Running a Signal Peptide test on each sequence.' }
   signalp_new.signal_p(signalp_directory, input, "#{output_dir}/signalp_out.txt")
 end
 
-############# Data Analysis  (common for genetic and protein data) ##############
-logger.info { "Writing the Signal Peptide test results to the file '#{output_dir}/signalp_out.txt'." }
+# Data Analysis  (common for genetic and protein data)
+logger.info { "Writing the Signal Peptide test results to the file" \
+              " '#{output_dir}/signalp_out.txt'." }
 if options[:output_all] 
   identified_positives_length = signalp_new.signalp_positives_extractor("#{output_dir}/signalp_out.txt", "#{output_dir}/signalp_positives.txt", "signalp_positives_file") 
 elsif
@@ -147,7 +160,7 @@ logger.info { 'Extracting all Open Reading Frames that have a Signal Peptide.' }
 
 signalp = signalp_new.array_generator(identified_positives_length)
 
-############# Final Outputs. (more or less)  ##############
+# Final Outputs. (more or less)
 logger.info { 'Extracting sequences that have at least 1 neuropeptide cleavage site after the signal peptide cleavage site.' }
 signalp_with_seq = signalp_new.parse(signalp, orf_condensed, motif)
 logger.info { "Writing sequences that have at least 1 neuropeptide cleavage site after the signal peptide cleavage site to the file '#{output_dir}/signalp_with_seq.fa'." } if options[:output_all] 
@@ -160,8 +173,6 @@ output_new.to_fasta(flattened_seq, "#{output_dir}/output.fa")
 doc_hash = output_new.make_doc_hash(flattened_seq, motif)
 output_new.to_doc(doc_hash, "#{output_dir}/output.docx")
 
-############# Success #############
-
+# Success
 puts "\nSuccess: All output files created in the directory: '#{output_dir}'.\n "
-
 logger.close
