@@ -92,7 +92,7 @@ else
 end
 
 ############# Input Validation...##############
-input_validators_new = NpSearch::InputValidators.new 
+input_validators_new = NpSearch::Validators.new 
 signalp_directory = input_validators_new.signalp_validator(signalp_dir) 
 input_validators_new.output_dir_validator(output_dir) 
 input_validators_new.orf_min_length_validator(orf_min_length) 
@@ -159,9 +159,6 @@ output_new.to_fasta(flattened_seq, "#{output_dir}/output.fa")
 
 doc_hash = output_new.make_doc_hash(flattened_seq, motif)
 output_new.to_doc(doc_hash, "#{output_dir}/output.docx")
-
-
-
 
 ############# Success #############
 
