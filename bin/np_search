@@ -115,7 +115,6 @@ input_validators_new.input_type_validator(input_type)
 output_new = NpSearch::Output.new
 if input_type.downcase == 'genetic'
   # Converting input file to Bio::FastaFormat.
-logger.info { "Reading Input file: '#{input}'." }
   logger.info { "Reading Input file '#{input}'." } 
   input_new = NpSearch::Input.new
   input_read = input_new.read(input, input_type)
@@ -132,13 +131,13 @@ logger.info { "Reading Input file: '#{input}'." }
   logger.info { "Writing the extracted Open Reading Frames to the file '#{output_dir}/orf.fa'." } if options[:output_all] 
   output_new.to_fasta(orf, "#{output_dir}/orf.fa") if options[:output_all] 
   logger.info { "Removing all Open Reading Frames that are shorter than #{orf_min_length}." }
-  orf_condensed = translation_new.orf_cleaner(orf, orf_min_length)
-  logger.info { "Writing the condensed Open Reading Frames to the file '#{output_dir}/orf_condensed.fa'." }
-  output_new.to_fasta(orf_condensed, "#{output_dir}/orf_condensed.fa") 
+  orf_clean = translation_new.orf_cleaner(orf, orf_min_length)
+  logger.info { "Writing the cleaned Open Reading Frames to the file '#{output_dir}/orf_clean.fa'." }
+  output_new.to_fasta(orf_clean, "#{output_dir}/orf_clean.fa") 
   # Signal P
   signalp_new = NpSearch::Signalp.new
-  logger.info { 'Running a Signal Peptide test on each condensed open reading frame.' }
-  signalp_new.signal_p(signalp_directory, "#{output_dir}/orf_condensed.fa", "#{output_dir}/signalp_out.txt")
+  logger.info { 'Running a Signal Peptide test on each clean open reading frame.' }
+  signalp_new.signal_p(signalp_directory, "#{output_dir}/orf_clean.fa", "#{output_dir}/signalp_out.txt")
   input_validators_new.signalp_version_validator("#{output_dir}/signalp_out.txt")
 elsif input_type.downcase == 'protein'
   logger.info { "Reading Input file '#{input}'." }
@@ -162,7 +161,7 @@ signalp = signalp_new.array_generator(identified_positives_length)
 
 # Final Outputs. (more or less)
 logger.info { 'Extracting sequences that have at least 1 neuropeptide cleavage site after the signal peptide cleavage site.' }
-signalp_with_seq = signalp_new.parse(signalp, orf_condensed, motif)
+signalp_with_seq = signalp_new.parse(signalp, orf_clean, motif)
 logger.info { "Writing sequences that have at least 1 neuropeptide cleavage site after the signal peptide cleavage site to the file '#{output_dir}/signalp_with_seq.fa'." } if options[:output_all] 
 output_new.to_fasta(signalp_with_seq, "#{output_dir}/signalp_with_seq.fa") if options[:output_all] 
 logger.info { 'Removing all duplicate entries.' }

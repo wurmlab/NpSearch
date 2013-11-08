@@ -211,13 +211,13 @@ module NpSearch
 
     # Extracts all Open Reading Frames that are longer than the minimum length.
     def orf_cleaner(orf, minimum_length)
-      orf_condensed = {}
+      orf_clean = {}
       orf.each do |id, sequence|
-        # sequence is in an hash, so need to take into account ^[" and  "]$
-        orf_condensed[id] = sequence if (sequence.to_s).length >= \
-                            (minimum_length + 4)
+        if (sequence.to_s).length >= (minimum_length + 4)
+          orf_clean[id] = sequence 
+        end
       end
-      return orf_condensed
+      return orf_clean
     end
   end
 
@@ -277,20 +277,19 @@ module NpSearch
 
     # Presents the signal P positives data with seq Id on onto line and the
     #   sequence on the next.
-    def parse(signalp_hash, open_reading_frames_condensed, motif)
+    def parse(signalp_hash, orf_clean, motif)
       signalp_with_seq = {}
       signalp_hash.each do |id, h|
-        open_reading_frames_condensed.each do |seq_id, seq|
-          if id == seq_id
-            sequence = seq.to_s.gsub('["', '').gsub('"]', '')
-            sp_clv = h[0][:cut_off].to_i - 1
-            sequence.scan(/(.{#{sp_clv}})(.*)/) do |signalp, seq_end|
-              signalp_with_seq[id + "~- S.P. Cleavage Site: #{sp_clv}:" \
-                "#{h[0][:cut_off]} - S.P. D-value: #{h[0][:d_value]}"] = \
-                "#{signalp}~#{seq_end}" if seq_end.match(/#{motif}/)
-            end
-          end
-        end
+        current_orf = orf_clean[id].to_s.gsub('["', '').gsub('"]', '')
+        cut_off     = h[0][:cut_off]
+        d_value     = h[0][:d_value]
+        sp_clv      = cut_off.to_i - 1
+        signalp     = current_orf[0, sp_clv]
+        seq_end     = current_orf[sp_clv, current_orf.length]
+        if seq_end.match(/#{motif}/)
+          signalp_with_seq[id + "~- S.P.=> Cleavage Site: #{sp_clv}:#{cut_off}"\
+                           " // D-value: #{d_value}"] = "#{signalp}~#{seq_end}"
+        end 
       end
       return signalp_with_seq
     end
