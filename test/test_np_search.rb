@@ -22,7 +22,7 @@ class UnitTests < Test::Unit::TestCase
     @test_genetic_input_read     = test_input.read("test/test_inputs/genetic.fa", "genetic")
     @expected_translation_hash   = test_input.read("test/test_files/protein.fa", "protein")
     @expected_orf_hash           = test_input.read("test/test_files/orf.fa", "protein")
-    @expected_orf_condensed_hash = test_input.read("test/test_files/orf_condensed.fa", "protein")    
+    @expected_orf_clean_hash = test_input.read("test/test_files/orf_clean.fa", "protein")    
     @expected_signalp_file       = File.read("test/test_files/signalp_out.txt")
     test_input1                  = InputChanged.new
     @expected_signalp_with_seq   = test_input1.read("test/test_files/signalp_with_seq.fa", "protein")
@@ -108,8 +108,8 @@ class UnitTests < Test::Unit::TestCase
 # => Test if the orf cleaner method works properly - assert that the produced orf_cleaer hash is equal to the expected hash.
   def test_orf_cleaner()
     translation_test = NpSearch::Translation.new
-    orf_condensed_hash_test = translation_test.orf_cleaner(@expected_orf_hash, (10 - 4)) 
-    assert_equal(@expected_orf_condensed_hash, orf_condensed_hash_test)
+    orf_clean_hash_test = translation_test.orf_cleaner(@expected_orf_hash, (10 - 4)) 
+    assert_equal(@expected_orf_clean_hash, orf_clean_hash_test)
   end
 
 ####### Need the Signalp script to run. #######
@@ -117,7 +117,7 @@ class UnitTests < Test::Unit::TestCase
 #  def test_signalp() # external script
 #    signalp_dir = "./../../../signalp"
 #    signalp_test = NpSearch::Signalp.new
-#    signalp_test.signal_p(signalp_dir, "test/test_files/orf_condensed.fa", "test/test_out/signalp_out.txt")
+#    signalp_test.signal_p(signalp_dir, "test/test_files/orf_clean.fa", "test/test_out/signalp_out.txt")
 #    test_signalp_file = File.read("test/test_out/signalp_out.txt")
 #    assert_equal(@expected_signalp_file, test_signalp_file)
 #  end
@@ -134,7 +134,7 @@ class UnitTests < Test::Unit::TestCase
     signalp_test = NpSearch::Signalp.new
     test_positives_number = signalp_test.signalp_positives_extractor("test/test_files/signalp_out.txt", "test/test_out/signalp_positives.txt", "signalp_positives_file").to_i
     signalp = signalp_test.array_generator(@expected_positives_number.to_i)
-    signalp_with_seq_test = signalp_test.parse(signalp, @expected_orf_condensed_hash, @motif)
+    signalp_with_seq_test = signalp_test.parse(signalp, @expected_orf_clean_hash, @motif)
     assert_equal(@expected_signalp_with_seq, signalp_with_seq_test)
   end
 
