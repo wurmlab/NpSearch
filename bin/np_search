@@ -8,26 +8,37 @@ require 'optparse'
 require 'logger'
 require 'haml'
 
-# Default Options
-signalp_dir = "#{Dir.home}/SignalPeptide"                    
-output_dir = "#{Dir.home}/output"                               
-orf_min_length = 10
+
+# Search for the signal p directory with signal peptide. 
+signalp_dir = "#{Dir.home}/SignalPeptide"
+
+help_banner = <<BANNER
+
+Usage: np_search [options] InputType Motif InputFile Output_Prefix
+
+Where:
+
+InputType     = The type of data in the input query file. The only two options 
+                available are "genetic" and "protein".
+ 
+Motif         = The query motif to be searched for.
+                The period "." can be used to denote any character. Multiple 
+                motifs query can be used by using a pipeline character ("|")
+                between each query and putting the motif query in speech marks 
+                e.g. "KR|RR|R..R".
+                Advanced Users: Regex is supported in the motif.
+
+Input_File    = The input query file.
+
+Output_Prefix = The Name of the output folder.
+
+Options:
+
+BANNER
 
 options = {}
 optparse = OptionParser.new do|opts|
-  opts.banner = 'Usage: np_search [options] InputFile InputType Motif'
-  opts.separator 'Where:'
-  opts.separator 'InputFile = The input query file'
-  opts.separator 'InputType = The type of data in the input query file.' \
-                 ' The only two options available are "genetic" and "protein"' 
-  opts.separator 'Motif = The query motif to be searched for.'\
-                 ' The period "." can be used to stands for any character.' \
-                 ' Multiple motifs query can be used by using a pipeline' \
-                 ' character ("|") between each query and putting the motif' \
-                 'query in speech marks e.g. "KR|RR|R..R"'
-  opts.separator 'Advanced Users: Regex is supported in the motif query'
-  opts.separator ''
-  opts.separator 'Options:'
+  opts.banner = help_banner
 
   options[:verbose] = false
   opts.on( '-v', '--verbose', 'Provides more information on each step taken'\
@@ -42,7 +53,7 @@ optparse = OptionParser.new do|opts|
   
   options[:debug] = false
   opts.on( '-d', '--debug', 'Debugs the program' ) do
-    options[:output_all] = true
+    options[:debug] = true
   end
   
   opts.on( '-h', '--help', 'Display this screen' ) do
@@ -52,36 +63,17 @@ optparse = OptionParser.new do|opts|
 end
 optparse.parse!
 
-unless ARGV.size == 3 
-  puts # a blank line
-  puts 'Incorrect number of Arguments'
-  puts 'Usage: np_search.rb [options] InputFile InputType Motif'
-  puts # a blank line
-  puts 'Where:'
-  puts 'InputFile = The input query file'
-  puts 'InputType = The type of data in the input query file.' \
-       'The only two options available are "genetic" and "protein"'
-  puts 'Motif = The query motif to be searched for.' \
-       'The period "." can be used to stands for any character.'
-  puts '        Multiple motifs query can be used by using a pipeline' \
-       ' character ("|") between each query and putting the motif query' \
-       ' in speech marks.'
-  puts '        For example the  motif query "KR|RR|R..R" will search for' \
-       '"KR", "RR" and "R..R" (where . is any character)'
-  puts 'Advanced Users: Regex is supported in the motif query'
-  puts # a blank line
-  puts 'Options:'
-  puts '    -v, --verbose                    Provides more information on' \
-       ' each step taken in this program.'
-  puts '    -a, --output_all                 Out# puts all possible files'
-  puts '    -h, --help                       Display this screen'
+unless ARGV.size == 4
+  puts help_banner
   puts # a blank line
   exit
 end
 
-input = ARGV[0] # e.g. 'example_files/genetic.fa'
-input_type = ARGV[1] # e.g. 'genetic' or 'protein'
-motif_query = ARGV[2] # e.g. 'neuro_clv'
+ORF_min_length = 10
+input_type     = ARGV[0] # e.g. 'genetic' or 'protein' 
+motif_query    = ARGV[1] # e.g. 'neuro_clv'
+input          = ARGV[2] # e.g. 'example_files/genetic.fa'
+output_dir     = ARGV[3]
 
 
 if motif_query == 'neuro_clv'
@@ -107,7 +99,7 @@ end
 input_validators_new = NpSearch::Validators.new 
 signalp_directory = input_validators_new.signalp_validator(signalp_dir) 
 input_validators_new.output_dir_validator(output_dir) 
-input_validators_new.orf_min_length_validator(orf_min_length) 
+input_validators_new.orf_min_length_validator(ORF_min_length) 
 input_validators_new.input_file_validator(input) 
 input_validators_new.input_type_validator(input_type) 
 
@@ -130,8 +122,8 @@ if input_type.downcase == 'genetic'
   orf = translation_new.extract_orf(translated_sequences)
   logger.info { "Writing the extracted Open Reading Frames to the file '#{output_dir}/orf.fa'." } if options[:output_all] 
   output_new.to_fasta(orf, "#{output_dir}/orf.fa") if options[:output_all] 
-  logger.info { "Removing all Open Reading Frames that are shorter than #{orf_min_length}." }
-  orf_clean = translation_new.orf_cleaner(orf, orf_min_length)
+  logger.info { "Removing all Open Reading Frames that are shorter than #{ORF_min_length}." }
+  orf_clean = translation_new.orf_cleaner(orf, ORF_min_length)
   logger.info { "Writing the cleaned Open Reading Frames to the file '#{output_dir}/orf_clean.fa'." }
   output_new.to_fasta(orf_clean, "#{output_dir}/orf_clean.fa") 
   # Signal P
