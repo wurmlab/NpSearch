@@ -3,6 +3,9 @@
 require 'bio'
 require 'np_search/version'
 require 'np_search/validate'
+require 'np_search/translate'
+require 'np_search/signalp'
+require 'np_search/output'
 require 'np_search'
 require 'fileutils'
 require 'optparse'
@@ -100,7 +103,7 @@ if options[:verbose]
 elsif options[:debug]
   logger.level = Logger::DEBUG
 else
-  logger.level = Logger::FATAL
+  logger.level = Logger::FATALrequi
 end
 
 ############# Input Validation...##############
@@ -114,21 +117,12 @@ if input_type.downcase == 'genetic'
   input_new = NpSearch::Input.new
   input_read = input_new.read(input, input_type)
 
-  # Translation
-  translation_new = NpSearch::Translation.new
-  logger.info { 'Translating the genomic data in all 6 frames.' }
-  translated_sequences = translation_new.translate(input_read)
-  logger.info { "Writing the translated sequences to the file:'#{output_dir}/protein.fa'." } if options[:output_all] 
-  output_new.to_fasta(translated_sequences, "#{output_dir}/protein.fa") if options[:output_all] 
-  # Open Reading Frame Extraction.
-  logger.info { 'Extracting all Open Reading Frames from all 6 possible frames. This is every methionine residue to the next stop codon.' }
-  orf = translation_new.extract_orf(translated_sequences)
-  logger.info { "Writing the extracted Open Reading Frames to the file '#{output_dir}/orf.fa'." } if options[:output_all] 
-  output_new.to_fasta(orf, "#{output_dir}/orf.fa") if options[:output_all] 
-  logger.info { "Removing all Open Reading Frames that are shorter than #{ORF_min_length}." }
-  orf_clean = translation_new.orf_cleaner(orf, ORF_min_length)
-  logger.info { "Writing the cleaned Open Reading Frames to the file '#{output_dir}/orf_clean.fa'." }
-  output_new.to_fasta(orf_clean, "#{output_dir}/orf_clean.fa") 
+  input_new = NpSearch::Input.new
+  
+
+
+
+
   # Signal P
   signalp_new = NpSearch::Signalp.new
   logger.info { 'Running a Signal Peptide test on each clean open reading frame.' }
