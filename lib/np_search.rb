@@ -4,14 +4,14 @@ LOG = Logger.new(STDOUT)
 LOG.formatter = proc do |severity, datetime, progname, msg|
   "#{datetime}: #{msg}\n"
 end
-LOG.level = Logger::FATAL # set level to only show fatal
+LOG.level = Logger::FATAL # set to only show fatal messages
 
 module NpSearch
   class Validators
     # Overides the  LOG levels if required.
     def initialize(verbose_opt, debug_opt)
-      LOG.level = Logger::INFO if verbose_opt == 'verbose'
-      LOG.level = Logger::DEBUG if debug_opt == 'debug'
+      LOG.level = Logger::INFO if verbose_opt == :is_verbose
+      LOG.level = Logger::DEBUG if debug_opt == :is_debug
     end
 
     # Checks for the presence of the Signal Peptide Script.
@@ -72,7 +72,7 @@ module NpSearch
           FileUtils.mkdir_p "#{output_dir}"
           puts 'Created output directory...'
         elsif inp.downcase == 'n'
-          abort "\nError: A output directory is required - please create" \
+          abort "\nError: An output directory is required - please create" \
                 "one and then try again.\n\n"
         end
       end
@@ -85,7 +85,7 @@ module NpSearch
             " whole integer.\n\n" if orf_min_length.to_i < 1
     end
 
-    # Taken from 'database_formatter.rb' from sequenceserver.
+    # Adapted from 'database_formatter.rb' from sequenceserver.
     def probably_fasta(input_file)
       File.open(input_file, 'r') do |file_stream|
         first_line = file_stream.readline
@@ -100,12 +100,17 @@ module NpSearch
     # Checks whether the input file exists; whether it is empty and whether it
     #   is likely a fasta file.
     def input_file_validator(input_file)
-      abort "\nError: The input file '#{input_file}' does not exist.\n\n" \
-            unless File.exist?(input_file)
-      abort "\nError: The input file is empty. Please correct this and" \
-            " try again.\n\n" if File.zero?(input_file)
-      abort "\nError: The input file does not seem to be a fasta file. Only" \
-            " fasta files are supported.\n\n" unless probably_fasta(input_file)
+      unless File.exist?(input_file)
+        abort "\nError: The input file '#{input_file}' does not exist.\n\n"
+      end
+      if File.zero?(input_file)
+        abort "\nError: The input file is empty. Please correct this and" \
+            " try again.\n\n" 
+      end
+      unless probably_fasta(input_file)
+        abort "\nError: The input file does not seem to be a fasta file. Only" \
+              " fasta files are supported.\n\n" 
+      end
     end
 
     # Checks whether the input_type has been provided in the correct format.
@@ -179,7 +184,22 @@ module NpSearch
         end
       end
     end
+
+    def @hash_check.hash_empty(hash, output_message)
+      if hash.empty?
+        puts # a blank line
+        puts output_message
+        puts # a blank line 
+        puts 'Please ensure all the input arguments are correct and then try' \
+             ' again (see "np_search -h" for more help).'
+        exit
+      end
+    end
+
+    #Set global variable so that other methods can access method.
+    @hash_check = Validators.new('other', 'other2')
   end
+
 
   class Input
     # Reads the input file converting it into hash.
@@ -195,6 +215,7 @@ module NpSearch
         end
         input_read[entry.entry_id] = seq
       end
+      @hash_check.hash_empty(input_read, 'The Input data cannot be converted into the required format due to a critical error.')
       return input_read
     end
   end
@@ -209,6 +230,7 @@ module NpSearch
           protein_data[id + '_f' + f.to_s] = sequence.translate(f)
         end
       end
+      @hash_check.hash_empty(protein_data, 'The input data cannot be translated due to a critical error.')
       return protein_data
     end
 
@@ -222,6 +244,7 @@ module NpSearch
           orf[id + '_' + i.to_s] = identified_orfs[i]
         end
       end
+      @hash_check.hash_empty(orf, 'The Open Reading Frames cannot be extracted. This could be due to the fact that there are no methionine residues in the protein data.')
       return orf
     end
 
@@ -234,6 +257,7 @@ module NpSearch
           orf_clean[id] = sequence
         end
       end
+      @hash_check.hash_empty(orf, 'The Open Reading Frames cannot be cleaned due to a critical error.')
       return orf_clean
     end
   end
@@ -280,6 +304,7 @@ module NpSearch
       (0..(identified_positives.length - 1)).each do |i|
         @positives[i] = identified_positives[i]
       end
+      @hash_check.hash_empty(@positives, 'No sequences were predicted to have a secretory signal peptide.')
       return identified_positives.length
     end
 
@@ -298,6 +323,7 @@ module NpSearch
         cut_off = h[4]
         d_value = h[8]
         signalp_hash[seq_id] = [cut_off: cut_off, d_value: d_value]
+      @hash_check.hash_empty(signalp_hash, 'There was a critical error in analysing the signal peptide.')
       end
       return signalp_hash
     end
@@ -318,6 +344,7 @@ module NpSearch
           signalp_with_seq[id + "~- S.P.=> Cleavage Site: #{sp_clv}:#{cut_off} | D-value: #{d_value}"] = "#{signalp}~#{seq_end}"
         end 
       end
+      @hash_check.hash_empty(signalp_with_seq, 'There are no sequences that have a signal peptide and contain the requested motif after the signal peptide cleavage site.')
       return signalp_with_seq
     end
 
@@ -330,6 +357,7 @@ module NpSearch
         flattened_seq[seq] = [] unless flattened_seq[seq]
         flattened_seq[seq] = id
       end
+      @hash_check.hash_empty(flattened_seq, 'There was a critical error in removing duplicates in the output file.')
       return flattened_seq.invert # Format required for the outputting.
     end
   end

@@ -11,7 +11,9 @@ require 'haml'
 # Search for the signal p directory with signal peptide. 
 signalp_dir = "#{Dir.home}/SignalPeptide"
 
-help_banner = <<BANNER
+options = {}
+optparse = OptionParser.new do|opts|
+  opts.banner =<<BANNER
 
 Usage: np_search [options] InputType Motif InputFile Output_Prefix
 
@@ -34,17 +36,6 @@ Output_Prefix = The Name of the output folder.
 Options:
 
 BANNER
-
-options =<<OPTIONS 
-    -v, --verbose                    Provides more information on each step taken in this program.
-    -a, --output_all                 Outputs all possible files
-    -d, --debug                      Debugs the program
-    -h, --help                       Display this screen
-OPTIONS
-
-options = {}
-optparse = OptionParser.new do|opts|
-  opts.banner = help_banner
 
   options[:verbose] = false
   opts.on( '-v', '--verbose', 'Provides more information on each step taken'\
@@ -70,11 +61,9 @@ end
 optparse.parse!
 
 unless ARGV.size == 4
-  puts "There are less than four arguments supplied. Please correct this."
+  puts 'At least 4 arguments are required for this program. Please correct this.'
   puts # a blank line
-  puts help_banner
-  puts # a blank line
-  puts options
+  puts 'Run "np_search -h" for more information.'
   puts # a blank line
   exit
 end
@@ -95,15 +84,15 @@ end
 
 ############# Set up variables to pass to logger in the library file...##############
 if options[:verbose]
-  verbose_opt = 'verbose'
+  verbose_opt = :is_verbose
 else
-  verbose_opt = 'not_verbose'
+  verbose_opt = :not_verbose
 end
 
 if options[:debug]
-  debug_opt = 'debug'
+  debug_opt = :is_debug
 else
-  debug_opt = 'not_debug'
+  debug_opt = :not_debug
 end
 
 ############# Input Validation...##############
@@ -116,6 +105,7 @@ input_validators.input_type_validator(input_type)
 
 ############# Initialise Outputs...##############
 to_output = NpSearch::Output.new
+
 
 ############# Converting input file to Bio::FastaFormat. #############
 input_file = NpSearch::Input.new
@@ -130,25 +120,28 @@ if input_type.downcase == 'genetic'
   # Extract all possible ORF
   orf = translater.extract_orf(translated_sequences)
   to_output.to_fasta("extracted Open Reading Frames", orf, "#{output_dir}/2_orf.fa") if options[:output_all]
+  # Remove all ORF that are shorter than 10 amino acids.
   orf_clean = translater.orf_cleaner(orf, ORF_min_length)
   to_output.to_fasta("cleaned Open Reading Frames" , orf_clean, "#{output_dir}/3_orf_clean.fa")
 end
 
-############# Signal P #############
+############# Setting up variables...##############
 if input_type.downcase == 'genetic'
   signalp_input_file = "#{output_dir}/3_orf_clean.fa"
   signalp_hash = orf_clean
   i = 4
-else
+else # i.e. if the input is protein 
   signalp_input_file = input
   signalp_hash = input_read
   i = 1
 end
 
+############# Signal P #############
 signalp_test = NpSearch::Signalp.new
+# Run an extenal Signal P script
 signalp_test.signalp(signalp_directory, signalp_input_file, "#{output_dir}/#{i}_signalp_out.txt")
+# Check that the output produced is in a readable format
 input_validators.signalp_version_validator("#{output_dir}/#{i}_signalp_out.txt") 
-
 
 ############# Data Analysis #############
 data_analysis = NpSearch::Analysis.new
@@ -158,7 +151,6 @@ secretome = data_analysis.parse(signalp, signalp_hash, motif)
 i += 2
 to_output.to_fasta("secretome", secretome, "#{output_dir}/#{i}_Secretome.fa")
 i += 1
-
 
 ############# Creating Output Files #############
 flattened_seq = data_analysis.flattener(secretome)
