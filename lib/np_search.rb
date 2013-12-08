@@ -214,9 +214,7 @@ module NpSearch
 
     # Extract all possible Open Reading Frames.
     def extract_orf(protein_data)
-      LOG.info { 'Extracting all Open Reading Frames from all 6 possible' /
-                 'frames. This is every methionine residue to the next' /
-                 ' stop codon.' }
+      LOG.info { 'Extracting all Open Reading Frames from all 6 possible frames. This is every methionine residue to the next stop codon.' }
       orf = {}
       protein_data.each do |id, sequence|
         identified_orfs = sequence.scan(/(?=(M\w*))./)
@@ -229,8 +227,7 @@ module NpSearch
 
     # Extracts all Open Reading Frames that are longer than the minimum length.
     def orf_cleaner(orf, minimum_length)
-      LOG.info { "Removing all Open Reading Frames that are shorter " /
-                 "than #{ORF_min_length}." }
+      LOG.info { "Removing all Open Reading Frames that are shorter than #{ORF_min_length}." }
       orf_clean = {}
       orf.each do |id, sequence|
         if (sequence.to_s).length >= (minimum_length + 4)
@@ -246,8 +243,7 @@ module NpSearch
     def signalp(signalp_dir, input, output)
       LOG.info { 'Running a Signal Peptide test on each sequence.' }
       system("#{signalp_dir}/signalp -t euk -f short #{input} > #{output}")
-      LOG.info { "Writing the Signal Peptide test results to the " /
-                 "file '#{output}'." }
+      LOG.info { "Writing the Signal Peptide test results to the file '#{output}'." }
     end
   end
 
@@ -260,8 +256,7 @@ module NpSearch
 
     # Creates a signalp positives file, if required.
     def signalp_positives_file_writer(input, identified_positives, output)
-      LOG.info { "Writing the Signal Peptide test results to the" /
-                 " file '#{output}'." }
+      LOG.info { "Writing the Signal Peptide test results to the file '#{output}'." }
       output_file = File.new(output, 'w')
       File.open(input, 'r') do |file_stream|
         first_line = file_stream.readline
@@ -275,8 +270,7 @@ module NpSearch
 
     # Extracts rows from the Signal P test that are positive.
     def signalp_positives_extractor(input, output_file, make_file)
-      LOG.info { 'Extracting all Open Reading Frames that have a' / 
-                 ' Signal Peptide.' }
+      LOG.info { 'Extracting all Open Reading Frames that have a Signal Peptide.' }
       @positives = {}
       signalp_file = File.read(input)
       identified_positives = signalp_file.scan(/^.* Y .*$/)
@@ -311,8 +305,7 @@ module NpSearch
     # Presents the signal P positives data with seq Id on onto line and the
     #   sequence on the next.
     def parse(signalp_hash, orf_clean, motif)
-      LOG.info { 'Extracting sequences that have at least 1 neuropeptide ' /
-                 'cleavage site after the signal peptide cleavage site.' }
+      LOG.info { 'Extracting sequences that have at least 1 neuropeptide cleavage site after the signal peptide cleavage site.' }
       signalp_with_seq = {}
       signalp_hash.each do |id, h|
         current_orf = orf_clean[id].to_s.gsub('["', '').gsub('"]', '')
@@ -322,9 +315,7 @@ module NpSearch
         signalp     = current_orf[0, sp_clv]
         seq_end     = current_orf[sp_clv, current_orf.length]
         if seq_end.match(/#{motif}/)
-          signalp_with_seq[id + "~- S.P.=> Cleavage Site: #{sp_clv}: " /
-                           "#{cut_off} // D-value: #{d_value}" /
-                           ""] = "#{signalp}~#{seq_end}"
+          signalp_with_seq[id + "~- S.P.=> Cleavage Site: #{sp_clv}:#{cut_off} | D-value: #{d_value}"] = "#{signalp}~#{seq_end}"
         end 
       end
       return signalp_with_seq
