@@ -1,12 +1,8 @@
 #!/usr/bin/env ruby
 
-require 'bio'
 require 'np_search/version'
-require 'np_search/validate'
-require 'np_search/translate'
-require 'np_search/signalp'
-require 'np_search/output'
 require 'np_search'
+require 'bio'
 require 'fileutils'
 require 'optparse'
 require 'logger'
@@ -29,7 +25,7 @@ Motif         = The query motif to be searched for.
                 motifs query can be used by using a pipeline character ("|")
                 between each query and putting the motif query in speech marks 
                 e.g. "KR|RR|R..R".
-                Advanced Users: Regex is supported in the motif.
+                Advanced Users: Regular expressions are supported in the motif.
 
 Input_File    = The input query file.
 
@@ -40,9 +36,10 @@ Options:
 BANNER
 
 options =<<OPTIONS 
-
-
-
+    -v, --verbose                    Provides more information on each step taken in this program.
+    -a, --output_all                 Outputs all possible files
+    -d, --debug                      Debugs the program
+    -h, --help                       Display this screen
 OPTIONS
 
 options = {}
@@ -73,6 +70,8 @@ end
 optparse.parse!
 
 unless ARGV.size == 4
+  puts "There are less than four arguments supplied. Please correct this."
+  puts # a blank line
   puts help_banner
   puts # a blank line
   puts options
@@ -94,73 +93,78 @@ else
   motif = motif_query
 end
 
-logger = Logger.new(STDOUT)
-logger.formatter = proc do |severity, datetime, progname, msg|
-  "#{datetime}: #{msg}\n"
-end
+############# Set up variables to pass to logger in the library file...##############
 if options[:verbose]
-  logger.level = Logger::INFO
-elsif options[:debug]
-  logger.level = Logger::DEBUG
+  verbose_opt = 'verbose'
 else
-  logger.level = Logger::FATALrequi
+  verbose_opt = 'not_verbose'
+end
+
+if options[:debug]
+  debug_opt = 'debug'
+else
+  debug_opt = 'not_debug'
 end
 
 ############# Input Validation...##############
-input_validators_new = NpSearch::Validators.new 
-  signalp_directory = input_validators_new.all_validators(signalp_dir, output_dir, ORF_min_length, input, input_type)
+input_validators = NpSearch::Validators.new(verbose_opt, debug_opt)
+signalp_directory = input_validators.signalp_validator(signalp_dir)
+input_validators.output_dir_validator(output_dir)
+input_validators.orf_min_length_validator(ORF_min_length)
+input_validators.input_file_validator(input)
+input_validators.input_type_validator(input_type)
 
-output_new = NpSearch::Output.new
+############# Initialise Outputs...##############
+to_output = NpSearch::Output.new
+
+############# Converting input file to Bio::FastaFormat. #############
+input_file = NpSearch::Input.new
+input_read = input_file.read(input, input_type)
+
+############# Extract_ORF #############
 if input_type.downcase == 'genetic'
-  # Converting input file to Bio::FastaFormat.
-  logger.info { "Reading Input file '#{input}'." } 
-  input_new = NpSearch::Input.new
-  input_read = input_new.read(input, input_type)
-
-  input_new = NpSearch::Input.new
-  
-
-
-
-
-  # Signal P
-  signalp_new = NpSearch::Signalp.new
-  logger.info { 'Running a Signal Peptide test on each clean open reading frame.' }
-  signalp_new.signal_p(signalp_directory, "#{output_dir}/orf_clean.fa", "#{output_dir}/signalp_out.txt")
-  input_validators_new.signalp_version_validator("#{output_dir}/signalp_out.txt")
-elsif input_type.downcase == 'protein'
-  logger.info { "Reading Input file '#{input}'." }
-  # Signal P
-  signalp_new = NpSearch::Signalp.new
-  logger.info { 'Running a Signal Peptide test on each sequence.' }
-  signalp_new.signal_p(signalp_directory, input, "#{output_dir}/signalp_out.txt")
+  translater = NpSearch::Translation.new
+  # Translate Sequences in all 6 frames
+  translated_sequences = translater.translate(input_read)
+  to_output.to_fasta("translated sequences", translated_sequences, "#{output_dir}/1_protein.fa") if options[:output_all]
+  # Extract all possible ORF
+  orf = translater.extract_orf(translated_sequences)
+  to_output.to_fasta("extracted Open Reading Frames", orf, "#{output_dir}/2_orf.fa") if options[:output_all]
+  orf_clean = translater.orf_cleaner(orf, ORF_min_length)
+  to_output.to_fasta("cleaned Open Reading Frames" , orf_clean, "#{output_dir}/3_orf_clean.fa")
 end
 
-# Data Analysis  (common for genetic and protein data)
-logger.info { "Writing the Signal Peptide test results to the file" \
-              " '#{output_dir}/signalp_out.txt'." }
-if options[:output_all] 
-  identified_positives_length = signalp_new.signalp_positives_extractor("#{output_dir}/signalp_out.txt", "#{output_dir}/signalp_positives.txt", "signalp_positives_file") 
-elsif
-  identified_positives_length = signalp_new.signalp_positives_extractor("#{output_dir}/signalp_out.txt", "#{output_dir}/signalp_positives.txt", "no_signalp_positives_file")
+############# Signal P #############
+if input_type.downcase == 'genetic'
+  signalp_input_file = "#{output_dir}/3_orf_clean.fa"
+  signalp_hash = orf_clean
+  i = 4
+else
+  signalp_input_file = input
+  signalp_hash = input_read
+  i = 1
 end
-logger.info { 'Extracting all Open Reading Frames that have a Signal Peptide.' }
 
-signalp = signalp_new.array_generator(identified_positives_length)
+signalp_test = NpSearch::Signalp.new
+signalp_test.signalp(signalp_directory, signalp_input_file, "#{output_dir}/#{i}_signalp_out.txt")
+input_validators.signalp_version_validator("#{output_dir}/#{i}_signalp_out.txt") 
 
-# Final Outputs. (more or less)
-logger.info { 'Extracting sequences that have at least 1 neuropeptide cleavage site after the signal peptide cleavage site.' }
-signalp_with_seq = signalp_new.parse(signalp, orf_clean, motif)
-logger.info { "Writing sequences that have at least 1 neuropeptide cleavage site after the signal peptide cleavage site to the file '#{output_dir}/signalp_with_seq.fa'." } if options[:output_all] 
-output_new.to_fasta(signalp_with_seq, "#{output_dir}/signalp_with_seq.fa") if options[:output_all] 
-logger.info { 'Removing all duplicate entries.' }
-flattened_seq = signalp_new.flattener(signalp_with_seq)
-logger.info { "Writing Ouput files to the fasta files '#{output_dir}/output.fa' and to the word document: '#{output_dir}/output.doc'." }
-output_new.to_fasta(flattened_seq, "#{output_dir}/output.fa")
 
-doc_hash = output_new.make_doc_hash(flattened_seq, motif)
-output_new.to_doc(doc_hash, "#{output_dir}/output.docx")
+############# Data Analysis #############
+data_analysis = NpSearch::Analysis.new
+identified_positives = data_analysis.signalp_positives_extractor("#{output_dir}/#{i}_signalp_out.txt", "#{output_dir}/#{i + 1}_signalp_positives.txt", "signalp_positives_file")
+signalp = data_analysis.array_generator(identified_positives)
+secretome = data_analysis.parse(signalp, signalp_hash, motif)
+i += 2
+to_output.to_fasta("secretome", secretome, "#{output_dir}/#{i}_Secretome.fa")
+i += 1
+
+
+############# Creating Output Files #############
+flattened_seq = data_analysis.flattener(secretome)
+to_output.to_fasta("fasta output file", flattened_seq, "#{output_dir}/#{i}_output.fa")
+doc_hash = to_output.make_doc_hash(flattened_seq, motif)
+to_output.to_doc(doc_hash, "#{output_dir}/#{i}_output.doc")
 
 # Success
 puts "\nSuccess: All output files created in the directory: '#{output_dir}'.\n "
-logger.close
