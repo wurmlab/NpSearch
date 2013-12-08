@@ -250,7 +250,7 @@ module NpSearch
 
     # Extracts all Open Reading Frames that are longer than the minimum length.
     def orf_cleaner(orf, minimum_length)
-      LOG.info { "Removing all Open Reading Frames that are shorter than #{ORF_min_length}." }
+      LOG.info { "Removing all Open Reading Frames that are shorter than #{minimum_length}." }
       orf_clean = {}
       orf.each do |id, sequence|
         if (sequence.to_s).length >= (minimum_length + 4)
