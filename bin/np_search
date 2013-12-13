@@ -8,30 +8,34 @@ require 'optparse'
 require 'logger'
 require 'haml'
 
-# Search for the signal p directory with signal peptide. 
+# Search for the signal p directory with signal peptide.
 signalp_dir = "#{Dir.home}/SignalPeptide"
 
 options = {}
 optparse = OptionParser.new do|opts|
   opts.banner =<<BANNER
 
-Usage: np_search [options] InputType Motif InputFile Output_Prefix
+Usage: np_search [options] InputType Motif InputFile Output_Prefix (Extract ORF)
 
 Where:
 
-InputType     = The type of data in the input query file. The only two options 
+InputType     = The type of data in the input query file. The only two options
                 available are "genetic" and "protein".
  
 Motif         = The query motif to be searched for.
-                The period "." can be used to denote any character. Multiple 
+                  The period "." can be used to denote any character. Multiple
                 motifs query can be used by using a pipeline character ("|")
-                between each query and putting the motif query in speech marks 
+                between each query and putting the motif query in speech marks
                 e.g. "KR|RR|R..R".
                 Advanced Users: Regular expressions are supported in the motif.
 
 Input_File    = The input query file.
 
 Output_Prefix = The Name of the output folder.
+
+Extract ORF   = This is an optional Argument.
+                This only extracts all possible Open Reading Frames. The only 
+                option for this Argument is 'extract_orf'
 
 Options:
 
@@ -47,12 +51,12 @@ BANNER
   opts.on( '-a', '--output_all', 'Outputs all possible files' ) do
     options[:output_all] = true
   end
-  
+
   options[:debug] = false
   opts.on( '-d', '--debug', 'Debugs the program' ) do
     options[:debug] = true
   end
-  
+
   opts.on( '-h', '--help', 'Display this screen' ) do
     puts opts
     exit
@@ -60,7 +64,7 @@ BANNER
 end
 optparse.parse!
 
-unless ARGV.size == 4
+if ARGV.size < 3 || (ARGV.size > 5 && ARGV[5] != 'extract_orf')
   puts 'At least 4 arguments are required for this program. Please correct this.'
   puts # a blank line
   puts 'Run "np_search -h" for more information.'
@@ -73,7 +77,7 @@ input_type     = ARGV[0] # e.g. 'genetic' or 'protein'
 motif_query    = ARGV[1] # e.g. 'neuro_clv'
 input          = ARGV[2] # e.g. 'example_files/genetic.fa'
 output_dir     = ARGV[3]
-
+orf_extracter  = ARGV[4] # extract_orf
 
 if motif_query == 'neuro_clv'
   motif = 'KK|KR|RR|'\
@@ -81,6 +85,7 @@ if motif_query == 'neuro_clv'
 else
   motif = motif_query
 end
+
 
 ############# Set up variables to pass to logger in the library file...##############
 if options[:verbose]
@@ -112,7 +117,7 @@ input_file = NpSearch::Input.new
 input_read = input_file.read(input, input_type)
 
 ############# Extract_ORF #############
-if input_type.downcase == 'genetic'
+if input_type.downcase == 'genetic' || orf_extracter.to_s.downcase == 'extract_orf'
   translater = NpSearch::Translation.new
   # Translate Sequences in all 6 frames
   translated_sequences = translater.translate(input_read)
@@ -123,6 +128,10 @@ if input_type.downcase == 'genetic'
   # Remove all ORF that are shorter than 10 amino acids.
   orf_clean = translater.orf_cleaner(orf, ORF_min_length)
   to_output.to_fasta("cleaned Open Reading Frames" , orf_clean, "#{output_dir}/3_orf_clean.fa")
+  if orf_extracter.to_s.downcase == "extract_orf"
+    puts "\nSuccess: All output files created in the directory: '#{output_dir}'.\n "
+    exit
+  end 
 end
 
 ############# Setting up variables...##############
