@@ -18,14 +18,24 @@ The default output is just a fasta file and a colour-formatted word document. Ho
     
 ## Installation
 
-Simply open the Terminal and type this
-	
+Option 1
+
+  1. Download the source files. 
+  2. Open the Terminal and change the directory to the source folder
+  3. Then type
+
+  $ bundle install 
+
+Option 2 (When finally released)
+  
+  1. Simply open the Terminal and type this
+
 	$ gem install np_search
 
 
 ## Usage
 
-    Usage: np_search [Options] -m [Motif] -t [Input Type] -i [Input File] -o [Output Folder Name]
+    Usage: $ np_search [Options] -m [Motif] -t [Input Type] -i [Input File] -o [Output Folder Name]
 
 Where:
 
@@ -43,6 +53,7 @@ Where:
     -o, --output [folder name]       The path to the output folder. This will be created if the folder does not already exist.
 
   Optional Options:
+
     -c, --cut_off N                  Changes the default minimum Open Reading Frame from 10 amino acid residues to N amino acid residues.
     -s, --signalp_file [file]        Supply the output file of the Signal Peptide script (version 4.x) to the script.
                                       Otherwise the script will try to run the external Signal Peptide script when running.
@@ -62,6 +73,7 @@ Help can be accessed easily, directly from the command line:
     $ np_search -v -a -c 25 -m neuro_clv -t genetic -i genetic_data.fa -o starfish
   
   The Example Explained:
+
   -v                  = Optional - Runs the verbose options
   -a                  = Optional - Runs the Output_all Option
   -c 25               = Optional -
