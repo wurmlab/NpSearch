@@ -13,33 +13,64 @@ signalp_dir = "#{Dir.home}/SignalPeptide"
 
 options = {}
 optparse = OptionParser.new do|opts|
-  opts.banner =<<BANNER
+  opts.banner =<<Banner
 
-Usage: np_search [options] InputType Motif InputFile Output_Prefix (Extract ORF)
+* Usage: np_search [Options] -m [Motif] -t [Input Type] -i [Input File] -o [Output Folder Name]'
 
-Where:
+* Mandatory Options:
 
-InputType     = The type of data in the input query file. The only two options
-                available are "genetic" and "protein".
- 
-Motif         = The query motif to be searched for.
-                  The period "." can be used to denote any character. Multiple
-                motifs query can be used by using a pipeline character ("|")
-                between each query and putting the motif query in speech marks
-                e.g. "KR|RR|R..R".
-                Advanced Users: Regular expressions are supported in the motif.
+Banner
 
-Input_File    = The input query file.
+  options[:motif] = nil
+  opts.on( '-m', '--motif [Query Motif]', 
+           'The query motif to be searched for.',
+          'The period "." can be used to denote any character. Multiple',
+          'motifs query can be used by using a pipeline character ("|")',
+          'between each query and putting the motif query in speech marks',
+          'e.g. "KR|RR|R..R"',
+          'Advanced Users: Regular expressions are supported in the motif.') do |motif|
+    options[:motif] = motif
+  end
 
-Output_Prefix = The Name of the output folder.
+  options[:input_type] = nil
+  opts.on( '-t', '--input_type [type]', 'The type of data in the input query file. The only two options',
+                                        'available are "genetic" and "protein".') do |input_type|
+    options[:input_type] = input_type
+  end
 
-Extract ORF   = This is an optional Argument.
-                This only extracts all possible Open Reading Frames. The only 
-                option for this Argument is 'extract_orf'
+  options[:input] = nil
+  opts.on( '-i', '--input [file]', 'The input file. This can be a relative or a full path.') do |input_file|
+    options[:input] = input_file
+  end
 
-Options:
+  options[:output_dir] = nil
+  opts.on( '-o', '--output [folder name]', 'The path to the output folder. This will be created if the folder does not already exist.') do |output|
+    options[:output_dir] = output
+  end
 
-BANNER
+  opts.separator ''
+  opts.separator '* Optional Options:'
+
+  options[:cut_off] = 10
+  opts.on( '-c', '--cut_off N', Integer, 'Changes the default minimum Open Reading Frame from 10 amino acid residues to N amino acid residues.') do |n|
+    options[:cut_off] = n
+  end
+
+  options[:signalp_file] = nil
+  opts.on( '-s', '--signalp_file [file]', 'Supply the output file of the Signal Peptide script (version 4.x) to the script.',
+                ' Otherwise the script will try to run the external Signal Peptide script when running.') do |signalp_file|
+    options[:signalp_file] = signalp_file
+  end
+
+  options[:output_all] = false
+  opts.on( '-a', '--output_all', 'Outputs all possible files.' ) do
+    options[:output_all] = true
+  end
+
+  options[:extract_orf] = false
+  opts.on( '-e', '--extract_orf', 'Only extracts the Open Reading Frames.' ) do
+    options[:extract_orf] = true
+  end
 
   options[:verbose] = false
   opts.on( '-v', '--verbose', 'Provides more information on each step taken'\
@@ -47,125 +78,128 @@ BANNER
     options[:verbose] = true
   end
 
-  options[:output_all] = false
-  opts.on( '-a', '--output_all', 'Outputs all possible files' ) do
-    options[:output_all] = true
-  end
-
-  options[:debug] = false
-  opts.on( '-d', '--debug', 'Debugs the program' ) do
-    options[:debug] = true
-  end
-
   opts.on( '-h', '--help', 'Display this screen' ) do
     puts opts
+    exit
+  end
+
+  opts.on( '--version', 'Shows version') do
+    puts 
     exit
   end
 end
 optparse.parse!
 
-if ARGV.size < 3 || (ARGV.size > 5 && ARGV[5] != 'extract_orf')
-  puts 'At least 4 arguments are required for this program. Please correct this.'
+
+############# Input Validation...##############
+input_validators = NpSearch::Validators.new(options[:verbose])
+if options[:signalp_file] == nil
+  signalp_directory = input_validators.signalp_validator(signalp_dir) 
+end 
+input_validators.output_dir_validator(options[:output_dir])
+input_validators.orf_min_length_validator(options[:cut_off])
+input_validators.input_file_validator(options[:input])
+input_validators.input_type_validator(options[:input_type])
+
+### TODO: Convert the below into methods
+if ARGV.size != 0 
+  puts 'Np_search has been inaccuratly run.'
   puts # a blank line
-  puts 'Run "np_search -h" for more information.'
+  puts 'Run "$ np_search -h" for more information.'
   puts # a blank line
   exit
 end
 
-ORF_min_length = 10
-input_type     = ARGV[0] # e.g. 'genetic' or 'protein' 
-motif_query    = ARGV[1] # e.g. 'neuro_clv'
-input          = ARGV[2] # e.g. 'example_files/genetic.fa'
-output_dir     = ARGV[3]
-orf_extracter  = ARGV[4] # extract_orf
-
-if motif_query == 'neuro_clv'
-  motif = 'KK|KR|RR|'\
-          'R..R|R....R|R......R|H..R|H....R|H......R|K..R|K....R|K......R'
-else
-  motif = motif_query
+if options[:input_type] == "protein" && options[:extract_orf]
+  puts "Conflicting arguments detected: the input_type cannot be protein, with the Extract_ORF option"
+  exit
 end
 
-
-############# Set up variables to pass to logger in the library file...##############
-if options[:verbose]
-  verbose_opt = :is_verbose
-else
-  verbose_opt = :not_verbose
+if options[:input_type] == 'genetic' && options[:signalp_file] != nil
+  puts "Conflicting arguments detected: the input_type cannot be genetic, when inputting an signalp output file."
+  exit
 end
 
-if options[:debug]
-  debug_opt = :is_debug
-else
-  debug_opt = :not_debug
-end
-
-############# Input Validation...##############
-input_validators = NpSearch::Validators.new(verbose_opt, debug_opt)
-signalp_directory = input_validators.signalp_validator(signalp_dir)
-input_validators.output_dir_validator(output_dir)
-input_validators.orf_min_length_validator(ORF_min_length)
-input_validators.input_file_validator(input)
-input_validators.input_type_validator(input_type)
 
 ############# Initialise Outputs...##############
 to_output = NpSearch::Output.new
 
-
 ############# Converting input file to Bio::FastaFormat. #############
 input_file = NpSearch::Input.new
-input_read = input_file.read(input, input_type)
+input_read = input_file.read(options[:input], options[:input_type])
 
 ############# Extract_ORF #############
-if input_type.downcase == 'genetic' || orf_extracter.to_s.downcase == 'extract_orf'
+if options[:input_type].downcase == 'genetic'
   translater = NpSearch::Translation.new
   # Translate Sequences in all 6 frames
   translated_sequences = translater.translate(input_read)
-  to_output.to_fasta("translated sequences", translated_sequences, "#{output_dir}/1_protein.fa") if options[:output_all]
+  to_output.to_fasta("translated sequences", translated_sequences, "#{options[:output_dir]}/1_protein.fa") if options[:output_all]
   # Extract all possible ORF
   orf = translater.extract_orf(translated_sequences)
-  to_output.to_fasta("extracted Open Reading Frames", orf, "#{output_dir}/2_orf.fa") if options[:output_all]
+  to_output.to_fasta("extracted Open Reading Frames", orf, "#{options[:output_dir]}/2_orf.fa") if options[:output_all]
   # Remove all ORF that are shorter than 10 amino acids.
-  orf_clean = translater.orf_cleaner(orf, ORF_min_length)
-  to_output.to_fasta("cleaned Open Reading Frames" , orf_clean, "#{output_dir}/3_orf_clean.fa")
-  if orf_extracter.to_s.downcase == "extract_orf"
-    puts "\nSuccess: All output files created in the directory: '#{output_dir}'.\n "
-    exit
-  end 
+  if options[:output_all]
+    j = 3 
+  else
+    j = 1
+  end
+  orf_clean = translater.orf_cleaner(orf, options[:cut_off])
+  to_output.to_fasta("cleaned Open Reading Frames" , orf_clean, "#{options[:output_dir]}/#{j}_orf_clean.fa") 
 end
 
-############# Setting up variables...##############
-if input_type.downcase == 'genetic'
-  signalp_input_file = "#{output_dir}/3_orf_clean.fa"
+if options[:extract_orf]
+  puts "\nSuccess: All output files created in the directory: '#{options[:output_dir]}'.\n " 
+  exit
+end
+
+############# Setting up more variables...##############
+if options[:motif] == 'neuro_clv'
+  motif = 'KK|KR|RR|'\
+          'R..R|R....R|R......R|H..R|H....R|H......R|K..R|K....R|K......R'
+else
+  motif = options[:motif]
+end
+
+if options[:input_type].downcase == 'genetic'
+  signalp_input_file = "#{options[:output_dir]}/#{j}_orf_clean.fa" 
   signalp_hash = orf_clean
-  i = 4
+  i = j + 1  
 else # i.e. if the input is protein 
-  signalp_input_file = input
+  signalp_input_file = options[:input]
   signalp_hash = input_read
+  i = 1
+end
+
+if options[:signalp_file] == nil
+  signalp_out_file = "#{options[:output_dir]}/#{i}_signalp_out.txt"
+  i += 1
+else
+  signalp_out_file = options[:signalp_file] 
   i = 1
 end
 
 ############# Signal P #############
 signalp_test = NpSearch::Signalp.new
 # Run an extenal Signal P script
-signalp_test.signalp(signalp_directory, signalp_input_file, "#{output_dir}/#{i}_signalp_out.txt")
+signalp_test.signalp(signalp_directory, signalp_input_file, signalp_out_file) if options[:signalp_file] == nil 
 # Check that the output produced is in a readable format
-input_validators.signalp_version_validator("#{output_dir}/#{i}_signalp_out.txt") 
+input_validators.signalp_version_validator(signalp_out_file) 
+
 
 ############# Data Analysis #############
 data_analysis = NpSearch::Analysis.new
-identified_positives = data_analysis.signalp_positives_extractor("#{output_dir}/#{i}_signalp_out.txt", "#{output_dir}/#{i + 1}_signalp_positives.txt", "signalp_positives_file")
+identified_positives = data_analysis.signalp_positives_extractor(signalp_out_file, "#{options[:output_dir]}/#{i}_signalp_positives.txt", "signalp_positives_file")
 signalp = data_analysis.array_generator(identified_positives)
 secretome = data_analysis.parse(signalp, signalp_hash, motif)
-i += 2
-to_output.to_fasta("secretome", secretome, "#{output_dir}/#{i}_Secretome.fa")
+i += 1
+to_output.to_fasta("secretome", secretome, "#{options[:output_dir]}/#{i}_Secretome.fa")
 i += 1
 
 ############# Creating Output Files #############
 flattened_seq = data_analysis.flattener(secretome)
-to_output.to_fasta("fasta output file", flattened_seq, "#{output_dir}/#{i}_output.fa")
+to_output.to_fasta("fasta output file", flattened_seq, "#{options[:output_dir]}/#{i}_output.fa")
 doc_hash = to_output.make_doc_hash(flattened_seq, motif)
-to_output.to_doc(doc_hash, "#{output_dir}/#{i}_output.doc")
+to_output.to_doc(doc_hash, "#{options[:output_dir]}/#{i}_output.doc")
 
 # Success
-puts "\nSuccess: All output files created in the directory: '#{output_dir}'.\n "
+puts "\nSuccess: All output files created in the directory: '#{options[:output_dir]}'.\n "

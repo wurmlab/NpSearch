@@ -9,9 +9,8 @@ LOG.level = Logger::FATAL # set to only show fatal messages
 module NpSearch
   class Validators
     # Overides the  LOG levels if required.
-    def initialize(verbose_opt, debug_opt)
-      LOG.level = Logger::INFO if verbose_opt == :is_verbose
-      LOG.level = Logger::DEBUG if debug_opt == :is_debug
+    def initialize(verbose_opt)
+      LOG.level = Logger::INFO if verbose_opt.to_s == 'true'
     end
 
     # Checks for the presence of the Signal Peptide Script.
@@ -197,7 +196,7 @@ module NpSearch
     end
 
     #Set global variable so that other methods can access method.
-    @hash_check = Validators.new('other', 'other2')
+    @hash_check = Validators.new('other')
   end
 
 

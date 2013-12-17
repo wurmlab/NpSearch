@@ -40,11 +40,26 @@ Options
     -a, --output_all                 Outputs all possible files
     -h, --help                       Display this screen
 
-## Test_Example
+## Examples
 
-An example set of data can be downloaded from ... The script can be run on the examplar data by typing this into the terminal.
+Help can be accessed easily, directly from the command line:
 
-    $ np_search -v -a genetic.fa genetic neuro_clv
+    $ np_search -h
+
+### Example 1 
+    $ np_search -v -a -c 25 -m neuro_clv -t genetic -i genetic_data.fa -o starfish
+  
+  The Example Explained:
+  -v                  = Optional - Runs the verbose options
+  -a                  = Optional - Runs the Output_all Option
+  -c 25               = Optional -
+  -m neuro_clv        = Mandatory - 
+  -t genetic          = Mandatory - Describes the type of input data 
+                        (can be either "genetic" or "protein")
+  -i genetic_data.fa  = Mandatory
+  -o starfish         = Mandatory
+
+
 
 Further information on running the script on test material is provided within the test suite download.
 
