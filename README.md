@@ -20,15 +20,15 @@ The default output is just a fasta file and a colour-formatted word document. Ho
 
 Option 1
 
-  1. Download the source files. 
-  2. Open the Terminal and change the directory to the source folder
-  3. Then type
+1. Download the source files. 
+2. Open the Terminal and change the directory to the source folder
+3. Then type
 
   $ bundle install 
 
 Option 2 (When finally released)
-  
-  1. Simply open the Terminal and type this
+
+1. Simply open the Terminal and type this
 
 	$ gem install np_search
 
