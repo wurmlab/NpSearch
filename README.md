@@ -75,14 +75,14 @@ Help can be accessed easily, directly from the command line:
   
 The Example Explained:
 
-  -v                  = Optional - Runs the verbose options
-  -a                  = Optional - Runs the Output_all Option
-  -c 25               = Optional -
-  -m neuro_clv        = Mandatory - 
-  -t genetic          = Mandatory - Describes the type of input data 
-                        (can be either "genetic" or "protein")
-  -i genetic_data.fa  = Mandatory
-  -o starfish         = Mandatory
+    -v                  = Optional - Runs the verbose options
+    -a                  = Optional - Runs the Output_all Option
+    -c 25               = Optional -
+    -m neuro_clv        = Mandatory - 
+    -t genetic          = Mandatory - Describes the type of input data 
+                          (can be either "genetic" or "protein")
+    -i genetic_data.fa  = Mandatory
+    -o starfish         = Mandatory
 
 
 
