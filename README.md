@@ -70,9 +70,10 @@ Help can be accessed easily, directly from the command line:
     $ np_search -h
 
 ### Example 1 
+
     $ np_search -v -a -c 25 -m neuro_clv -t genetic -i genetic_data.fa -o starfish
   
-  The Example Explained:
+The Example Explained:
 
   -v                  = Optional - Runs the verbose options
   -a                  = Optional - Runs the Output_all Option
