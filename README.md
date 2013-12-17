@@ -25,20 +25,32 @@ Simply open the Terminal and type this
 
 ## Usage
 
-    Usage: np_search.rb [options] InputFile InputType Motif
+    Usage: np_search [Options] -m [Motif] -t [Input Type] -i [Input File] -o [Output Folder Name]
 
 Where:
 
-    InputFile: The Input query file
-    InputType: The type of data in the input query file. Only "dna", "rna"and "protein" are supported.
-    Motif: The query motif to be searched for. The period "." stands for any character.
-    Advanced Users: Regex is supported in the Motif query
+  Mandatory Options:
 
-Options
+    -m, --motif [Query Motif]        The query motif to be searched for.
+                                     The period "." can be used to denote any character. Multiple
+                                     motifs query can be used by using a pipeline character ("|")
+                                     between each query and putting the motif query in speech marks
+                                     e.g. "KR|RR|R..R"
+                                     Advanced Users: Regular expressions are supported in the motif.
+    -t, --input_type [type]          The type of data in the input query file. The only two options
+                                     available are "genetic" and "protein".
+    -i, --input [file]               The input file. This can be a relative or a full path.
+    -o, --output [folder name]       The path to the output folder. This will be created if the folder does not already exist.
 
-    -v, --verbose                    Output more information; explaining each step in the pipeline.
-    -a, --output_all                 Outputs all possible files
+  Optional Options:
+    -c, --cut_off N                  Changes the default minimum Open Reading Frame from 10 amino acid residues to N amino acid residues.
+    -s, --signalp_file [file]        Supply the output file of the Signal Peptide script (version 4.x) to the script.
+                                      Otherwise the script will try to run the external Signal Peptide script when running.
+    -a, --output_all                 Outputs all possible files.
+    -e, --extract_orf                Only extracts the Open Reading Frames.
+    -v, --verbose                    Provides more information on each step taken in this program.
     -h, --help                       Display this screen
+        --version                    Shows version
 
 ## Examples
 

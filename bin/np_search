@@ -15,7 +15,7 @@ options = {}
 optparse = OptionParser.new do|opts|
   opts.banner =<<Banner
 
-* Usage: np_search [Options] -m [Motif] -t [Input Type] -i [Input File] -o [Output Folder Name]'
+* Usage: np_search [Options] -m [Motif] -t [Input Type] -i [Input File] -o [Output Folder Name]
 
 * Mandatory Options:
 
