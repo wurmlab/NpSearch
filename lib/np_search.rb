@@ -20,7 +20,7 @@ module NpSearch
       else
         puts # a blank line
         puts "Error: The Signal Peptide Script directory cannot be found" \
-             " in the following location: '{signalp_dir}/'."
+             " in the following location: '#{signalp_dir}/'."
         puts # a blank line
         puts 'Please enter the full path or a relative path to the Signal' \
              ' Peptide Script directory (i.e. to the folder containing the' \
@@ -378,9 +378,12 @@ module NpSearch
       hash.each do |id, seq|
         id, id_end = id.split('~').map(&:strip)
         signalp, seq_end = seq.split('~').map(&:strip)
-        seq = seq_end.gsub(/#{motif}/, '<span class="motif">\0</span>')\
+        seq = seq_end.gsub('C', '<span class="cysteine">C</span>')\
+        .gsub(/#{motif}/, '<span class="motif">\0</span>')\
         .gsub('G<span class="motif">', \
-              '<span class="glycine">G</span><span class="motif">')
+              '<span class="glycine">G</span><span class="motif">')\
+        .gsub('<span class="glycine">G</span><span class="motif">KR', \
+          '<span class="gkr">GKR')
         doc_hash[id] = [id_end: id_end, signalp: signalp, seq: seq]
       end
       return doc_hash
@@ -393,10 +396,12 @@ haml_doc = <<EOT
   %head
     :css
       .id {font-weight: bold;}
-      .signalp {color:#000099; font-weight: bold;}
-      .motif {color:#FF3300; font-weight: bold;}
-      .glycine {color:#00FF00; font-weight: bold;}
-      p {word-wrap: break-word; font-family:Courier New, Courier, Mono;}
+      .signalp {color:#007AC0; font-weight: bold;}
+      .motif {color:#00B050; font-weight: bold;}
+      .glycine {color:#FFC000; font-weight: bold;}
+      .phenylalanine {color:#FF00EB; font-weight: bold;}
+      .gkr {color:#FF0000; font-weight: bold;}
+      .cysteine {color:#00B050;}
   %body
     - doc_hash.each do |id, hash|
       %p
