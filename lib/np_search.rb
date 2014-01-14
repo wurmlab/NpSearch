@@ -13,6 +13,29 @@ module NpSearch
       LOG.level = Logger::INFO if verbose_opt.to_s == 'true'
     end
 
+    def arg_validator(motif, input_type, input, output_dir, help_banner)
+      if motif == nil
+        puts 'Usage Error: No Query Motif ("-m" option) is supplied.'
+      end
+
+      if input_type == nil
+        puts 'Usage Error: No Input Type ("-t" option) is supplied.'
+      end
+
+      if input == nil
+        puts 'Usage Error: No Input file ("-i option") is supplied.'
+      end
+
+      if output_dir == nil
+        puts 'Usage Error: No Output Folder ("-o" option) is supplied.'
+      end
+
+      if input == nil || input_type == nil || motif == nil || output_dir == nil
+        puts help_banner
+        exit
+      end
+    end
+
     # Checks for the presence of the Signal Peptide Script.
     def signalp_validator(signalp_dir)
       if File.exist? "#{signalp_dir}/signalp"
@@ -293,7 +316,7 @@ module NpSearch
 
     # Extracts rows from the Signal P test that are positive.
     def signalp_positives_extractor(input, output_file, make_file)
-      LOG.info { 'Extracting all Open Reading Frames that have a Signal Peptide.' }
+      LOG.info { 'Extracting all sequences that have a Signal Peptide.' }
       @positives = {}
       signalp_file = File.read(input)
       identified_positives = signalp_file.scan(/^.* Y .*$/)
@@ -373,7 +396,7 @@ module NpSearch
       output_file.close
     end
 
-    def make_doc_hash(hash, motif)
+    def make_html_hash(hash, motif)
       doc_hash = {}
       hash.each do |id, seq|
         id, id_end = id.split('~').map(&:strip)
@@ -381,7 +404,7 @@ module NpSearch
         seq = seq_end.gsub('C', '<span class="cysteine">C</span>')\
         .gsub(/#{motif}/, '<span class="motif">\0</span>')\
         .gsub('G<span class="motif">', \
-              '<span class="glycine">G</span><span class="motif">')\
+              '<span class="glycine">G</span><span class="motif">8')\
         .gsub('<span class="glycine">G</span><span class="motif">KR', \
           '<span class="gkr">GKR')
         doc_hash[id] = [id_end: id_end, signalp: signalp, seq: seq]
@@ -389,7 +412,7 @@ module NpSearch
       return doc_hash
     end
 
-    def to_doc(doc_hash, output)
+    def to_html(doc_hash, output)
 haml_doc = <<EOT
 !!!
 %html
@@ -402,6 +425,7 @@ haml_doc = <<EOT
       .phenylalanine {color:#FF00EB; font-weight: bold;}
       .gkr {color:#FF0000; font-weight: bold;}
       .cysteine {color:#00B050;}
+      p {word-wrap: break-word; font-family:Courier New, Courier, Mono;}
   %body
     - doc_hash.each do |id, hash|
       %p

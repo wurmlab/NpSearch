@@ -22,24 +22,25 @@ optparse = OptionParser.new do|opts|
 Banner
 
   options[:motif] = nil
-  opts.on( '-m', '--motif [Query Motif]', 
-           'The query motif to be searched for.',
-          'The period "." can be used to denote any character. Multiple',
-          'motifs query can be used by using a pipeline character ("|")',
-          'between each query and putting the motif query in speech marks',
-          'e.g. "KR|RR|R..R"',
-          'Advanced Users: Regular expressions are supported in the motif.') do |motif|
+  opts.on( '-m', '--motif [Query Motif]', 'The query motif to be searched for.',
+           'The period "." can be used to denote any character. Multiple',
+           'motifs query can be used by using a pipeline character ("|")',
+           'between each query and putting the motif query in speech marks',
+           'e.g. "KR|RR|R..R"',
+           'Advanced Users: Regular expressions are also supported.') do |motif|
     options[:motif] = motif
   end
 
   options[:input_type] = nil
-  opts.on( '-t', '--input_type [type]', 'The type of data in the input query file. The only two options',
-                                        'available are "genetic" and "protein".') do |input_type|
+  opts.on( '-t', '--input_type [type]', 
+           'The type of data in the input query file. The only two options',
+           'available are "genetic" and "protein".') do |input_type|
     options[:input_type] = input_type
   end
 
   options[:input] = nil
-  opts.on( '-i', '--input [file]', 'The input file. This can be a relative or a full path.') do |input_file|
+  opts.on( '-i', '--input [file]', 
+      'The input file. This can be a relative or a full path.') do |input_file|
     options[:input] = input_file
   end
 
@@ -58,7 +59,7 @@ Banner
 
   options[:signalp_file] = nil
   opts.on( '-s', '--signalp_file [file]', 'Supply the output file of the Signal Peptide script (version 4.x) to the script.',
-                ' Otherwise the script will try to run the external Signal Peptide script when running.') do |signalp_file|
+                'Otherwise the script will try to run the external Signal Peptide script when running.') do |signalp_file|
     options[:signalp_file] = signalp_file
   end
 
@@ -93,30 +94,28 @@ optparse.parse!
 
 ############# Input Validation...##############
 input_validators = NpSearch::Validators.new(options[:verbose])
+input_validators.arg_validator(options[:motif], options[:input_type],
+                               options[:input], options[:output_dir],
+                               optparse.help())
 if options[:signalp_file] == nil
-  signalp_directory = input_validators.signalp_validator(signalp_dir) 
-end 
+  signalp_directory = input_validators.signalp_validator(signalp_dir)
+end
 input_validators.output_dir_validator(options[:output_dir])
 input_validators.orf_min_length_validator(options[:cut_off])
 input_validators.input_file_validator(options[:input])
 input_validators.input_type_validator(options[:input_type])
 
 ### TODO: Convert the below into methods
-if ARGV.size != 0 
-  puts 'Np_search has been inaccuratly run.'
-  puts # a blank line
-  puts 'Run "$ np_search -h" for more information.'
-  puts # a blank line
+
+
+if options[:input_type] == 'protein' && options[:extract_orf]
+  puts 'Conflicting arguments detected: the Extract_ORF option (option "-e") ' \
+       'is only available when input file contains protein data.'
   exit
 end
-
-if options[:input_type] == "protein" && options[:extract_orf]
-  puts "Conflicting arguments detected: the input_type cannot be protein, with the Extract_ORF option"
-  exit
-end
-
 if options[:input_type] == 'genetic' && options[:signalp_file] != nil
-  puts "Conflicting arguments detected: the input_type cannot be genetic, when inputting an signalp output file."
+  puts 'Conflicting arguments detected: the signalp input option (option "-s")'\
+        ' is only available when the input file contain protein data.'
   exit
 end
 
@@ -133,16 +132,13 @@ if options[:input_type].downcase == 'genetic'
   translater = NpSearch::Translation.new
   # Translate Sequences in all 6 frames
   translated_sequences = translater.translate(input_read)
-  to_output.to_fasta("translated sequences", translated_sequences, "#{options[:output_dir]}/1_protein.fa") if options[:output_all]
+  to_output.to_fasta('translated sequences', translated_sequences, "#{options[:output_dir]}/1_protein.fa") if options[:output_all]
   # Extract all possible ORF
   orf = translater.extract_orf(translated_sequences)
-  to_output.to_fasta("extracted Open Reading Frames", orf, "#{options[:output_dir]}/2_orf.fa") if options[:output_all]
+  to_output.to_fasta('extracted Open Reading Frames', orf, "#{options[:output_dir]}/2_orf.fa") if options[:output_all]
   # Remove all ORF that are shorter than 10 amino acids.
-  if options[:output_all]
-    j = 3 
-  else
-    j = 1
-  end
+  j = 1 unless options[:output_all]
+  j = 3 if options[:output_all] 
   orf_clean = translater.orf_cleaner(orf, options[:cut_off])
   to_output.to_fasta("cleaned Open Reading Frames" , orf_clean, "#{options[:output_dir]}/#{j}_orf_clean.fa") 
 end
@@ -198,8 +194,8 @@ i += 1
 ############# Creating Output Files #############
 flattened_seq = data_analysis.flattener(secretome)
 to_output.to_fasta("fasta output file", flattened_seq, "#{options[:output_dir]}/#{i}_output.fa")
-doc_hash = to_output.make_doc_hash(flattened_seq, motif)
-to_output.to_doc(doc_hash, "#{options[:output_dir]}/#{i}_output.doc")
+html_hash = to_output.make_html_hash(flattened_seq, motif)
+to_output.to_html(html_hash, "#{options[:output_dir]}/#{i}_output.doc")
 
 # Success
 puts "\nSuccess: All output files created in the directory: '#{options[:output_dir]}'.\n "
