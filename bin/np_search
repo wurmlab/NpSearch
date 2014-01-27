@@ -92,7 +92,7 @@ Banner
   end
 
   opts.on('--version', 'Shows version') do
-    puts # TODO: puts the version number...
+    puts NpSearch::VERSION
     exit
   end
 end

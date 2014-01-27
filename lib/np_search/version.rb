@@ -1,5 +1,3 @@
 module NpSearch
-  def self.version
-  	puts @VERSION
-  end
+  VERSION = "0.0.1"
 end
