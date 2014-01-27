@@ -94,7 +94,7 @@ module NpSearch
           FileUtils.mkdir_p "#{output_dir}"
           puts 'Created output directory...'
         elsif inp.downcase == 'n'
-          abort "\nError: An output directory is required - please create" \
+          abort "\nError: An output directory is required - please create " \
                 "one and then try again.\n\n"
         end
       end
@@ -237,7 +237,9 @@ module NpSearch
         end
         input_read[entry.entry_id] = seq
       end
-      @hash_check.hash_empty(input_read, 'The Input data cannot be converted into the required format due to a critical error.')
+      @hash_check.hash_empty(input_read, 
+                             'The Input data cannot be converted into the' \
+                             'required format due to a critical error.')
       return input_read
     end
   end
@@ -252,13 +254,17 @@ module NpSearch
           protein_data[id + '_f' + f.to_s] = sequence.translate(f)
         end
       end
-      @hash_check.hash_empty(protein_data, 'The input data cannot be translated due to a critical error.')
+      @hash_check.hash_empty(protein_data, 
+                             'The input data cannot be translated due to a' \
+                             ' critical error.')
       return protein_data
     end
 
     # Extract all possible Open Reading Frames.
     def extract_orf(protein_data)
-      LOG.info { 'Extracting all Open Reading Frames from all 6 possible frames. This is every methionine residue to the next stop codon.' }
+      LOG.info { 'Extracting all Open Reading Frames from all 6 possible '\
+                 'frames. This is every methionine residue to the next stop '\
+                 ' codon.' }
       orf = {}
       protein_data.each do |id, sequence|
         identified_orfs = sequence.scan(/(?=(M\w*))./)
@@ -266,20 +272,26 @@ module NpSearch
           orf[id + '_' + i.to_s] = identified_orfs[i]
         end
       end
-      @hash_check.hash_empty(orf, 'The Open Reading Frames cannot be extracted. This could be due to the fact that there are no methionine residues in the protein data.')
+      @hash_check.hash_empty(orf, 
+                             'The Open Reading Frames cannot be extracted.' \
+                             ' This could be due to the fact that there are' \
+                             ' no methionine residues in the protein data.')
       return orf
     end
 
     # Extracts all Open Reading Frames that are longer than the minimum length.
     def orf_cleaner(orf, minimum_length)
-      LOG.info { "Removing all Open Reading Frames that are shorter than #{minimum_length}." }
+      LOG.info { "Removing all Open Reading Frames that are shorter than "\
+                 "#{minimum_length}." }
       orf_clean = {}
       orf.each do |id, sequence|
         if (sequence.to_s).length >= (minimum_length + 4)
           orf_clean[id] = sequence
         end
       end
-      @hash_check.hash_empty(orf, 'The Open Reading Frames cannot be cleaned due to a critical error.')
+      @hash_check.hash_empty(orf, 
+                            'The Open Reading Frames cannot be cleaned due' \
+                            ' to a critical error.')
       return orf_clean
     end
   end
@@ -289,7 +301,8 @@ module NpSearch
     def signalp(signalp_dir, input, output)
       LOG.info { 'Running a Signal Peptide test on each sequence.' }
       system("#{signalp_dir}/signalp -t euk -f short #{input} > #{output}")
-      LOG.info { "Writing the Signal Peptide test results to the file '#{output}'." }
+      LOG.info { "Writing the Signal Peptide test results to the file " \
+                 "'#{output}'." }
     end
   end
 
@@ -302,7 +315,8 @@ module NpSearch
 
     # Creates a signalp positives file, if required.
     def signalp_positives_file_writer(input, identified_positives, output)
-      LOG.info { "Writing the Signal Peptide test results to the file '#{output}'." }
+      LOG.info { "Writing the Signal Peptide test results to the file " \
+                 "'#{output}'." }
       output_file = File.new(output, 'w')
       File.open(input, 'r') do |file_stream|
         first_line = file_stream.readline
@@ -326,7 +340,9 @@ module NpSearch
       (0..(identified_positives.length - 1)).each do |i|
         @positives[i] = identified_positives[i]
       end
-      @hash_check.hash_empty(@positives, 'No sequences were predicted to have a secretory signal peptide.')
+      @hash_check.hash_empty(@positives, 
+                             'No sequences were predicted to have a secretory' \
+                             ' signal peptide.')
       return identified_positives.length
     end
 
@@ -345,7 +361,9 @@ module NpSearch
         cut_off = h[4]
         d_value = h[8]
         signalp_hash[seq_id] = [cut_off: cut_off, d_value: d_value]
-      @hash_check.hash_empty(signalp_hash, 'There was a critical error in analysing the signal peptide.')
+      @hash_check.hash_empty(signalp_hash, 
+                             'There was a critical error in analysing the' \
+                             ' signal peptide.')
       end
       return signalp_hash
     end
@@ -353,7 +371,8 @@ module NpSearch
     # Presents the signal P positives data with seq Id on onto line and the
     #   sequence on the next.
     def parse(signalp_hash, orf_clean, motif)
-      LOG.info { 'Extracting sequences that have at least 1 neuropeptide cleavage site after the signal peptide cleavage site.' }
+      LOG.info { 'Extracting sequences that have at least 1 neuropeptide'\
+                 ' cleavage site after the signal peptide cleavage site.' }
       signalp_with_seq = {}
       signalp_hash.each do |id, h|
         current_orf = orf_clean[id].to_s.gsub('["', '').gsub('"]', '')
@@ -363,10 +382,15 @@ module NpSearch
         signalp     = current_orf[0, sp_clv]
         seq_end     = current_orf[sp_clv, current_orf.length]
         if seq_end.match(/#{motif}/)
-          signalp_with_seq[id + "~- S.P.=> Cleavage Site: #{sp_clv}:#{cut_off} | D-value: #{d_value}"] = "#{signalp}~#{seq_end}"
+          signalp_with_seq[id + 
+                           "~- S.P.=> Cleavage Site: #{sp_clv}:#{cut_off} " \
+                           "| D-value: #{d_value}"] = "#{signalp}~#{seq_end}"
         end 
       end
-      @hash_check.hash_empty(signalp_with_seq, 'There are no sequences that have a signal peptide and contain the requested motif after the signal peptide cleavage site.')
+      @hash_check.hash_empty(signalp_with_seq, 
+                             'There are no sequences that have a signal' \
+                             ' peptide and contain the requested motif after' \
+                             ' the signal peptide cleavage site.')
       return signalp_with_seq
     end
 
@@ -379,8 +403,10 @@ module NpSearch
         flattened_seq[seq] = [] unless flattened_seq[seq]
         flattened_seq[seq] = id
       end
-      @hash_check.hash_empty(flattened_seq, 'There was a critical error in removing duplicates in the output file.')
-      return flattened_seq.invert # Format required for the outputting.
+      @hash_check.hash_empty(flattened_seq, 
+                             'There was a critical error in removing' \
+                             ' duplicates in the output file.')
+      return flattened_seq.invert # Inverting necessary for outputting.
     end
   end
 
@@ -404,7 +430,7 @@ module NpSearch
         seq = seq_end.gsub('C', '<span class="cysteine">C</span>')\
         .gsub(/#{motif}/, '<span class="motif">\0</span>')\
         .gsub('G<span class="motif">', \
-              '<span class="glycine">G</span><span class="motif">8')\
+              '<span class="glycine">G</span><span class="motif">')\
         .gsub('<span class="glycine">G</span><span class="motif">KR', \
           '<span class="gkr">GKR')
         doc_hash[id] = [id_end: id_end, signalp: signalp, seq: seq]
