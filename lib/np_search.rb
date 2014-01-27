@@ -66,6 +66,28 @@ module NpSearch
       end
     end
 
+    def extract_orf_conflict(input_type, extract_orf)
+      if input_type == 'protein' && extract_orf == TRUE
+        puts # a blank line
+        puts 'Usage Error: Conflicting arguments detected: the Extract_ORF' \
+             ' option (option "-e") is only available when input file contains'\
+             ' genetic data.'
+        puts @help_banner
+        exit
+      end
+    end
+
+    def input_sp_file_conflict(input_type, signalp_file)
+      if input_type == 'genetic' && signalp_file != nil
+        puts # a blank line
+        puts 'Usage Error: Conflicting arguments detected: the signalp input' \
+             ' option (option "-s") is only available when input file contains'\
+             ' protein data.'
+        puts @help_banner
+        exit
+      end
+    end
+
     ### Input file Validators...
     # Adapted from 'database_formatter.rb' from sequenceserver.
     def probably_fasta(input_file)

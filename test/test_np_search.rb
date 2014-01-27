@@ -18,52 +18,52 @@ end
 
 class UnitTests < Test::Unit::TestCase
   def setup # read all expected files
-    @test_input                   = NpSearch::Input.new
-    @test_input1                  = InputChanged.new
-    @test_validators              = NpSearch::Validators.new(:is_verbose)
-    @translation_test             = NpSearch::Translation.new
-    @analysis_test                = NpSearch::Analysis.new
-    @test_genetic_input_read      = @test_input.read("test/test_inputs/genetic.fa", "genetic")
-    @expected_translation_hash    = @test_input.read("test/test_files/protein.fa", "protein")
-    @expected_orf_hash            = @test_input.read("test/test_files/orf.fa", "protein")
-    @expected_orf_clean_hash      = @test_input.read("test/test_files/orf_clean.fa", "protein")    
-    @expected_signalp_file        = File.read("test/test_files/signalp_out.txt")
-    @expected_signalp_with_seq    = @test_input1.read("test/test_files/signalp_with_seq.fa", "protein")
-    @expected_flattened_output    = @test_input1.read("test/test_files/output.fa", "protein")
-    @expected_positives_number    = 10
-    @motif                        = "KK|KR|RR|R..R|R....R|R......R|H..R|H....R|H......R|K..R|K....R|K......R|GK|L"
+    @test_input                = NpSearch::Input.new
+    @test_input1               = InputChanged.new
+    @test_validators           = NpSearch::Validators.new(:is_verbose)
+    @translation_test          = NpSearch::Translation.new
+    @analysis_test             = NpSearch::Analysis.new
+    @test_genetic_input_read   = @test_input.read("test/test_inputs/genetic.fa", "genetic")
+    @expected_translation_hash = @test_input.read("test/test_files/protein.fa", "protein")
+    @expected_orf_hash         = @test_input.read("test/test_files/orf.fa", "protein")
+    @expected_orf_clean_hash   = @test_input.read("test/test_files/orf_clean.fa", "protein")    
+    @expected_signalp_file     = File.read("test/test_files/signalp_out.txt")
+    @expected_signalp_with_seq = @test_input1.read("test/test_files/signalp_with_seq.fa", "protein")
+    @expected_flattened_output = @test_input1.read("test/test_files/output.fa", "protein")
+    @expected_positives_number = 10
+    @motif                     = "KK|KR|RR|R..R|R....R|R......R|H..R|H....R|H......R|K..R|K....R|K......R|GK|L"
   end
   
   ####### Testing input for normal & weird cases
 # => Test if the signalp validator method works in verifying whether the directory contains the signal p script. 
   def test_signalp_validator
-    assert_equal("test/test_files/signalp", @test_validators.signalp_validator("test/test_files/signalp"))
+    assert_equal("test/test_files/signalp", @test_validators.sp_vldr("test/test_files/signalp"))
   end
 
 # => Test if the output directory validator works, in ensuring whether an output directory can be found. 
   def test_output_dir_validator
-    assert_equal(nil, @test_validators.output_dir_validator("test/test_out"))
+    assert_equal(nil, @test_validators.output_dir_vldr("test/test_out"))
   end
 
 # => Test if the orf_min_length validator works, in ensuring that the value is number
   def test_orf_min_length_validator
-    assert_equal(nil, @test_validators.orf_min_length_validator("622"))
-    assert_equal(nil, @test_validators.orf_min_length_validator("10"))
-    assert_equal(nil, @test_validators.orf_min_length_validator("2.567"))
-    assert_equal(nil, @test_validators.orf_min_length_validator("2"))
-    assert_equal(nil, @test_validators.orf_min_length_validator("1"))
-    assert_raise( SystemExit ) {@test_validators.orf_min_length_validator("0")}
-    assert_raise( SystemExit ) {@test_validators.orf_min_length_validator("-5")}
+    assert_equal(nil, @test_validators.orf_min_length_vldr("622"))
+    assert_equal(nil, @test_validators.orf_min_length_vldr("10"))
+    assert_equal(nil, @test_validators.orf_min_length_vldr("2.567"))
+    assert_equal(nil, @test_validators.orf_min_length_vldr("2"))
+    assert_equal(nil, @test_validators.orf_min_length_vldr("1"))
+    assert_raise( SystemExit ) {@test_validators.orf_min_length_vldr("0")}
+    assert_raise( SystemExit ) {@test_validators.orf_min_length_vldr("-5")}
   end
 
-# => Test if the input_file_validator works properly, in ensuring that input file is not missing, empty or is in the wrong format. 
+# => Test if the input_file_vldr works properly, in ensuring that input file is not missing, empty or is in the wrong format. 
   def test_input_file_validator_1
-    assert_equal(nil, @test_validators.input_file_validator("test/test_inputs/genetic.fa"))
-    assert_equal(nil, @test_validators.input_file_validator("test/test_inputs/protein.fa"))
-    assert_raise( SystemExit ) {@test_validators.input_file_validator("test/test_inputs/missing_input.fa")}
-    assert_raise( SystemExit ) {@test_validators.input_file_validator("test/test_inputs/empty_file.fa")}
-    assert_raise( SystemExit ) {@test_validators.input_file_validator("test/test_inputs/missing_input.fa")}
-    assert_raise( SystemExit ) {@test_validators.input_file_validator("test/test_inputs/not_fasta.fa")}
+    assert_equal(nil, @test_validators.input_file_vldr("test/test_inputs/genetic.fa"))
+    assert_equal(nil, @test_validators.input_file_vldr("test/test_inputs/protein.fa"))
+    assert_raise( SystemExit ) {@test_validators.input_file_vldr("test/test_inputs/missing_input.fa")}
+    assert_raise( SystemExit ) {@test_validators.input_file_vldr("test/test_inputs/empty_file.fa")}
+    assert_raise( SystemExit ) {@test_validators.input_file_vldr("test/test_inputs/missing_input.fa")}
+    assert_raise( SystemExit ) {@test_validators.input_file_vldr("test/test_inputs/not_fasta.fa")}
   end
 
 # => Test if the probably_fasta method works in ensuring that the input file is in the fasta format.
@@ -75,16 +75,16 @@ class UnitTests < Test::Unit::TestCase
 
 # => Test if the input type validator works properly in that only the recognised formats can be used.
   def test_input_type_validator
-    assert_equal(nil, @test_validators.input_type_validator("genetic"))
-    assert_equal(nil, @test_validators.input_type_validator("GENETIC"))
-    assert_equal(nil, @test_validators.input_type_validator("Genetic"))
-    assert_equal(nil, @test_validators.input_type_validator("geNETic"))
-    assert_equal(nil, @test_validators.input_type_validator("protein"))
-    assert_equal(nil, @test_validators.input_type_validator("Protein"))
-    assert_equal(nil, @test_validators.input_type_validator("prOTEin"))
-    assert_raise( SystemExit ) {@test_validators.input_type_validator("JUNK")}
-    assert_raise( SystemExit ) {@test_validators.input_type_validator("sdaBVHJHKipu;i")}
-    assert_raise( SystemExit ) {@test_validators.input_type_validator("SDFVDhqgvCDCDSCbnw")}
+    assert_equal(nil, @test_validators.input_type_vldr("genetic"))
+    assert_equal(nil, @test_validators.input_type_vldr("GENETIC"))
+    assert_equal(nil, @test_validators.input_type_vldr("Genetic"))
+    assert_equal(nil, @test_validators.input_type_vldr("geNETic"))
+    assert_equal(nil, @test_validators.input_type_vldr("protein"))
+    assert_equal(nil, @test_validators.input_type_vldr("Protein"))
+    assert_equal(nil, @test_validators.input_type_vldr("prOTEin"))
+    assert_raise( SystemExit ) {@test_validators.input_type_vldr("JUNK")}
+    assert_raise( SystemExit ) {@test_validators.input_type_vldr("sdaBVHJHKipu;i")}
+    assert_raise( SystemExit ) {@test_validators.input_type_vldr("SDFVDhqgvCDCDSCbnw")}
   end
 
   ####### Testing individual parts of the script ####### 
@@ -108,13 +108,13 @@ class UnitTests < Test::Unit::TestCase
 
 # => Tests that the signalp positives extractor methods works properly - asserts that the produced signalp_positives hash is identical to the expected result. 
   def test_signalp_positives_extractor()
-    @test_positives_number = @analysis_test.sp_positives_extractor("test/test_files/signalp_out.txt", "test/test_out/signalp_positives.txt", "signalp_positives_file").to_i
+    @test_positives_number = @analysis_test.sp_positives_extractor("test/test_files/signalp_out.txt", "test/test_out/signalp_positives.txt", "sp_positives_file").to_i
     assert_equal(@expected_positives_number, @test_positives_number)
   end
 
 # => Tests that the parsing method works properly - asserts that the produced signalp_positives_with_seq hash is identical to the expected result. 
   def test_parse()
-    test_positives_number = @analysis_test.sp_positives_extractor("test/test_files/signalp_out.txt", "test/test_out/signalp_positives.txt", "signalp_positives_file").to_i
+    test_positives_number = @analysis_test.sp_positives_extractor("test/test_files/signalp_out.txt", "test/test_out/signalp_positives.txt", "syyyyp_positives_file").to_i
     signalp = @analysis_test.array_generator(@expected_positives_number.to_i)
     signalp_with_seq_test = @analysis_test.parse(signalp, @expected_orf_clean_hash, @motif)
     assert_equal(@expected_signalp_with_seq, signalp_with_seq_test)
