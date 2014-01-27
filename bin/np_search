@@ -99,17 +99,14 @@ end
 optparse.parse!
 
 ############# Input Validation...##############
-input_validators = NpSearch::Validators.new(options[:verbose])
-input_validators.arg_validator(options[:motif], options[:input_type],
-                               options[:input], options[:output_dir],
-                               optparse.help())
-if options[:signalp_file] == nil
-  signalp_directory = input_validators.signalp_validator(signalp_dir)
-end
-input_validators.output_dir_validator(options[:output_dir])
-input_validators.orf_min_length_validator(options[:cut_off])
-input_validators.input_file_validator(options[:input])
-input_validators.input_type_validator(options[:input_type])
+input_vldr = NpSearch::Validators.new(options[:verbose], optparse.help())
+input_vldr.arg_vldr(options[:motif], options[:input_type], options[:input],
+                    options[:output_dir])
+sp_dir = input_vldr.sp_vldr(signalp_dir) if options[:signalp_file] == nil
+input_vldr.orf_min_length_vldr(options[:cut_off])
+input_vldr.input_type_vldr(options[:input_type])
+input_vldr.input_file_vldr(options[:input])
+input_vldr.output_dir_vldr(options[:output_dir])
 
 ### TODO: Convert the below into methods
 
@@ -144,7 +141,7 @@ if options[:input_type].downcase == 'genetic'
 
   # Extract all possible ORF
   orf = translater.extract_orf(translated_sequences)
-  to_output.to_fasta('extracted Open Reading Frames', orf,
+  to_output.to_fasta('extracted Open Reading Frames', orf, 
                      "#{options[:output_dir]}/2_orf.fa") if options[:output_all]
   
   # Sort out the file numbering...
@@ -172,21 +169,21 @@ else
 end
 
 if options[:input_type].downcase == 'genetic'
-  signalp_input_file = "#{options[:output_dir]}/#{j}_orf_clean.fa"
-  signalp_hash = orf_clean
+  sp_input_file = "#{options[:output_dir]}/#{j}_orf_clean.fa"
+  sp_hash = orf_clean
   i = j + 1
 else # i.e. if the input is protein 
-  signalp_input_file = options[:input]
-  signalp_hash = input_read
+  sp_input_file = options[:input]
+  sp_hash = input_read
   i = 1
 end
 
 # If a signal p output file isn't supplied.
 if options[:signalp_file] == nil 
-  signalp_out_file = "#{options[:output_dir]}/#{i}_signalp_out.txt"
+  sp_out_file = "#{options[:output_dir]}/#{i}_signalp_out.txt"
   i += 1
 else
-  signalp_out_file = options[:signalp_file]
+  sp_out_file = options[:signalp_file]
   i = 1
 end
 
@@ -194,19 +191,19 @@ end
 signalp_test = NpSearch::Signalp.new
 # Run an extenal Signal P script
 if options[:signalp_file] == nil
-  signalp_test.signalp(signalp_directory, signalp_input_file, signalp_out_file)
+  signalp_test.signalp(sp_dir, sp_input_file, sp_out_file)
 end
 # Check that the output produced is in a readable format
-input_validators.signalp_version_validator(signalp_out_file)
+input_vldr.sp_version_vldr(sp_out_file)
 
 
 ############# Data Analysis #############
 data_analysis = NpSearch::Analysis.new
-identified_positives = data_analysis.sp_positives_extractor(signalp_out_file,
+identified_positives = data_analysis.sp_positives_extractor(sp_out_file,
    "#{options[:output_dir]}/#{i}_signalp_positives.txt", 
    "signalp_positives_file")
 signalp = data_analysis.array_generator(identified_positives)
-secretome = data_analysis.parse(signalp, signalp_hash, motif)
+secretome = data_analysis.parse(signalp, sp_hash, motif)
 i += 1
 to_output.to_fasta("secretome", secretome,
   "#{options[:output_dir]}/#{i}_Secretome.fa")

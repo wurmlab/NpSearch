@@ -9,68 +9,105 @@ LOG.level = Logger::FATAL # set to only show fatal messages
 module NpSearch
   class Validators
     # Overides the  LOG levels if required.
-    def initialize(verbose_opt)
+    def initialize(verbose_opt, help_banner)
       LOG.level = Logger::INFO if verbose_opt.to_s == 'true'
+      @help_banner = help_banner
     end
 
-    def arg_validator(motif, input_type, input, output_dir, help_banner)
+    def arg_vldr(motif, input_type, input, output_dir)
       if motif == nil
+        puts # a blank line
         puts 'Usage Error: No Query Motif ("-m" option) is supplied.'
       end
 
       if input_type == nil
+        puts # a blank line
         puts 'Usage Error: No Input Type ("-t" option) is supplied.'
       end
 
       if input == nil
+        puts # a blank line
         puts 'Usage Error: No Input file ("-i option") is supplied.'
       end
 
       if output_dir == nil
+        puts # a blank line
         puts 'Usage Error: No Output Folder ("-o" option) is supplied.'
       end
 
       if input == nil || input_type == nil || motif == nil || output_dir == nil
-        puts help_banner
+        puts @help_banner
         exit
       end
     end
 
-    # Checks for the presence of the Signal Peptide Script.
-    def signalp_validator(signalp_dir)
-      if File.exist? "#{signalp_dir}/signalp"
-        signalp_directory = signalp_dir
-      else
+    # Ensures that the ORF minimum length is a number. Any digits after the
+    #   decimal place are ignored.
+    def orf_min_length_vldr(orf_min_length)
+      if orf_min_length.to_i < 1
         puts # a blank line
-        puts "Error: The Signal Peptide Script directory cannot be found" \
-             " in the following location: '#{signalp_dir}/'."
-        puts # a blank line
-        puts 'Please enter the full path or a relative path to the Signal' \
-             ' Peptide Script directory (i.e. to the folder containing the' \
-             ' SignalP script).'
-        print '> '
-        inp = $stdin.gets.chomp
-        until (File.exist? "#{signalp_dir}/signalp") || \
-              (File.exist? "#{inp}/signalp")
-          puts # a blank line
-          puts "The Signal P directory cannot be found at the following" \
-               " location: '#{inp}'"
-          puts 'Please enter the full path or a relative path to the Signal'\
-               ' Peptide directory again.'
-          print '> '
-          inp = $stdin.gets.chomp
-        end
-        signalp_directory = inp
-        puts # a blank line
-        puts "The Signal P directory has been found at '#{signalp_directory}'"
-        puts # a blank line
-      end
-      return signalp_directory
+        puts 'Usage Error: The Open Reading Frames minimum length can only be' \
+             ' a full integer.'
+        puts @help_banner
+        exit 
+      end  
     end
 
+    # Checks whether the input_type has been provided in the correct format.
+    def input_type_vldr(input_type)
+      unless input_type.downcase == 'genetic' || \
+             input_type.downcase == 'protein'
+        puts # a blank line
+        puts "Usage Error: The input_type: '#{input_type} is not recognised" \
+             " The input_type option ('-t' option) can either be 'genetic'" \
+             " or 'protein.'"
+        puts @help_banner
+        exit
+      end
+    end
+
+    ### Input file Validators...
+    # Adapted from 'database_formatter.rb' from sequenceserver.
+    def probably_fasta(input_file)
+      File.open(input_file, 'r') do |file_stream|
+        first_line = file_stream.readline
+        if first_line.slice(0, 1) == '>'
+          return TRUE
+        else
+          return FALSE
+        end
+      end
+    end
+
+    # Checks whether the input file exists; whether it is empty and whether it
+    #   is likely a fasta file.
+    def input_file_vldr(input_file)
+      unless File.exist?(input_file)
+        puts # a blank line
+        puts "Critical Error: The input file '#{input_file}' does not exist"
+        puts @help_banner
+        exit
+      end
+      if File.zero?(input_file)
+        puts # a blank line
+        puts "Critical Error: The input file '#{input_file}' is empty."
+        puts @help_banner
+        exit
+      end
+      unless probably_fasta(input_file)
+        puts # a blank line
+        puts "Critical Error: The input file '#{input_file}' does not seem to" \
+             " in fasta format - the input file must be in fasta format."
+        puts @help_banner
+        exit
+      end
+    end
+
+
+    ### Output folder Validator...
     # Checks for the presence of the output directory; if not found, it asks
     #   the user whether they want to create the output directory.
-    def output_dir_validator(output_dir)
+    def output_dir_vldr(output_dir)
       unless File.directory? output_dir
         puts # a blank line
         puts 'The output directory does not exist.'
@@ -94,58 +131,51 @@ module NpSearch
           FileUtils.mkdir_p "#{output_dir}"
           puts 'Created output directory...'
         elsif inp.downcase == 'n'
-          abort "\nError: An output directory is required - please create " \
-                "one and then try again.\n\n"
+          puts # a blank line
+          puts 'Critical Error: An output directory is required; please' \
+               ' create an output directory and then try again.'
+          puts @help_banner
+          exit
         end
       end
     end
 
-    # Ensures that the ORF minimum length is a number. Any digits after the
-    #   decimal place are ignored.
-    def orf_min_length_validator(orf_min_length)
-      abort "\nError: The Open Reading Frame (ORF) minimum length must be a" \
-            " whole integer.\n\n" if orf_min_length.to_i < 1
-    end
-
-    # Adapted from 'database_formatter.rb' from sequenceserver.
-    def probably_fasta(input_file)
-      File.open(input_file, 'r') do |file_stream|
-        first_line = file_stream.readline
-        if first_line.slice(0, 1) == '>'
-          return TRUE
-        else
-          return FALSE
+    ### SignalP Validators...
+    # Checks for the presence of the Signal Peptide Script.
+    def sp_vldr(signalp_dir)
+      if File.exist? "#{signalp_dir}/signalp"
+        signalp_directory = signalp_dir
+      else
+        puts # a blank line
+        puts "Error: The Signal Peptide Script directory cannot be found" \
+             " in the following location: '#{signalp_dir}/'."
+        puts # a blank line
+        puts 'Please enter the full path or a relative path to the Signal' \
+             ' Peptide Script directory (i.e. to the folder containing the' \
+             ' SignalP script).'
+        print '> '
+        inp = $stdin.gets.chomp
+        until (File.exist? "#{signalp_dir}/signalp") || \
+              (File.exist? "#{inp}/signalp")
+          puts # a blank line
+          puts "The Signal P directory cannot be found at the following" \
+               " location: '#{inp}'"
+          puts 'Please enter the full path or a relative path to the Signal' \
+               ' Peptide directory again.'
+          print '> '
+          inp = $stdin.gets.chomp
         end
+        signalp_directory = inp
+        puts # a blank line
+        puts "The Signal P directory has been found at '#{signalp_directory}'"
+        puts # a blank line
       end
-    end
-
-    # Checks whether the input file exists; whether it is empty and whether it
-    #   is likely a fasta file.
-    def input_file_validator(input_file)
-      unless File.exist?(input_file)
-        abort "\nError: The input file '#{input_file}' does not exist.\n\n"
-      end
-      if File.zero?(input_file)
-        abort "\nError: The input file is empty. Please correct this and" \
-            " try again.\n\n" 
-      end
-      unless probably_fasta(input_file)
-        abort "\nError: The input file does not seem to be a fasta file. Only" \
-              " fasta files are supported.\n\n" 
-      end
-    end
-
-    # Checks whether the input_type has been provided in the correct format.
-    def input_type_validator(input_type)
-      abort "\nError: The input type: '#{input_type}' is not recognised;" \
-            " the only recognised options are 'genetic' and 'protein'.\n\n" \
-            unless input_type.downcase == 'genetic' || \
-            input_type.downcase == 'protein'
+      return signalp_directory
     end
 
     # Checks whether the right version of Signal Peptide Script has been
     #   linked to the program.
-    def signalp_version(input_file)
+    def sp_version(input_file)
       File.open(input_file, 'r') do |file_stream|
         first_line = file_stream.readline
         if first_line.match(/# SignalP-4.1/)
@@ -158,7 +188,7 @@ module NpSearch
 
     # Checks whether the Signal P script output is in the right format by
     #   checking whether the necessary columns are exactly the same.
-    def signalp_column_validator(input_file)
+    def sp_column_vldr(input_file)
       File.open('signalp_out.txt', 'r') do |file_stream|
         secondline = file_stream.readlines[1]
         row = secondline.gsub(/\s+/m, ' ').chomp.split(' ')
@@ -172,22 +202,21 @@ module NpSearch
     end
 
     # Ensure that the right version of signal is used.
-    def signalp_version_validator(signalp_output_file)
-      unless signalp_version(signalp_output_file)
+    def sp_version_vldr(signalp_output_file)
+      unless sp_version(signalp_output_file)
       # i.e. if Signal P is the wrong version
-        if signalp_column_validator(signalp_output_file)
+        if sp_column_vldr(signalp_output_file)
           puts # a blank line
           puts 'Warning: The wrong version of signalp has been linked.' \
                ' However, the signal peptide output file still seems to' \
                ' be in the right format.'
-          puts # a blank line
         else
           puts # a blank line
           puts 'Warning: The wrong version of the signal p has been linked' \
                ' and the signal peptide output is in an unrecognised format.'
           puts 'Continuing may give you meaningless results.'
-          puts # a blank line
         end
+        puts # a blank line
         puts 'Do you still want to continue? [y/n]'
         print '> '
         inp = $stdin.gets.chomp
@@ -200,26 +229,30 @@ module NpSearch
         if inp.downcase == 'y'
           puts 'Continuing.'
         elsif inp.downcase == 'n'
-          abort "\nError: The wrong version of Signal Peptide has been " \
-                "linked. Version 4.1 is the version of signalp currently" \
-                "supported.\n\n"
+          puts # a blank line
+          puts 'Critical Error: Currently NpSearch only supports the 4.1' \
+               ' version of the signal p script. Please ensure the correct' \
+               ' version of the signal p script is downloaded.'
+          exit
         end
       end
     end
 
-    def @hash_check.hash_empty(hash, output_message)
+    def @hash.empty(hash, output_message)
       if hash.empty?
         puts # a blank line
-        puts output_message
+        puts 'A Critical Error occured in '
+        print output_message
         puts # a blank line 
         puts 'Please ensure all the input arguments are correct and then try' \
-             ' again (see "np_search -h" for more help).'
+             ' again.'
+        puts @help_banner
         exit
       end
     end
 
     #Set global variable so that other methods can access method.
-    @hash_check = Validators.new('other')
+    @hash = Validators.new('other', @help_banner)
   end
 
 
@@ -237,9 +270,8 @@ module NpSearch
         end
         input_read[entry.entry_id] = seq
       end
-      @hash_check.hash_empty(input_read, 
-                             'The Input data cannot be converted into the' \
-                             'required format due to a critical error.')
+      @hash.empty(input_read, 
+                  'converting the input data into the required format.')
       return input_read
     end
   end
@@ -254,16 +286,14 @@ module NpSearch
           protein_data[id + '_f' + f.to_s] = sequence.translate(f)
         end
       end
-      @hash_check.hash_empty(protein_data, 
-                             'The input data cannot be translated due to a' \
-                             ' critical error.')
+      @hash.empty(protein_data, 'translating the input data in all 6 frames.')
       return protein_data
     end
 
     # Extract all possible Open Reading Frames.
     def extract_orf(protein_data)
-      LOG.info { 'Extracting all Open Reading Frames from all 6 possible '\
-                 'frames. This is every methionine residue to the next stop '\
+      LOG.info { 'Extracting all Open Reading Frames from all 6 possible' \
+                 ' frames. This is every methionine residue to the next stop' \
                  ' codon.' }
       orf = {}
       protein_data.each do |id, sequence|
@@ -272,10 +302,9 @@ module NpSearch
           orf[id + '_' + i.to_s] = identified_orfs[i]
         end
       end
-      @hash_check.hash_empty(orf, 
-                             'The Open Reading Frames cannot be extracted.' \
-                             ' This could be due to the fact that there are' \
-                             ' no methionine residues in the protein data.')
+      @hash.empty(orf, 
+                  'extracting Open Reading Frames (ORF). This could be due to' \
+                  ' the fact that there are no ORF in the data.')
       return orf
     end
 
@@ -289,9 +318,9 @@ module NpSearch
           orf_clean[id] = sequence
         end
       end
-      @hash_check.hash_empty(orf, 
-                            'The Open Reading Frames cannot be cleaned due' \
-                            ' to a critical error.')
+      @hash.empty(orf, 
+                  'removing Open Reading Frames that are smaller than the' \
+                        '  critical length (ORF_min_length).')
       return orf_clean
     end
   end
@@ -314,7 +343,7 @@ module NpSearch
     end
 
     # Creates a signalp positives file, if required.
-    def signalp_positives_file_writer(input, identified_positives, output)
+    def sp_positives_file_writer(input, identified_positives, output)
       LOG.info { "Writing the Signal Peptide test results to the file " \
                  "'#{output}'." }
       output_file = File.new(output, 'w')
@@ -334,47 +363,46 @@ module NpSearch
       @positives = {}
       signalp_file = File.read(input)
       identified_positives = signalp_file.scan(/^.* Y .*$/)
-      if make_file == 'signalp_positives_file'
-        signalp_positives_file_writer(input, identified_positives, output_file)
+      if make_file == 'sp_positives_file'
+        sp_positives_file_writer(input, identified_positives, output_file)
       end
       (0..(identified_positives.length - 1)).each do |i|
         @positives[i] = identified_positives[i]
       end
-      @hash_check.hash_empty(@positives, 
-                             'No sequences were predicted to have a secretory' \
-                             ' signal peptide.')
+      @hash.empty(@positives, 
+                  'extracting sequences with a secretory signal peptide.' \
+                  ' This is could be due to the fact that there are no' \
+                  ' sequences with a signal peptide.')
       return identified_positives.length
     end
 
     # Converts the Signal P positives results into an array and then put all
     #   the useful info into a hash
     def array_generator(identified_positives_length)
-      signalp_array = Array.new(identified_positives_length)\
+      sp_array = Array.new(identified_positives_length)\
                       { Array.new(identified_positives_length, 0) }
-      signalp_hash = {}
+      sp_hash = {}
       @positives.each do|idx, line|
         row = line.gsub(/\s+/m, ' ').chomp.split(' ')
-        signalp_array[idx][0..row.length - 1] = row # Merge into existing array
+        sp_array[idx][0..row.length - 1] = row # Merge into existing array
       end
-      signalp_array.each do |h|
+      sp_array.each do |h|
         seq_id = h[0]
         cut_off = h[4]
         d_value = h[8]
-        signalp_hash[seq_id] = [cut_off: cut_off, d_value: d_value]
-      @hash_check.hash_empty(signalp_hash, 
-                             'There was a critical error in analysing the' \
-                             ' signal peptide.')
+        sp_hash[seq_id] = [cut_off: cut_off, d_value: d_value]
+        @hash.empty(sp_hash, ' analysing the signal peptide.')
       end
-      return signalp_hash
+      return sp_hash
     end
 
     # Presents the signal P positives data with seq Id on onto line and the
     #   sequence on the next.
-    def parse(signalp_hash, orf_clean, motif)
+    def parse(sp_hash, orf_clean, motif)
       LOG.info { 'Extracting sequences that have at least 1 neuropeptide'\
                  ' cleavage site after the signal peptide cleavage site.' }
-      signalp_with_seq = {}
-      signalp_hash.each do |id, h|
+      sp_data = {}
+      sp_hash.each do |id, h|
         current_orf = orf_clean[id].to_s.gsub('["', '').gsub('"]', '')
         cut_off     = h[0][:cut_off]
         d_value     = h[0][:d_value]
@@ -382,30 +410,30 @@ module NpSearch
         signalp     = current_orf[0, sp_clv]
         seq_end     = current_orf[sp_clv, current_orf.length]
         if seq_end.match(/#{motif}/)
-          signalp_with_seq[id + 
-                           "~- S.P.=> Cleavage Site: #{sp_clv}:#{cut_off} " \
-                           "| D-value: #{d_value}"] = "#{signalp}~#{seq_end}"
+          sp_data[id + 
+                  "~- S.P.=> Cleavage Site: #{sp_clv}:#{cut_off} | D-value:" \
+                  " #{d_value}"] = "#{signalp}~#{seq_end}"
         end 
       end
-      @hash_check.hash_empty(signalp_with_seq, 
-                             'There are no sequences that have a signal' \
-                             ' peptide and contain the requested motif after' \
-                             ' the signal peptide cleavage site.')
-      return signalp_with_seq
+      @hash.empty(sp_data, 
+                        'There are no sequences that have a signal' \
+                        ' peptide and contain the requested motif after' \
+                        ' the signal peptide cleavage site.')
+      return sp_data
     end
 
     # With transcriptome data, alternative splicing means duplicates ORF, so
     #   this method collapses duplicates into one reading.
-    def flattener(signalp_with_seq)
+    def flattener(sp_data)
       LOG.info { 'Removing all duplicate entries.' }
       flattened_seq = {}
-      signalp_with_seq.each do |id, seq|
+      sp_data.each do |id, seq|
         flattened_seq[seq] = [] unless flattened_seq[seq]
         flattened_seq[seq] = id
       end
-      @hash_check.hash_empty(flattened_seq, 
-                             'There was a critical error in removing' \
-                             ' duplicates in the output file.')
+      @hash.empty(flattened_seq, 
+                        'There was a critical error in removing' \
+                        ' duplicates in the output file.')
       return flattened_seq.invert # Inverting necessary for outputting.
     end
   end
