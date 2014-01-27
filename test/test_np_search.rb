@@ -20,7 +20,7 @@ class UnitTests < Test::Unit::TestCase
   def setup # read all expected files
     @test_input                = NpSearch::Input.new
     @test_input1               = InputChanged.new
-    @test_validators           = NpSearch::Validators.new(:is_verbose)
+    @test_validators           = NpSearch::Validators.new(:is_verbose, "Help Banner")
     @translation_test          = NpSearch::Translation.new
     @analysis_test             = NpSearch::Analysis.new
     @test_genetic_input_read   = @test_input.read("test/test_inputs/genetic.fa", "genetic")

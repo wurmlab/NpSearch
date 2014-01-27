@@ -53,19 +53,6 @@ module NpSearch
       end  
     end
 
-    # Checks whether the input_type has been provided in the correct format.
-    def input_type_vldr(input_type)
-      unless input_type.downcase == 'genetic' || \
-             input_type.downcase == 'protein'
-        puts # a blank line
-        puts "Usage Error: The input_type: '#{input_type} is not recognised" \
-             " The input_type option ('-t' option) can either be 'genetic'" \
-             " or 'protein.'"
-        puts @help_banner
-        exit
-      end
-    end
-
     def extract_orf_conflict(input_type, extract_orf)
       if input_type == 'protein' && extract_orf == TRUE
         puts # a blank line
@@ -83,6 +70,19 @@ module NpSearch
         puts 'Usage Error: Conflicting arguments detected: the signalp input' \
              ' option (option "-s") is only available when input file contains'\
              ' protein data.'
+        puts @help_banner
+        exit
+      end
+    end
+
+    # Checks whether the input_type has been provided in the correct format.
+    def input_type_vldr(input_type)
+      unless input_type.downcase == 'genetic' || \
+             input_type.downcase == 'protein'
+        puts # a blank line
+        puts "Usage Error: The input_type: '#{input_type} is not recognised" \
+             " The input_type option ('-t' option) can either be 'genetic'" \
+             " or 'protein.'"
         puts @help_banner
         exit
       end
