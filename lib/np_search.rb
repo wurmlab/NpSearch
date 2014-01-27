@@ -443,6 +443,8 @@ haml_doc = <<EOT
 !!!
 %html
   %head
+    %title Results
+    %meta{"http-equiv" => "Content-Type", :content => "text/html; charset=utf-8"}
     :css
       .id {font-weight: bold;}
       .signalp {color:#007AC0; font-weight: bold;}

@@ -106,16 +106,6 @@ class UnitTests < Test::Unit::TestCase
     assert_equal(@expected_orf_clean_hash, orf_clean_hash_test)
   end
 
-####### Need the Signalp script to run. #######
-# => Test if the external signal p script runs correctly and produces the expected results - asserts that the produced sigalp p output file is identical to the expected file.w
-#  def test_signalp() # external script
-#    signalp_dir = "./../../../signalp"
-#    signalp_test = NpSearch::Signalp.new
-#    signalp_test.signal_p(signalp_dir, "test/test_files/orf_clean.fa", "test/test_out/signalp_out.txt")
-#    test_signalp_file = File.read("test/test_out/signalp_out.txt")
-#    assert_equal(@expected_signalp_file, test_signalp_file)
-#  end
-
 # => Tests that the signalp positives extractor methods works properly - asserts that the produced signalp_positives hash is identical to the expected result. 
   def test_signalp_positives_extractor()
     @test_positives_number = @analysis_test.sp_positives_extractor("test/test_files/signalp_out.txt", "test/test_out/signalp_positives.txt", "signalp_positives_file").to_i

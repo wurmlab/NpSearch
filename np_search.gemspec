@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'np_search/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "np_search"
+  spec.name          = "NpSearch"
   spec.version       = NpSearch::VERSION
   spec.authors       = ["IsmailM"]
   spec.email         = ["ismail.moghul@gmail.com"]
@@ -22,7 +22,4 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 10.1"
   spec.add_dependency "bio", "~> 1.4"
   spec.add_dependency "haml", "~> 4"
-  
-
 end
-
