@@ -3,7 +3,9 @@ Note: this is currently a beta version...
 
 NPSearch (NeuroPeptideSearch) is a program that searches for potential neuropeptides precursors based on the motifs commonly found on a neuropeptide. Ideally, the input would be transcriptome or protein data since there are no introns to worry about. The program produces a list of sequences that all contain all the common motifs found in a neuropeptide, which would need to be further analysed. The default output is a fasta file and a word document in which the signal peptide and potential neuropeptide cleavage sites are colour-coded.
 
-Note: For this program to work, you will need to obtain a copy of Signal P 4.1 from cbs at "http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?signalp" and link this to the program.
+Note: For this program to work, you will need to obtain a copy of Signal P 4.1 from cbs at "http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?signalp" and link this to the program. Alternatively you will require an output text file from the Signal P which you can input into the program.
+
+** Currently only supported on Mac OS & Linux (and Windows through cywWin32)
 
 ##Outputs
 The default output is just a fasta file and a colour-formatted word document. However, it is possible to get all the temporary file outputted (by using the "-a" option)
@@ -18,20 +20,9 @@ The default output is just a fasta file and a colour-formatted word document. Ho
     
 ## Installation
 
-Option 1
-
-1. Download the source files. 
-2. Open the Terminal and change the directory to the source folder
-3. Then type
-
-  $ bundle install 
-
-Option 2 (When finally released)
-
 1. Simply open the Terminal and type this
 
 	$ gem install np_search
-
 
 ## Usage
 

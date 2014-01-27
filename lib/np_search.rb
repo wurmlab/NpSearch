@@ -315,7 +315,7 @@ module NpSearch
     end
 
     # Extracts rows from the Signal P test that are positive.
-    def signalp_positives_extractor(input, output_file, make_file)
+    def sp_positives_extractor(input, output_file, make_file)
       LOG.info { 'Extracting all sequences that have a Signal Peptide.' }
       @positives = {}
       signalp_file = File.read(input)
