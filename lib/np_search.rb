@@ -8,12 +8,14 @@ LOG.level = Logger::FATAL # set to only show no messages
 
 module NpSearch
   class Validators
-    # Overides the  LOG levels when the verbose option is true.
+    # Changes the logger level to output extra info when the verbose option is
+    #   true
     def initialize(verbose_opt, help_banner)
       LOG.level = Logger::INFO if verbose_opt.to_s == 'true'
       @help_banner = help_banner
     end
 
+    # Ensures that the compulsory input arguments are supplied.
     def arg_vldr(motif, input_type, input, output_dir)
       if motif == nil
         puts # a blank line
@@ -53,6 +55,7 @@ module NpSearch
       end  
     end
 
+    # Ensures that the extract_orf option is only used with genetic data.
     def extract_orf_conflict(input_type, extract_orf)
       if input_type == 'protein' && extract_orf == TRUE
         puts # a blank line
@@ -64,6 +67,8 @@ module NpSearch
       end
     end
 
+    # Ensures that the protein data (or open reading frames) are supplied as
+    #   the input file when the signal p output file is passed.
     def input_sp_file_conflict(input_type, signalp_file)
       if input_type == 'genetic' && signalp_file != nil
         puts # a blank line
@@ -75,7 +80,8 @@ module NpSearch
       end
     end
 
-    # Checks whether the input_type has been provided in the correct format.
+    # Ensures that the input_type has been provided in the correct format (i.e.
+    #   that it is either 'genetic' or 'protein').
     def input_type_vldr(input_type)
       unless input_type.downcase == 'genetic' || \
              input_type.downcase == 'protein'
@@ -88,8 +94,8 @@ module NpSearch
       end
     end
 
-    ### Input file Validators...
-    # Adapted from 'database_formatter.rb' from sequenceserver.
+    # Adapted from 'database_formatter.rb' from sequenceserver. Checks if the
+    #   character of the file is a '>'. Run from the 'input_file_vldr' method.
     def probably_fasta(input_file)
       File.open(input_file, 'r') do |file_stream|
         first_line = file_stream.readline
@@ -101,8 +107,8 @@ module NpSearch
       end
     end
 
-    # Checks whether the input file exists; whether it is empty and whether it
-    #   is likely a fasta file.
+    # Ensures that the input file a) exists b) is not empty and c) is a fasta
+    #   file.
     def input_file_vldr(input_file)
       unless File.exist?(input_file)
         puts # a blank line
@@ -126,9 +132,8 @@ module NpSearch
     end
 
 
-    ### Output folder Validator...
     # Checks for the presence of the output directory; if not found, it asks
-    #   the user whether they want to create the output directory.
+    #   3the user whether they want to create the output directory.
     def output_dir_vldr(output_dir)
       unless File.directory? output_dir
         puts # a blank line
@@ -162,8 +167,8 @@ module NpSearch
       end
     end
 
-    ### SignalP Validators...
-    # Checks for the presence of the Signal Peptide Script.
+    # Ensures that the Signal P Script is present. If not found in the home
+    #   directory, it asks the user for its location.
     def sp_vldr(signalp_dir)
       if File.exist? "#{signalp_dir}/signalp"
         signalp_directory = signalp_dir
@@ -195,8 +200,8 @@ module NpSearch
       return signalp_directory
     end
 
-    # Checks whether the right version of Signal Peptide Script has been
-    #   linked to the program.
+    # Ensures that the supported version of the Signal P Script has been linked
+    #   to NpSearch. Run from the 'sp_version_vldr' method.
     def sp_version(input_file)
       File.open(input_file, 'r') do |file_stream|
         first_line = file_stream.readline
@@ -208,8 +213,8 @@ module NpSearch
       end
     end
 
-    # Checks whether the Signal P script output is in the right format by
-    #   checking whether the necessary columns are exactly the same.
+    # Ensures that the critical columns in the tabular results produced by the
+    #   Signal P script are conserved. Run from the 'sp_version_vldr' method.
     def sp_column_vldr(input_file)
       File.open('signalp_out.txt', 'r') do |file_stream|
         secondline = file_stream.readlines[1]
@@ -223,7 +228,11 @@ module NpSearch
       end
     end
 
-    # Ensure that the right version of signal is used.
+    # Ensure that the right version of the Signal P script is used (via
+    #   'sp_version' Method). If the wrong signal p script has been linked to
+    #   NpSearch, check whether the critical columns in the tabular results
+    #   produced by the Signal P Script are conserved (via 'sp_column_vldr'
+    #   Method).
     def sp_version_vldr(signalp_output_file)
       unless sp_version(signalp_output_file)
       # i.e. if Signal P is the wrong version
@@ -260,6 +269,9 @@ module NpSearch
       end
     end
 
+    # Global method - Ensures that the hashes produced by various methods are
+    #   not empty. ‘@hash = Validators.new’ is set to allow other method to
+    #   access the method
     def @hash.empty(hash, output_message)
       if hash.empty?
         puts # a blank line
@@ -273,13 +285,13 @@ module NpSearch
       end
     end
 
-    #Set global variable so that other methods can access method.
+    # Set global variable so that other methods can access method.
     @hash = Validators.new('other', @help_banner)
   end
 
 
   class Input
-    # Reads the input file converting it into hash.
+    # Reads the input file converting it into a hash [id => seq].
     def read(input_file, type)
       input_read = {}
       biofastafile = Bio::FlatFile.open(Bio::FastaFormat, input_file)
@@ -348,7 +360,8 @@ module NpSearch
   end
 
   class Signalp
-    # Runs an external Signal Peptide script from CBS.
+    # Runs an external Signal Peptide script from CBS (Center for biological
+    #   Sequence Analysis).
     def signalp(signalp_dir, input, output)
       LOG.info { 'Running a Signal Peptide test on each sequence.' }
       system("#{signalp_dir}/signalp -t euk -f short #{input} > #{output}")
@@ -360,11 +373,13 @@ module NpSearch
   class Analysis
     attr_accessor :positives
 
+    # Set up the @positives variable
     def initialize
       @positives = nil
     end
 
-    # Creates a signalp positives file, if required.
+    # Creates a signalp positives file, if required. Run from the
+    #   'sp_positives_extractor' Method.
     def sp_positives_file_writer(input, identified_positives, output)
       LOG.info { "Writing the Signal Peptide test results to the file " \
                  "'#{output}'." }
@@ -379,7 +394,8 @@ module NpSearch
       output_file.close
     end
 
-    # Extracts rows from the Signal P test that are positive.
+      # Extracts the rows from the tabular results produced by the Signal P
+      #   script that are positive for a signal peptide.
     def sp_positives_extractor(input, output_file, make_file)
       LOG.info { 'Extracting all sequences that have a Signal Peptide.' }
       @positives = {}
@@ -398,8 +414,8 @@ module NpSearch
       return identified_positives.length
     end
 
-    # Converts the Signal P positives results into an array and then put all
-    #   the useful info into a hash
+    # Converts the Signal P positives results into an array and then put them
+    #   alongside other useful info into a single hash
     def array_generator(identified_positives_length)
       sp_array = Array.new(identified_positives_length)\
                       { Array.new(identified_positives_length, 0) }
@@ -418,8 +434,8 @@ module NpSearch
       return sp_hash
     end
 
-    # Presents the signal P positives data with seq Id on onto line and the
-    #   sequence on the next.
+    # Extracts the Sequences for each signal peptide positive sequence and the
+    #   split the sequence into signal peptide and the rest of the sequence.
     def parse(sp_hash, orf_clean, motif)
       LOG.info { 'Extracting sequences that have at least 1 neuropeptide'\
                  ' cleavage site after the signal peptide cleavage site.' }
@@ -461,6 +477,7 @@ module NpSearch
   end
 
   class Output
+    # Converts a hash into a fasta file.
     def to_fasta(what, hash, output)
       LOG.info { "Writing the #{what} to the file:'#{output}'." }
       output_file = File.new(output, 'w')
@@ -472,6 +489,9 @@ module NpSearch
       output_file.close
     end
 
+    # Creates a hash of variables that are required to be inputted into the
+    #   HAML (HAML cannot contain any logic, so it is necessary to do all logic
+    #   here).
     def make_html_hash(hash, motif)
       doc_hash = {}
       hash.each do |id, seq|
@@ -488,6 +508,8 @@ module NpSearch
       return doc_hash
     end
 
+    # Converts a hash into a standalone HTML file. Hint: The standalone HTML
+    #   file can be rendered and opened by Word.
     def to_html(doc_hash, output)
 haml_doc = <<EOT
 !!!
