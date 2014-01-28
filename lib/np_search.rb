@@ -4,11 +4,11 @@ LOG = Logger.new(STDOUT)
 LOG.formatter = proc do |severity, datetime, progname, msg|
   "#{datetime}: #{msg}\n"
 end
-LOG.level = Logger::FATAL # set to only show fatal messages
+LOG.level = Logger::FATAL # set to only show no messages
 
 module NpSearch
   class Validators
-    # Overides the  LOG levels if required.
+    # Overides the  LOG levels when the verbose option is true.
     def initialize(verbose_opt, help_banner)
       LOG.level = Logger::INFO if verbose_opt.to_s == 'true'
       @help_banner = help_banner
@@ -56,7 +56,7 @@ module NpSearch
     def extract_orf_conflict(input_type, extract_orf)
       if input_type == 'protein' && extract_orf == TRUE
         puts # a blank line
-        puts 'Usage Error: Conflicting arguments detected: the Extract_ORF' \
+        puts 'Usage Error: Conflicting arguments detected - the Extract_ORF' \
              ' option (option "-e") is only available when input file contains'\
              ' genetic data.'
         puts @help_banner
@@ -80,7 +80,7 @@ module NpSearch
       unless input_type.downcase == 'genetic' || \
              input_type.downcase == 'protein'
         puts # a blank line
-        puts "Usage Error: The input_type: '#{input_type} is not recognised" \
+        puts "Usage Error: The input_type: '#{input_type}' is not recognised." \
              " The input_type option ('-t' option) can either be 'genetic'" \
              " or 'protein.'"
         puts @help_banner

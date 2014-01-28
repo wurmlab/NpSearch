@@ -130,8 +130,10 @@ if options[:input_type].downcase == 'genetic'
 
   # Extract all possible ORF
   orf = translater.extract_orf(translated_sequences)
-  to_output.to_fasta('extracted Open Reading Frames', orf, 
-                     "#{options[:output_dir]}/2_orf.fa") if options[:output_all]
+  if options[:output_all]
+    to_output.to_fasta('extracted Open Reading Frames', orf, 
+                       "#{options[:output_dir]}/2_orf.fa") 
+  end
   
   # Sort out the file numbering...
   j = 1 unless options[:output_all]
