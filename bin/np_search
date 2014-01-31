@@ -70,11 +70,6 @@ Banner
     options[:signalp_file] = signalp_file
   end
 
-  options[:output_all] = false
-  opts.on('-a', '--output_all', 'Outputs all possible files.') do
-    options[:output_all] = true
-  end
-
   options[:extract_orf] = false
   opts.on('-e', '--extract_orf', 'Only extracts the Open Reading Frames.') do
     options[:extract_orf] = true
@@ -98,17 +93,17 @@ Banner
 end
 optparse.parse!
 
-############# Input Validation...##############
-input_vldr = NpSearch::Validators.new(options[:verbose], optparse.help())
-input_vldr.arg_vldr(options[:motif], options[:input_type], options[:input],
-                    options[:output_dir])
-sp_dir = input_vldr.sp_vldr(signalp_dir) if options[:signalp_file] == nil
-input_vldr.orf_min_length_vldr(options[:cut_off])
-input_vldr.input_type_vldr(options[:input_type])
-input_vldr.input_file_vldr(options[:input])
-input_vldr.output_dir_vldr(options[:output_dir])
-input_vldr.extract_orf_conflict(options[:input_type], options[:extract_orf])
-input_vldr.input_sp_file_conflict(options[:input_type], options[:signalp_file])
+############# Argument Validation...##############
+arg_vldr = NpSearch::ArgValidators.new(options[:verbose], optparse.help())
+arg_vldr.arg(options[:motif], options[:input_type], options[:input],
+                     options[:output_dir], options[:cut_off], 
+                     options[:extract_orf], options[:signalp_file])
+
+############# General Validation...##############
+vldr = NpSearch::Validators.new
+sp_dir = vldr.sp(signalp_dir) if options[:signalp_file] == nil
+vldr.input_file(options[:input])
+vldr.output_dir(options[:output_dir])
 
 ############# Initialise Outputs...##############
 to_output = NpSearch::Output.new
@@ -120,35 +115,22 @@ input_read = input_file.read(options[:input], options[:input_type])
 ############# Extract_ORF #############
 if options[:input_type].downcase == 'genetic'
   translater = NpSearch::Translation.new
-  
+
   # Translate Sequences in all 6 frames
   translated_sequences = translater.translate(input_read)
-  if options[:output_all]
-    to_output.to_fasta('translated sequences', translated_sequences,
-                       "#{options[:output_dir]}/1_protein.fa") 
-  end
+  to_output.to_fasta('translated sequences', translated_sequences,
+                     "#{options[:output_dir]}/1_protein.fa") 
 
-  # Extract all possible ORF
-  orf = translater.extract_orf(translated_sequences)
-  if options[:output_all]
-    to_output.to_fasta('extracted Open Reading Frames', orf, 
-                       "#{options[:output_dir]}/2_orf.fa") 
+  # Extract all possible ORF that are longer than the ORF_min_length
+  orf = translater.extract_orf(translated_sequences, options[:cut_off])
+  to_output.to_fasta('Open Reading Frames' , orf,
+                     "#{options[:output_dir]}/2_orf.fa")
+
+  if options[:extract_orf]
+    puts "\nSuccess: All output files created in the directory:" \
+         "#{options[:output_dir]}'.\n " 
+    exit
   end
-  
-  # Sort out the file numbering...
-  j = 1 unless options[:output_all]
-  j = 3 if options[:output_all]
-  
-  # Remove all ORF that are shorter than 10 amino acids.
-  orf_clean = translater.orf_cleaner(orf, options[:cut_off])
-  to_output.to_fasta('cleaned Open Reading Frames' , orf_clean,
-                     "#{options[:output_dir]}/#{j}_orf_clean.fa")
-end
- 
-if options[:extract_orf]
-  puts "\nSuccess: All output files created in the directory:" \
-       "#{options[:output_dir]}'.\n " 
-  exit
 end
 
 ############# Setting up more variables...##############
@@ -160,53 +142,52 @@ else
 end
 
 if options[:input_type].downcase == 'genetic'
-  sp_input_file = "#{options[:output_dir]}/#{j}_orf_clean.fa"
-  sp_hash = orf_clean
-  i = j + 1
+  sp_input_file = "#{options[:output_dir]}/2_orf.fa"
+  sp_hash = orf
+  file_number = 3
 else # i.e. if the input is protein 
   sp_input_file = options[:input]
   sp_hash = input_read
-  i = 1
-end
-
-# If a signal p output file isn't supplied.
-if options[:signalp_file] == nil 
-  sp_out_file = "#{options[:output_dir]}/#{i}_signalp_out.txt"
-  i += 1
-else
-  sp_out_file = options[:signalp_file]
-  i = 1
+  file_number = 1
 end
 
 ############# Signal P #############
 signalp_test = NpSearch::Signalp.new
 # Run an extenal Signal P script
 if options[:signalp_file] == nil
+  sp_out_file = "#{options[:output_dir]}/#{file_number}_signalp_out.txt"
+  file_number += 1
   signalp_test.signalp(sp_dir, sp_input_file, sp_out_file)
 end
+
+# If a signal p output file is supplied...
+if options[:signalp_file] != nil 
+  sp_out_file = options[:signalp_file]
+  file_number = 1
+end
+
+############# Signal P Results Validation #############
 # Check that the output produced is in a readable format
-input_vldr.sp_version_vldr(sp_out_file)
+vldr.sp_results(sp_out_file)
 
 
 ############# Data Analysis #############
 data_analysis = NpSearch::Analysis.new
-identified_positives = data_analysis.sp_positives_extractor(sp_out_file,
-   "#{options[:output_dir]}/#{i}_signalp_positives.txt", "sp_positives_file")
-signalp = data_analysis.array_generator(identified_positives)
-secretome = data_analysis.parse(signalp, sp_hash, motif)
-i += 1
-to_output.to_fasta("secretome", secretome,
-  "#{options[:output_dir]}/#{i}_Secretome.fa")
-i += 1
+
+# extract sequences with a signal peptide 
+secretome = data_analysis.parse(sp_out_file, sp_hash, motif)
+
+# Remove any duplicate data
+flattened_seq = data_analysis.flattener(secretome)
+
 
 ############# Creating Output Files #############
-flattened_seq = data_analysis.flattener(secretome)
 to_output.to_fasta("fasta output file", flattened_seq,
-  "#{options[:output_dir]}/#{i}_output.fa")
-html_hash = to_output.make_html_hash(flattened_seq, motif)
-to_output.to_html(html_hash, "#{options[:output_dir]}/#{i}_output.html")
+  "#{options[:output_dir]}/#{file_number}_output.fa")
+to_output.to_html(flattened_seq, motif, 
+                  "#{options[:output_dir]}/#{file_number}_output.html")
 
-# Success
+############# Success #############
 puts # a blank line.
 puts "Success: All output files created in the directory:"\
     " '#{options[:output_dir]}'."

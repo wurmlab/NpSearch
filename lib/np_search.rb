@@ -7,7 +7,7 @@ end
 LOG.level = Logger::FATAL # set to only show no messages
 
 module NpSearch
-  class Validators
+  class ArgValidators
     # Changes the logger level to output extra info when the verbose option is
     #   true
     def initialize(verbose_opt, help_banner)
@@ -15,37 +15,34 @@ module NpSearch
       @help_banner = help_banner
     end
 
+
     # Ensures that the compulsory input arguments are supplied.
-    def arg_vldr(motif, input_type, input, output_dir)
-      if motif == nil
-        puts # a blank line
-        puts 'Usage Error: No Query Motif ("-m" option) is supplied.'
-      end
-
-      if input_type == nil
-        puts # a blank line
-        puts 'Usage Error: No Input Type ("-t" option) is supplied.'
-      end
-
-      if input == nil
-        puts # a blank line
-        puts 'Usage Error: No Input file ("-i option") is supplied.'
-      end
-
-      if output_dir == nil
-        puts # a blank line
-        puts 'Usage Error: No Output Folder ("-o" option) is supplied.'
-      end
-
+    def arg(motif, input_type, input, output_dir, orf_min_length, extract_orf, 
+            signalp_file)
+      comp_arg(motif, 'Query Motif ("-m" option)') unless extract_orf == TRUE
+      comp_arg(input_type, 'Input Type ("-t" option)')
+      comp_arg(input, 'Input file ("-i option")')
+      comp_arg(output_dir, 'Output Folder ("-o" option)')
       if input == nil || input_type == nil || motif == nil || output_dir == nil
         puts @help_banner
         exit
+      end
+      input_type(input_type)
+      orf_min_length(orf_min_length)
+      extract_orf_conflict(input_type, extract_orf)
+      input_sp_file_conflict(input_type, signalp_file)
+    end
+
+    # Ensures that the compulsory input arguments are not empty. 
+    def comp_arg(arg, message)
+      if arg == nil
+        puts 'Usage Error: No ' + message + ' is supplied'
       end
     end
 
     # Ensures that the ORF minimum length is a number. Any digits after the
     #   decimal place are ignored.
-    def orf_min_length_vldr(orf_min_length)
+    def orf_min_length(orf_min_length)
       if orf_min_length.to_i < 1
         puts # a blank line
         puts 'Usage Error: The Open Reading Frames minimum length can only be' \
@@ -55,13 +52,27 @@ module NpSearch
       end  
     end
 
+    # Ensures that the input_type has been provided in the correct format (i.e.
+    #   that it is either 'genetic' or 'protein').
+    def input_type(input_type)
+      unless input_type.downcase == 'genetic' ||
+             input_type.downcase == 'protein'
+        puts # a blank line
+        puts "Usage Error: The input_type: '#{input_type}' is not recognised." \
+             " The input_type option ('-t' option) can either be 'genetic'" \
+             " or 'protein.'"
+        puts @help_banner
+        exit
+      end
+    end
+
     # Ensures that the extract_orf option is only used with genetic data.
     def extract_orf_conflict(input_type, extract_orf)
       if input_type == 'protein' && extract_orf == TRUE
         puts # a blank line
         puts 'Usage Error: Conflicting arguments detected - the Extract_ORF' \
-             ' option (option "-e") is only available when input file contains'\
-             ' genetic data.'
+             ' option (option "-e") is only available when input file' \
+             ' contains genetic data.'
         puts @help_banner
         exit
       end
@@ -73,22 +84,34 @@ module NpSearch
       if input_type == 'genetic' && signalp_file != nil
         puts # a blank line
         puts 'Usage Error: Conflicting arguments detected: the signalp input' \
-             ' option (option "-s") is only available when input file contains'\
-             ' protein data.'
+             ' option (option "-s") is only available when input file' \
+             ' contains protein data.'
         puts @help_banner
         exit
       end
     end
+  end
 
-    # Ensures that the input_type has been provided in the correct format (i.e.
-    #   that it is either 'genetic' or 'protein').
-    def input_type_vldr(input_type)
-      unless input_type.downcase == 'genetic' || \
-             input_type.downcase == 'protein'
+  class Validators
+    # Ensures that the input file a) exists b) is not empty and c) is a fasta
+    #   file.
+    def input_file(input_file)
+      unless File.exist?(input_file)
         puts # a blank line
-        puts "Usage Error: The input_type: '#{input_type}' is not recognised." \
-             " The input_type option ('-t' option) can either be 'genetic'" \
-             " or 'protein.'"
+        puts "Critical Error: The input file '#{input_file}' does not exist"
+        puts @help_banner
+        exit
+      end
+      if File.zero?(input_file)
+        puts # a blank line
+        puts "Critical Error: The input file '#{input_file}' is empty."
+        puts @help_banner
+        exit
+      end
+      unless probably_fasta(input_file)
+        puts # a blank line
+        puts "Critical Error: The input file '#{input_file}' does not seem to" \
+             " be in fasta format - the input file must be in fasta format."
         puts @help_banner
         exit
       end
@@ -107,34 +130,9 @@ module NpSearch
       end
     end
 
-    # Ensures that the input file a) exists b) is not empty and c) is a fasta
-    #   file.
-    def input_file_vldr(input_file)
-      unless File.exist?(input_file)
-        puts # a blank line
-        puts "Critical Error: The input file '#{input_file}' does not exist"
-        puts @help_banner
-        exit
-      end
-      if File.zero?(input_file)
-        puts # a blank line
-        puts "Critical Error: The input file '#{input_file}' is empty."
-        puts @help_banner
-        exit
-      end
-      unless probably_fasta(input_file)
-        puts # a blank line
-        puts "Critical Error: The input file '#{input_file}' does not seem to" \
-             " in fasta format - the input file must be in fasta format."
-        puts @help_banner
-        exit
-      end
-    end
-
-
     # Checks for the presence of the output directory; if not found, it asks
     #   3the user whether they want to create the output directory.
-    def output_dir_vldr(output_dir)
+    def output_dir(output_dir)
       unless File.directory? output_dir
         puts # a blank line
         puts 'The output directory does not exist.'
@@ -169,7 +167,7 @@ module NpSearch
 
     # Ensures that the Signal P Script is present. If not found in the home
     #   directory, it asks the user for its location.
-    def sp_vldr(signalp_dir)
+    def sp(signalp_dir)
       if File.exist? "#{signalp_dir}/signalp"
         signalp_directory = signalp_dir
       else
@@ -215,11 +213,11 @@ module NpSearch
 
     # Ensures that the critical columns in the tabular results produced by the
     #   Signal P script are conserved. Run from the 'sp_version_vldr' method.
-    def sp_column_vldr(input_file)
+    def sp_column(input_file)
       File.open('signalp_out.txt', 'r') do |file_stream|
         secondline = file_stream.readlines[1]
         row = secondline.gsub(/\s+/m, ' ').chomp.split(' ')
-        if row[1] != 'name' && row[4] != 'Ymax' && row[5] != 'pos' && \
+        if row[1] != 'name' && row[4] != 'Ymax' && row[5] != 'pos' &&
            row[9] != 'D'
           return TRUE
         else
@@ -233,10 +231,10 @@ module NpSearch
     #   NpSearch, check whether the critical columns in the tabular results
     #   produced by the Signal P Script are conserved (via 'sp_column_vldr'
     #   Method).
-    def sp_version_vldr(signalp_output_file)
+    def sp_results(signalp_output_file)
       unless sp_version(signalp_output_file)
       # i.e. if Signal P is the wrong version
-        if sp_column_vldr(signalp_output_file)
+        if sp_column(signalp_output_file)
           puts # a blank line
           puts 'Warning: The wrong version of signalp has been linked.' \
                ' However, the signal peptide output file still seems to' \
@@ -268,25 +266,6 @@ module NpSearch
         end
       end
     end
-
-    # Global method - Ensures that the hashes produced by various methods are
-    #   not empty. ‘@hash = Validators.new’ is set to allow other method to
-    #   access the method
-    def @hash.empty(hash, output_message)
-      if hash.empty?
-        puts # a blank line
-        puts 'A Critical Error occured in '
-        print output_message
-        puts # a blank line 
-        puts 'Please ensure all the input arguments are correct and then try' \
-             ' again.'
-        puts @help_banner
-        exit
-      end
-    end
-
-    # Set global variable so that other methods can access method.
-    @hash = Validators.new('other', @help_banner)
   end
 
 
@@ -304,8 +283,11 @@ module NpSearch
         end
         input_read[entry.entry_id] = seq
       end
-      @hash.empty(input_read, 
-                  'converting the input data into the required format.')
+      if input_read.empty?
+        raise IOError.new("\nCritical Error: There was an error in reading" \
+                          " the input and converting it into the required" \
+                          " format.\n")
+      end
       return input_read
     end
   end
@@ -313,49 +295,39 @@ module NpSearch
   class Translation
     # Translates in all 6 frames - with * standing for stop codons
     def translate(input_read)
-      LOG.info { 'Translating the genomic data in all 6 frames.' }
+      LOG.info { 'Step 1: Translating the genomic data in all 6 frames.' }
       protein_data = {}
       input_read.each do |id, sequence|
         (1..6).each do |f|
           protein_data[id + '_f' + f.to_s] = sequence.translate(f)
         end
       end
-      @hash.empty(protein_data, 'translating the input data in all 6 frames.')
+      if protein_data.empty?
+        raise IOError.new("\nCritical Error: There was an error in" \
+                          " translating input data in all 6 frames.\n")
+      end
       return protein_data
     end
 
     # Extract all possible Open Reading Frames.
-    def extract_orf(protein_data)
-      LOG.info { 'Extracting all Open Reading Frames from all 6 possible' \
+    def extract_orf(protein_data, minimum_length)
+      LOG.info { 'Step 2: Extracting all Open Reading Frames from all 6 possible' \
                  ' frames. This is every methionine residue to the next stop' \
                  ' codon.' }
       orf = {}
+      orf_length = minimum_length - 1 # no. of residues after 'M' 
       protein_data.each do |id, sequence|
-        identified_orfs = sequence.scan(/(?=(M\w*))./)
+        identified_orfs = sequence.scan(/(?=(M\w{#{orf_length},}))./)
         (0..(identified_orfs.length - 1)).each do |i|
           orf[id + '_' + i.to_s] = identified_orfs[i]
         end
       end
-      @hash.empty(orf, 
-                  'extracting Open Reading Frames (ORF). This could be due to' \
-                  ' the fact that there are no ORF in the data.')
-      return orf
-    end
-
-    # Extracts all Open Reading Frames that are longer than the minimum length.
-    def orf_cleaner(orf, minimum_length)
-      LOG.info { "Removing all Open Reading Frames that are shorter than "\
-                 "#{minimum_length}." }
-      orf_clean = {}
-      orf.each do |id, sequence|
-        if (sequence.to_s).length >= (minimum_length + 4)
-          orf_clean[id] = sequence
-        end
+      if orf.empty?
+        raise IOError.new("\nCritical Error: There was an error in removing " \
+                          " Open Reading Frames that are smaller than the" \
+                          " critical length (ORF_min_length).\n")
       end
-      @hash.empty(orf, 
-                  'removing Open Reading Frames that are smaller than the' \
-                        '  critical length (ORF_min_length).')
-      return orf_clean
+      return orf
     end
   end
 
@@ -363,115 +335,79 @@ module NpSearch
     # Runs an external Signal Peptide script from CBS (Center for biological
     #   Sequence Analysis).
     def signalp(signalp_dir, input, output)
-      LOG.info { 'Running a Signal Peptide test on each sequence.' }
-      system("#{signalp_dir}/signalp -t euk -f short #{input} > #{output}")
+      LOG.info { "Step 3: Running a Signal Peptide test on each sequence.\nPlease be" \
+                 " patient, this may take some time with large datasets." }
+      exit_code = system("#{signalp_dir}/signalp -t euk -f short #{input} > " \
+                         "#{output}")
+      if exit_code != true
+        raise IOError.new ("\nCritical Error: There seems to be a problem in" \
+                           " running the external Signal P script (" \
+                           " downloadable from CBS).\n")
+      end
       LOG.info { "Writing the Signal Peptide test results to the file " \
-                 "'#{output}'." }
+                  "'#{output}'." }
     end
   end
 
   class Analysis
-    attr_accessor :positives
+    # Extracts the rows from the tabular results produced by the Signal P
+    #   script that are positive for a signal peptide.
+    def extract_sp_positives(sp_out_file)
+      signalp_out_file = File.read(sp_out_file)
+      identified_positives = signalp_out_file.scan(/^.* Y .*$/)
 
-    # Set up the @positives variable
-    def initialize
-      @positives = nil
-    end
-
-    # Creates a signalp positives file, if required. Run from the
-    #   'sp_positives_extractor' Method.
-    def sp_positives_file_writer(input, identified_positives, output)
-      LOG.info { "Writing the Signal Peptide test results to the file " \
-                 "'#{output}'." }
-      output_file = File.new(output, 'w')
-      File.open(input, 'r') do |file_stream|
-        first_line = file_stream.readline
-        secondline = file_stream.readlines[0]
-        output_file.puts first_line
-        output_file.puts secondline
-      end
-      output_file.puts identified_positives
-      output_file.close
-    end
-
-      # Extracts the rows from the tabular results produced by the Signal P
-      #   script that are positive for a signal peptide.
-    def sp_positives_extractor(input, output_file, make_file)
-      LOG.info { 'Extracting all sequences that have a Signal Peptide.' }
-      @positives = {}
-      signalp_file = File.read(input)
-      identified_positives = signalp_file.scan(/^.* Y .*$/)
-      if make_file == 'sp_positives_file'
-        sp_positives_file_writer(input, identified_positives, output_file)
-      end
-      (0..(identified_positives.length - 1)).each do |i|
-        @positives[i] = identified_positives[i]
-      end
-      @hash.empty(@positives, 
-                  'extracting sequences with a secretory signal peptide.' \
-                  ' This is could be due to the fact that there are no' \
-                  ' sequences with a signal peptide.')
-      return identified_positives.length
-    end
-
-    # Converts the Signal P positives results into an array and then put them
-    #   alongside other useful info into a single hash
-    def array_generator(identified_positives_length)
-      sp_array = Array.new(identified_positives_length)\
-                      { Array.new(identified_positives_length, 0) }
-      sp_hash = {}
-      @positives.each do|idx, line|
+      sp_array = Array.new(identified_positives.length)\
+                      { Array.new(identified_positives.length, 0) }
+      
+      identified_positives.each_with_index do |line, idx|
         row = line.gsub(/\s+/m, ' ').chomp.split(' ')
         sp_array[idx][0..row.length - 1] = row # Merge into existing array
       end
-      sp_array.each do |h|
-        seq_id = h[0]
-        cut_off = h[4]
-        d_value = h[8]
-        sp_hash[seq_id] = [cut_off: cut_off, d_value: d_value]
-        @hash.empty(sp_hash, ' analysing the signal peptide.')
-      end
-      return sp_hash
+      return sp_array
     end
 
     # Extracts the Sequences for each signal peptide positive sequence and the
     #   split the sequence into signal peptide and the rest of the sequence.
-    def parse(sp_hash, orf_clean, motif)
-      LOG.info { 'Extracting sequences that have at least 1 neuropeptide'\
+    def parse(sp_out_file, orf_clean, motif)
+      LOG.info { 'Step 4: Extracting sequences that have at least 1 neuropeptide'\
                  ' cleavage site after the signal peptide cleavage site.' }
-      sp_data = {}
-      sp_hash.each do |id, h|
-        current_orf = orf_clean[id].to_s.gsub('["', '').gsub('"]', '')
-        cut_off     = h[0][:cut_off]
-        d_value     = h[0][:d_value]
+      sp_data  = {}
+      sp_array = extract_sp_positives(sp_out_file)
+      sp_array.each do |h|
+        seq_id      = h[0]
+        d_value     = h[8]
+        cut_off     = h[4]
         sp_clv      = cut_off.to_i - 1
+        current_orf = orf_clean[seq_id].to_s.gsub('["', '').gsub('"]', '')
         signalp     = current_orf[0, sp_clv]
         seq_end     = current_orf[sp_clv, current_orf.length]
         if seq_end.match(/#{motif}/)
-          sp_data[id + 
-                  "~- S.P.=> Cleavage Site: #{sp_clv}:#{cut_off} | D-value:" \
-                  " #{d_value}"] = "#{signalp}~#{seq_end}"
+          sp_data[seq_id + '~~~ - S.P.=> Cleavage Site: ' + sp_clv.to_s + ':' + 
+                  cut_off.to_s + ' | D-value: ' + d_value.to_s] = 
+                  signalp + '~~~' + seq_end
         end 
       end
-      @hash.empty(sp_data, 
-                        'There are no sequences that have a signal' \
-                        ' peptide and contain the requested motif after' \
-                        ' the signal peptide cleavage site.')
+      if sp_data.empty?
+        raise IOError.new("\nCritical Error: No Sequences found that contain" \
+                          " a secretory signal peptide as well as the" \
+                          " requested motif.\n")
+      end
       return sp_data
     end
 
     # With transcriptome data, alternative splicing means duplicates ORF, so
     #   this method collapses duplicates into one reading.
     def flattener(sp_data)
-      LOG.info { 'Removing all duplicate entries.' }
+      LOG.info { 'Step 5: Removing all duplicate entries.' }
       flattened_seq = {}
       sp_data.each do |id, seq|
         flattened_seq[seq] = [] unless flattened_seq[seq]
         flattened_seq[seq] = id
       end
-      @hash.empty(flattened_seq, 
-                        'There was a critical error in removing' \
-                        ' duplicates in the output file.')
+      if flattened_seq.empty?
+        raise IOError.new("\nCritical Error: There was a critical error in" \
+                          " removing duplicate data in the output file.\n")
+      end
       return flattened_seq.invert # Inverting necessary for outputting.
     end
   end
@@ -482,7 +418,7 @@ module NpSearch
       LOG.info { "Writing the #{what} to the file:'#{output}'." }
       output_file = File.new(output, 'w')
       hash.each do |id, seq|
-        output_file.puts '>' + id.gsub('~', '')
+        output_file.puts '>' + id.gsub('~~~', '')
         sequence = seq.to_s.gsub('~', '').gsub('["', '').gsub('"]', '')
         output_file.puts sequence
       end
@@ -495,8 +431,8 @@ module NpSearch
     def make_html_hash(hash, motif)
       doc_hash = {}
       hash.each do |id, seq|
-        id, id_end = id.split('~').map(&:strip)
-        signalp, seq_end = seq.split('~').map(&:strip)
+        id, id_end = id.split('~~~').map(&:strip)
+        signalp, seq_end = seq.split('~~~').map(&:strip)
         seq = seq_end.gsub('C', '<span class="cysteine">C</span>')\
         .gsub(/#{motif}/, '<span class="motif">\0</span>')\
         .gsub('G<span class="motif">', \
@@ -510,7 +446,7 @@ module NpSearch
 
     # Converts a hash into a standalone HTML file. Hint: The standalone HTML
     #   file can be rendered and opened by Word.
-    def to_html(doc_hash, output)
+    def to_html(hash, motif, output)
 haml_doc = <<EOT
 !!!
 %html
@@ -535,6 +471,7 @@ haml_doc = <<EOT
         %span.signalp= hash[0][:signalp] + "</span><span>" + hash[0][:seq]
 EOT
       engine = Haml::Engine.new(haml_doc)
+      doc_hash = make_html_hash(hash, motif)
       output_file = File.new(output, 'w')
       output_file.puts engine.render(Object.new, doc_hash: doc_hash)
       LOG.info { "Writing the final output file to the file:'#{output}'." }
