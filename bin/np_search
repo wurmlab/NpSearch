@@ -102,8 +102,8 @@ arg_vldr.arg(options[:motif], options[:input_type], options[:input],
 ############# General Validation...##############
 vldr = NpSearch::Validators.new
 sp_dir = vldr.sp(signalp_dir) if options[:signalp_file] == nil
-vldr.input_file(options[:input])
 vldr.output_dir(options[:output_dir])
+#vldr.input_file(options[:input])
 
 ############# Initialise Outputs...##############
 to_output = NpSearch::Output.new

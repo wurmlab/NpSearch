@@ -27,6 +27,7 @@ module NpSearch
         puts @help_banner
         exit
       end
+      input_file(input)
       input_type(input_type)
       orf_min_length(orf_min_length)
       extract_orf_conflict(input_type, extract_orf)
@@ -90,9 +91,7 @@ module NpSearch
         exit
       end
     end
-  end
-
-  class Validators
+    
     # Ensures that the input file a) exists b) is not empty and c) is a fasta
     #   file.
     def input_file(input_file)
@@ -130,6 +129,9 @@ module NpSearch
       end
     end
 
+  end
+
+  class Validators
     # Checks for the presence of the output directory; if not found, it asks
     #   3the user whether they want to create the output directory.
     def output_dir(output_dir)
@@ -413,7 +415,7 @@ module NpSearch
   end
 
   class Output
-    # Converts a hash into a fasta file.
+`    # Converts a hash into a fasta file.
     def to_fasta(what, hash, output)
       LOG.info { "Writing the #{what} to the file:'#{output}'." }
       output_file = File.new(output, 'w')
