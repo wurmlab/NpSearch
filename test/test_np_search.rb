@@ -77,18 +77,17 @@ class UnitTests < Test::Unit::TestCase
     end
   end
 
-=begin
   ####### Testing input for normal & weird cases
 # => Test if the signalp validator method works in verifying whether the directory contains the signal p script. 
   def test_signalp_validator
-    assert_equal("test/test_files/signalp", @test_validators.sp_vldr("test/test_files/signalp"))
+    assert_equal("test/test_files/signalp", @test_vldr.sp("test/test_files/signalp"))
   end
 
 # => Test if the output directory validator works, in ensuring whether an output directory can be found. 
   def test_output_dir_validator
-    assert_equal(nil, @test_validators.output_dir_vldr())
+    assert_equal(nil, @test_vldr.output_dir('test/test_out'))
   end
-=end
+
 
   ####### Testing individual parts of the script ####### 
 # => Test if the translation method works properly - assert that the produced translation is equal to the expected translation hash 
@@ -100,7 +99,7 @@ class UnitTests < Test::Unit::TestCase
 # => Test if the extract_orf method works properly - assert that the produced orf hash is equal to the expected orf hash.
   def test_extract_orf()
     orf_hash_test = @translation_test.extract_orf(@expected_translation_hash, 10)
-    assert_equal(@expected_orf_clean_hash.to_s, orf_hash_test.to_s.gsub('[', '').gsub(']', '')) #in orf method, an array is produced while in the expected file read, an array isn't produced, thus it s necessary to remove "[  ]" from either end.
+    assert_equal(@expected_orf_clean_hash.to_s, orf_hash_test.to_s.gsub('["', '"').gsub('"]', '"')) #in orf method, an array is produced while in the expected file read, an array isn't produced, thus it s necessary to remove "[  ]" from either end.
   end   
 
 # => Test if the orf cleaner method works properly - assert that the produced orf_cleaer hash is equal to the expected hash.
