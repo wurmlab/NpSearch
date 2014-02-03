@@ -337,8 +337,8 @@ module NpSearch
     # Runs an external Signal Peptide script from CBS (Center for biological
     #   Sequence Analysis).
     def signalp(signalp_dir, input, output)
-      LOG.info { "Step 3: Running a Signal Peptide test on each sequence.\nPlease be" \
-                 " patient, this may take some time with large datasets." }
+      LOG.info { "Step 3: Running a Signal Peptide test on each sequence.\nThis may" \
+                 " take some time with large datasets." }
       exit_code = system("#{signalp_dir}/signalp -t euk -f short #{input} > " \
                          "#{output}")
       if exit_code != true
@@ -353,19 +353,19 @@ module NpSearch
 
   class Analysis
     # Extracts the rows from the tabular results produced by the Signal P
-    #   script that are positive for a signal peptide.
+    #   script that are positive for a signal peptide. Run from the 'parse'
+    #   method.
     def extract_sp_positives(sp_out_file)
       signalp_out_file = File.read(sp_out_file)
       identified_positives = signalp_out_file.scan(/^.* Y .*$/)
-
       sp_array = Array.new(identified_positives.length)\
                       { Array.new(identified_positives.length, 0) }
-      
       identified_positives.each_with_index do |line, idx|
         row = line.gsub(/\s+/m, ' ').chomp.split(' ')
         sp_array[idx][0..row.length - 1] = row # Merge into existing array
       end
       return sp_array
+      ### TO DO - Make a sp_array.empty? thing...
     end
 
     # Extracts the Sequences for each signal peptide positive sequence and the
@@ -414,37 +414,8 @@ module NpSearch
     end
   end
 
-  class Output
-`    # Converts a hash into a fasta file.
-    def to_fasta(what, hash, output)
-      LOG.info { "Writing the #{what} to the file:'#{output}'." }
-      output_file = File.new(output, 'w')
-      hash.each do |id, seq|
-        output_file.puts '>' + id.gsub('~~~', '')
-        sequence = seq.to_s.gsub('~', '').gsub('["', '').gsub('"]', '')
-        output_file.puts sequence
-      end
-      output_file.close
-    end
 
-    # Creates a hash of variables that are required to be inputted into the
-    #   HAML (HAML cannot contain any logic, so it is necessary to do all logic
-    #   here).
-    def make_html_hash(hash, motif)
-      doc_hash = {}
-      hash.each do |id, seq|
-        id, id_end = id.split('~~~').map(&:strip)
-        signalp, seq_end = seq.split('~~~').map(&:strip)
-        seq = seq_end.gsub('C', '<span class="cysteine">C</span>')\
-        .gsub(/#{motif}/, '<span class="motif">\0</span>')\
-        .gsub('G<span class="motif">', \
-              '<span class="glycine">G</span><span class="motif">')\
-        .gsub('<span class="glycine">G</span><span class="motif">KR', \
-          '<span class="gkr">GKR')
-        doc_hash[id] = [id_end: id_end, signalp: signalp, seq: seq]
-      end
-      return doc_hash
-    end
+  class Output
 
     # Converts a hash into a standalone HTML file. Hint: The standalone HTML
     #   file can be rendered and opened by Word.
@@ -473,11 +444,44 @@ haml_doc = <<EOT
         %span.signalp= hash[0][:signalp] + "</span><span>" + hash[0][:seq]
 EOT
       engine = Haml::Engine.new(haml_doc)
-      doc_hash = make_html_hash(hash, motif)
+      doc_hash = hash.make_html_hash(motif)
       output_file = File.new(output, 'w')
       output_file.puts engine.render(Object.new, doc_hash: doc_hash)
       LOG.info { "Writing the final output file to the file:'#{output}'." }
       output_file.close
     end
+  end
+end
+
+class Hash
+  # Converts a hash into a fasta file.
+  def to_fasta(what, output)
+    LOG.info { "Writing the #{what} to the file:'#{output}'." }
+    output_file = File.new(output, 'w')
+    each do |id, seq|
+      output_file.puts '>' + id.gsub('~~~', '')
+      sequence = seq.to_s.gsub('~', '').gsub('["', '').gsub('"]', '')
+      output_file.puts sequence
+    end
+    output_file.close
+  end
+
+  # Creates a hash of variables that are required to be inputted into the
+  #   HAML (HAML cannot contain any logic, so it is necessary to do all logic
+  #   here).
+  def make_html_hash(motif)
+    doc_hash = {}
+    each do |id, seq|
+      id, id_end = id.split('~~~').map(&:strip)
+      signalp, seq_end = seq.split('~~~').map(&:strip)
+      seq = seq_end.gsub('C', '<span class="cysteine">C</span>')\
+      .gsub(/#{motif}/, '<span class="motif">\0</span>')\
+      .gsub('G<span class="motif">', \
+            '<span class="glycine">G</span><span class="motif">')\
+      .gsub('<span class="glycine">G</span><span class="motif">KR', \
+        '<span class="gkr">GKR')
+      doc_hash[id] = [id_end: id_end, signalp: signalp, seq: seq]
+    end
+    return doc_hash
   end
 end
