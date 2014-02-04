@@ -1,5 +1,7 @@
 require 'logger'
 require 'bio'
+require 'fileutils'
+require 'haml'
 
 LOG = Logger.new(STDOUT)
 LOG.formatter = proc do |severity, datetime, progname, msg|
@@ -314,13 +316,13 @@ module NpSearch
 
     # Extract all possible Open Reading Frames.
     def self.extract_orf(protein_data, minimum_length)
-      LOG.info { 'Step 2: Extracting all Open Reading Frames from all 6 possible' \
-                 ' frames. This is every methionine residue to the next stop' \
-                 ' codon.' }
+      LOG.info { 'Step 2: Extracting all Open Reading Frames from all 6' \
+                 ' possible frames. This is every methionine residue to the' \
+                 ' next stop codon.' }
       orf = {}
       orf_length = minimum_length - 1 # no. of residues after 'M' 
       protein_data.each do |id, sequence|
-        identified_orfs = sequence.scan(/(?=(M\w{#{orf_length},}))./)
+        identified_orfs = sequence.findorfs(orf_length)
         (0..(identified_orfs.length - 1)).each do |i|
           orf[id + '_' + i.to_s] = identified_orfs[i]
         end
@@ -338,8 +340,8 @@ module NpSearch
     # Runs an external Signal Peptide script from CBS (Center for biological
     #   Sequence Analysis).
     def self.signalp(signalp_dir, input, output)
-      LOG.info { "Step 3: Running a Signal Peptide test on each sequence.\nThis may" \
-                 " take some time with large datasets." }
+      LOG.info { "Step 3: Running a Signal Peptide test on each sequence." \
+                 " \nThis may take some time with large datasets." }
       exit_code = system("#{signalp_dir}/signalp -t euk -f short #{input} > " \
                          "#{output}")
       if exit_code != true
@@ -356,7 +358,7 @@ module NpSearch
     # Extracts the rows from the tabular results produced by the Signal P
     #   script that are positive for a signal peptide. Run from the 'parse'
     #   method.
-    def extract_sp_positives(sp_out_file)
+    def self.extract_sp_positives(sp_out_file)
       signalp_out_file = File.read(sp_out_file)
       identified_positives = signalp_out_file.scan(/^.* Y .*$/)
       sp_array = Array.new(identified_positives.length)\
@@ -366,14 +368,18 @@ module NpSearch
         sp_array[idx][0..row.length - 1] = row # Merge into existing array
       end
       return sp_array
-      ### TO DO - Make a sp_array.empty? thing...
+      if sp_array.empty?
+        raise IOError.new("\nCritical Error: No Sequences found that contain" \
+                          " a secretory signal peptide.\n")
+      end      
     end
 
     # Extracts the Sequences for each signal peptide positive sequence and the
     #   split the sequence into signal peptide and the rest of the sequence.
     def self.parse(sp_out_file, orf_clean, motif)
-      LOG.info { 'Step 4: Extracting sequences that have at least 1 neuropeptide'\
-                 ' cleavage site after the signal peptide cleavage site.' }
+      LOG.info { 'Step 4: Extracting sequences that have at least 1' \
+                 ' neuropeptide cleavage site after the signal peptide' \
+                 ' cleavage site.' }
       sp_data  = {}
       sp_array = extract_sp_positives(sp_out_file)
       sp_array.each do |h|
@@ -385,9 +391,9 @@ module NpSearch
         signalp     = current_orf[0, sp_clv]
         seq_end     = current_orf[sp_clv, current_orf.length]
         if seq_end.match(/#{motif}/)
-          sp_data[seq_id + '~~~ - S.P.=> Cleavage Site: ' + sp_clv.to_s + ':' + 
-                  cut_off.to_s + ' | D-value: ' + d_value.to_s] = 
-                  signalp + '~~~' + seq_end
+          sp_data[seq_id + '~~~ - S.P.=> Cleavage Site: ' +
+                  sp_clv.to_s + ':' + cut_off.to_s + 
+                  ' | D-value: ' + d_value.to_s] = signalp + '~~~' + seq_end
         end 
       end
       if sp_data.empty?
@@ -480,5 +486,11 @@ EOT
       doc_hash[id] = [id_end: id_end, signalp: signalp, seq: seq]
     end
     return doc_hash
+  end
+end
+
+class Bio::Sequence::AA
+  def findorfs(minsize)
+    scan(/(?=(M\w{#{minsize},}))./)
   end
 end
