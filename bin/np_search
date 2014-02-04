@@ -165,10 +165,9 @@ flattened_seq = NpSearch::Analysis.flattener(secretome)
 flattened_seq.to_fasta("fasta output file", 
                        "#{opt[:output_dir]}/#{file_number}_output.fa")
 flattened_seq.to_html(motif, 
-                  "#{opt[:output_dir]}/#{file_number}_output.html")
+                      "#{opt[:output_dir]}/#{file_number}_output.html")
 
 ############# Success #############
 puts # a blank line.
-puts "Success: All output files created in the directory:"\
-    " '#{opt[:output_dir]}'."
+puts "Success: All output files created in the directory:'#{opt[:output_dir]}'."
 puts # a blank line.
