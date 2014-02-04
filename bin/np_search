@@ -2,7 +2,6 @@
 
 require 'np_search/version'
 require 'np_search'
-require 'bio'
 require 'fileutils'
 require 'optparse'
 require 'logger'
@@ -104,22 +103,17 @@ vldr = NpSearch::Validators.new
 vldr.output_dir(options[:output_dir])
 sp_dir = vldr.sp(signalp_dir) if options[:signalp_file] == nil
 
-
 ############# Converting input file to Bio::FastaFormat. #############
-input_file = NpSearch::Input.new
-input_read = input_file.read(options[:input], options[:input_type])
+input_read = NpSearch::Input.read(options[:input], options[:input_type])
 
 ############# Extract_ORF #############
 if options[:input_type].downcase == 'genetic'
-  translater = NpSearch::Translation.new
-
   # Translate Sequences in all 6 frames
-  translated_sequences = translater.translate(input_read)
+  translated_sequences = NpSearch::Translation.translate(input_read)
   translated_sequences.to_fasta('translated sequences', 
                                 "#{options[:output_dir]}/1_protein.fa") 
-
   # Extract all possible ORF that are longer than the ORF_min_length
-  orf = translater.extract_orf(translated_sequences, options[:cut_off])
+  orf = NpSearch::Translation.extract_orf(translated_sequences, options[:cut_off])
   orf.to_fasta('Open Reading Frames', "#{options[:output_dir]}/2_orf.fa")
 
   if options[:extract_orf]
@@ -148,37 +142,34 @@ else # i.e. if the input is protein
 end
 
 ############# Running Signal P #############
-signalp_test = NpSearch::Signalp.new
-# Run an extenal Signal P script
 if options[:signalp_file] == nil
   sp_out_file = "#{options[:output_dir]}/#{file_number}_signalp_out.txt"
   file_number += 1
-  signalp_test.signalp(sp_dir, sp_input_file, sp_out_file)
+  NpSearch::Signalp.signalp(sp_dir, sp_input_file, sp_out_file)
 end
 
-############# Using the Signal P results file provided... #############
+############# If a Signal P results file has been provided... #############
 if options[:signalp_file] != nil 
   sp_out_file = options[:signalp_file]
   file_number = 1
 end
 
-############# Signal P Results Validation #############
-# Check that the output produced is in a readable format
+############# Signal P Results file Validation #############
 vldr.sp_results(sp_out_file)
 
-############# Data Analysis #############
-parser = NpSearch::Analysis.new
-# extract sequences with a signal peptide 
-secretome = parser.parse(sp_out_file, sp_hash, motif)
-# Remove any duplicate data
-flattened_seq = parser.flattener(secretome)
+############# Extract sequences with a signal peptide #############
+secretome = NpSearch::Analysis.parse(sp_out_file, sp_hash, motif)
+secretome.to_fasta("secretome file", 
+                       "#{options[:output_dir]}/#{file_number}_secretome.fa")
+file_number += 1
+
+############# Remove any duplicate data #############
+flattened_seq = NpSearch::Analysis.flattener(secretome)
 
 ############# Creating Output Files #############
 flattened_seq.to_fasta("fasta output file", 
                        "#{options[:output_dir]}/#{file_number}_output.fa")
-
-to_output = NpSearch::Output.new
-to_output.to_html(flattened_seq, motif, 
+flattened_seq.to_html(motif, 
                   "#{options[:output_dir]}/#{file_number}_output.html")
 
 ############# Success #############

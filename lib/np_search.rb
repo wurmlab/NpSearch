@@ -1,4 +1,5 @@
 require 'logger'
+require 'bio'
 
 LOG = Logger.new(STDOUT)
 LOG.formatter = proc do |severity, datetime, progname, msg|
@@ -273,7 +274,7 @@ module NpSearch
 
   class Input
     # Reads the input file converting it into a hash [id => seq].
-    def read(input_file, type)
+    def self.read(input_file, type)
       input_read = {}
       biofastafile = Bio::FlatFile.open(Bio::FastaFormat, input_file)
       biofastafile.each_entry do |entry|
@@ -296,7 +297,7 @@ module NpSearch
 
   class Translation
     # Translates in all 6 frames - with * standing for stop codons
-    def translate(input_read)
+    def self.translate(input_read)
       LOG.info { 'Step 1: Translating the genomic data in all 6 frames.' }
       protein_data = {}
       input_read.each do |id, sequence|
@@ -312,7 +313,7 @@ module NpSearch
     end
 
     # Extract all possible Open Reading Frames.
-    def extract_orf(protein_data, minimum_length)
+    def self.extract_orf(protein_data, minimum_length)
       LOG.info { 'Step 2: Extracting all Open Reading Frames from all 6 possible' \
                  ' frames. This is every methionine residue to the next stop' \
                  ' codon.' }
@@ -336,7 +337,7 @@ module NpSearch
   class Signalp
     # Runs an external Signal Peptide script from CBS (Center for biological
     #   Sequence Analysis).
-    def signalp(signalp_dir, input, output)
+    def self.signalp(signalp_dir, input, output)
       LOG.info { "Step 3: Running a Signal Peptide test on each sequence.\nThis may" \
                  " take some time with large datasets." }
       exit_code = system("#{signalp_dir}/signalp -t euk -f short #{input} > " \
@@ -370,7 +371,7 @@ module NpSearch
 
     # Extracts the Sequences for each signal peptide positive sequence and the
     #   split the sequence into signal peptide and the rest of the sequence.
-    def parse(sp_out_file, orf_clean, motif)
+    def self.parse(sp_out_file, orf_clean, motif)
       LOG.info { 'Step 4: Extracting sequences that have at least 1 neuropeptide'\
                  ' cleavage site after the signal peptide cleavage site.' }
       sp_data  = {}
@@ -399,7 +400,7 @@ module NpSearch
 
     # With transcriptome data, alternative splicing means duplicates ORF, so
     #   this method collapses duplicates into one reading.
-    def flattener(sp_data)
+    def self.flattener(sp_data)
       LOG.info { 'Step 5: Removing all duplicate entries.' }
       flattened_seq = {}
       sp_data.each do |id, seq|
@@ -413,13 +414,24 @@ module NpSearch
       return flattened_seq.invert # Inverting necessary for outputting.
     end
   end
+end
 
+class Hash
+  # Converts a hash into a fasta file.
+  def to_fasta(what, output)
+    LOG.info { "Writing the #{what} to the file:'#{output}'." }
+    output_file = File.new(output, 'w')
+    each do |id, seq|
+      output_file.puts '>' + id.gsub('~~~', '')
+      sequence = seq.to_s.gsub('~', '').gsub('["', '').gsub('"]', '')
+      output_file.puts sequence
+    end
+    output_file.close
+  end
 
-  class Output
-
-    # Converts a hash into a standalone HTML file. Hint: The standalone HTML
-    #   file can be rendered and opened by Word.
-    def to_html(hash, motif, output)
+  # Converts a hash into a standalone HTML file. Hint: The standalone HTML
+  #   file can be rendered and opened by Word.
+  def to_html(motif, output)
 haml_doc = <<EOT
 !!!
 %html
@@ -443,26 +455,11 @@ haml_doc = <<EOT
         %br/
         %span.signalp= hash[0][:signalp] + "</span><span>" + hash[0][:seq]
 EOT
-      engine = Haml::Engine.new(haml_doc)
-      doc_hash = hash.make_html_hash(motif)
-      output_file = File.new(output, 'w')
-      output_file.puts engine.render(Object.new, doc_hash: doc_hash)
-      LOG.info { "Writing the final output file to the file:'#{output}'." }
-      output_file.close
-    end
-  end
-end
-
-class Hash
-  # Converts a hash into a fasta file.
-  def to_fasta(what, output)
-    LOG.info { "Writing the #{what} to the file:'#{output}'." }
+    engine = Haml::Engine.new(haml_doc)
+    doc_hash = make_html_hash(motif)
     output_file = File.new(output, 'w')
-    each do |id, seq|
-      output_file.puts '>' + id.gsub('~~~', '')
-      sequence = seq.to_s.gsub('~', '').gsub('["', '').gsub('"]', '')
-      output_file.puts sequence
-    end
+    output_file.puts engine.render(Object.new, doc_hash: doc_hash)
+    LOG.info { "Writing the final output file to the file:'#{output}'." }
     output_file.close
   end
 
