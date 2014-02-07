@@ -8,7 +8,7 @@ require 'optparse'
 signalp_dir = "#{Dir.home}/SignalPeptide"
 
 opt = {}
-optparse = OptionParser.new do|opts|
+optparse = OptionParser.new do |opts|
   opts.banner = <<Banner
 
 * Usage: np_search [Options] -m [Motif] -t [Input Type] -i [Input File] -o [Output Folder Name]
@@ -23,7 +23,7 @@ Banner
           'motifs query can be used by using a pipeline character ("|")',
           'between each query and putting the motif query in speech marks',
           'e.g. "KR|RR|R..R"',
-          'Advanced Users: Regular expressions are also supported.') do |motif|
+          'Advanced Users: Regular expressions are supported.') do |motif|
     opt[:motif] = motif
   end
 
@@ -50,8 +50,8 @@ Banner
   opts.separator '* Optional Options:'
 
   opt[:cut_off] = 10
-  opts.on('-c', '--cut_off N', Integer, 'Changes the default minimum Open '\
-          ' Reading Frame from 10 amino acid residues to N amino acid'\
+  opts.on('-c', '--cut_off N', Integer, 'Changes the minimum Open Reading',
+          ' Frame from the default 10 amino acid residues to N amino acid',
           ' residues.') do |n|
     opt[:cut_off] = n
   end
@@ -72,7 +72,7 @@ Banner
   end
 
   opt[:verbose] = false
-  opts.on('-v', '--verbose', 'Provides more information on each step taken'\
+  opts.on('-v', '--verbose', 'Provides more information on each step taken',
           ' in this program.') do
     opt[:verbose] = true
   end
@@ -136,17 +136,17 @@ else # i.e. if the input is protein
   file_number = 1
 end
 
-############# Running Signal P #############
-if opt[:signalp_file] == nil
-  sp_out_file = "#{opt[:output_dir]}/#{file_number}_signalp_out.txt"
-  file_number += 1
-  NpSearch::Signalp.signalp(sp_dir, sp_input_file, sp_out_file)
-end
-
 ############# If a Signal P results file has been provided... #############
 if opt[:signalp_file] != nil 
   sp_out_file = opt[:signalp_file]
   file_number = 1
+end
+
+############# Running Signal P (If no SP results file provided) #############
+if opt[:signalp_file] == nil
+  sp_out_file = "#{opt[:output_dir]}/#{file_number}_signalp_out.txt"
+  file_number += 1
+  NpSearch::Signalp.signalp(sp_dir, sp_input_file, sp_out_file)
 end
 
 ############# Signal P Results file Validation #############

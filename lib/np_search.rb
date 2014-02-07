@@ -7,17 +7,17 @@ LOG = Logger.new(STDOUT)
 LOG.formatter = proc do |severity, datetime, progname, msg|
   "#{datetime}: #{msg}\n"
 end
-LOG.level = Logger::FATAL # set to only show no messages
+LOG.level = Logger::FATAL # set to show no information messages...
 
 module NpSearch
   class ArgValidators
+    attr_reader :help_banner
     # Changes the logger level to output extra info when the verbose option is
-    #   true
+    #   true.
     def initialize(verbose_opt, help_banner)
       LOG.level = Logger::INFO if verbose_opt.to_s == 'true'
       @help_banner = help_banner
     end
-
 
     # Ensures that the compulsory input arguments are supplied.
     def arg(motif, input_type, input, output_dir, orf_min_length, extract_orf, 
@@ -26,10 +26,7 @@ module NpSearch
       comp_arg(input_type, 'Input Type ("-t" option)')
       comp_arg(input, 'Input file ("-i option")')
       comp_arg(output_dir, 'Output Folder ("-o" option)')
-      if input == nil || input_type == nil || motif == nil || output_dir == nil
-        puts @help_banner
-        exit
-      end
+      comp_arg_bnnr(input, input_type, motif, output_dir)
       input_file(input)
       input_type(input_type)
       orf_min_length(orf_min_length)
@@ -44,57 +41,15 @@ module NpSearch
       end
     end
 
-    # Ensures that the ORF minimum length is a number. Any digits after the
-    #   decimal place are ignored.
-    def orf_min_length(orf_min_length)
-      if orf_min_length.to_i < 1
-        puts # a blank line
-        puts 'Usage Error: The Open Reading Frames minimum length can only be' \
-             ' a full integer.'
-        puts @help_banner
-        exit 
-      end  
-    end
-
-    # Ensures that the input_type has been provided in the correct format (i.e.
-    #   that it is either 'genetic' or 'protein').
-    def input_type(input_type)
-      unless input_type.downcase == 'genetic' ||
-             input_type.downcase == 'protein'
-        puts # a blank line
-        puts "Usage Error: The input_type: '#{input_type}' is not recognised." \
-             " The input_type option ('-t' option) can either be 'genetic'" \
-             " or 'protein.'"
+    # Display the help banner once if any of the compulsory input arguments are 
+    #   empty.
+    def comp_arg_bnnr(input, input_type, motif, output_dir)
+      if input == nil || input_type == nil || motif == nil || output_dir == nil
         puts @help_banner
         exit
       end
     end
 
-    # Ensures that the extract_orf option is only used with genetic data.
-    def extract_orf_conflict(input_type, extract_orf)
-      if input_type == 'protein' && extract_orf == TRUE
-        puts # a blank line
-        puts 'Usage Error: Conflicting arguments detected - the Extract_ORF' \
-             ' option (option "-e") is only available when input file' \
-             ' contains genetic data.'
-        puts @help_banner
-        exit
-      end
-    end
-
-    # Ensures that the protein data (or open reading frames) are supplied as
-    #   the input file when the signal p output file is passed.
-    def input_sp_file_conflict(input_type, signalp_file)
-      if input_type == 'genetic' && signalp_file != nil
-        puts # a blank line
-        puts 'Usage Error: Conflicting arguments detected: the signalp input' \
-             ' option (option "-s") is only available when input file' \
-             ' contains protein data.'
-        puts @help_banner
-        exit
-      end
-    end
-    
     # Ensures that the input file a) exists b) is not empty and c) is a fasta
     #   file.
     def input_file(input_file)
@@ -132,13 +87,64 @@ module NpSearch
       end
     end
 
+    # Ensures that the input_type has been provided in the correct format (i.e.
+    #   that it is either 'genetic' or 'protein').
+    def input_type(input_type)
+      unless input_type.downcase == 'genetic' ||
+             input_type.downcase == 'protein'
+        puts # a blank line
+        puts "Usage Error: The input_type: '#{input_type}' is not recognised." \
+             " The input_type option ('-t' option) can either be 'genetic'" \
+             " or 'protein.'"
+        puts @help_banner
+        exit
+      end
+    end
+
+    # Ensures that the ORF minimum length is a number. Any digits after the
+    #   decimal place are ignored.
+    def orf_min_length(orf_min_length)
+      if orf_min_length.to_i < 1
+        puts # a blank line
+        puts 'Usage Error: The Open Reading Frames minimum length can only be' \
+             ' a full integer.'
+        puts @help_banner
+        exit
+      end
+    end
+
+    # Ensures that the extract_orf option is only used with genetic data.
+    def extract_orf_conflict(input_type, extract_orf)
+      if input_type == 'protein' && extract_orf == TRUE
+        puts # a blank line
+        puts 'Usage Error: Conflicting arguments detected - the Extract_ORF' \
+             ' option (option "-e") is only available when input file' \
+             ' contains genetic data.'
+        puts @help_banner
+        exit
+      end
+    end
+
+    # Ensures that the protein data (or open reading frames) are supplied as
+    #   the input file when the signal p output file is passed.
+    def input_sp_file_conflict(input_type, signalp_file)
+      if input_type == 'genetic' && signalp_file != nil
+        puts # a blank line
+        puts 'Usage Error: Conflicting arguments detected: the signalp input' \
+             ' option (option "-s") is only available when input file' \
+             ' contains protein data.'
+        puts @help_banner
+        exit
+      end
+    end
   end
+
 
   class Validators
     # Checks for the presence of the output directory; if not found, it asks
-    #   3the user whether they want to create the output directory.
+    #   the user whether they want to create the output directory.
     def output_dir(output_dir)
-      unless File.directory? output_dir
+      unless File.directory? output_dir # If output_dir doesn't exist
         puts # a blank line
         puts 'The output directory does not exist.'
         puts # a blank line
@@ -185,7 +191,7 @@ module NpSearch
              ' SignalP script).'
         print '> '
         inp = $stdin.gets.chomp
-        until (File.exist? "#{signalp_dir}/signalp") || \
+        until (File.exist? "#{signalp_dir}/signalp") ||
               (File.exist? "#{inp}/signalp")
           puts # a blank line
           puts "The Signal P directory cannot be found at the following" \
@@ -204,7 +210,7 @@ module NpSearch
     end
 
     # Ensures that the supported version of the Signal P Script has been linked
-    #   to NpSearch. Run from the 'sp_version_vldr' method.
+    #   to NpSearch. Run from the 'sp_results' method.
     def sp_version(input_file)
       File.open(input_file, 'r') do |file_stream|
         first_line = file_stream.readline
@@ -217,7 +223,7 @@ module NpSearch
     end
 
     # Ensures that the critical columns in the tabular results produced by the
-    #   Signal P script are conserved. Run from the 'sp_version_vldr' method.
+    #   Signal P script are conserved. Run from the 'sp_results' method.
     def sp_column(input_file)
       File.open('signalp_out.txt', 'r') do |file_stream|
         secondline = file_stream.readlines[1]
@@ -234,12 +240,12 @@ module NpSearch
     # Ensure that the right version of the Signal P script is used (via
     #   'sp_version' Method). If the wrong signal p script has been linked to
     #   NpSearch, check whether the critical columns in the tabular results
-    #   produced by the Signal P Script are conserved (via 'sp_column_vldr'
+    #   produced by the Signal P Script are conserved (via 'sp_column'
     #   Method).
     def sp_results(signalp_output_file)
       unless sp_version(signalp_output_file)
       # i.e. if Signal P is the wrong version
-        if sp_column(signalp_output_file)
+        if sp_column(signalp_output_file) #If wrong version but correct columns
           puts # a blank line
           puts 'Warning: The wrong version of signalp has been linked.' \
                ' However, the signal peptide output file still seems to' \
@@ -264,8 +270,8 @@ module NpSearch
           puts 'Continuing.'
         elsif inp.downcase == 'n'
           puts # a blank line
-          puts 'Critical Error: Currently NpSearch only supports the 4.1' \
-               ' version of the signal p script. Please ensure the correct' \
+          puts 'Critical Error: NpSearch only supports SignalP 4.1' \
+               ' (downloadable form CBS) Please ensure the correct' \
                ' version of the signal p script is downloaded.'
           exit
         end
@@ -296,6 +302,7 @@ module NpSearch
       return input_read
     end
   end
+
 
   class Translation
     # Translates in all 6 frames - with * standing for stop codons
@@ -354,10 +361,10 @@ module NpSearch
     end
   end
 
+
   class Analysis
-    # Extracts the rows from the tabular results produced by the Signal P
-    #   script that are positive for a signal peptide. Run from the 'parse'
-    #   method.
+    # Extracts the rows from the tabular results produced by the Signal P script
+    #   that are positive for a signal peptide. Run from the 'parse' method.
     def self.extract_sp_positives(sp_out_file)
       signalp_out_file = File.read(sp_out_file)
       identified_positives = signalp_out_file.scan(/^.* Y .*$/)
@@ -371,7 +378,7 @@ module NpSearch
       if sp_array.empty?
         raise IOError.new("\nCritical Error: No Sequences found that contain" \
                           " a secretory signal peptide.\n")
-      end      
+      end
     end
 
     # Extracts the Sequences for each signal peptide positive sequence and the
@@ -392,9 +399,9 @@ module NpSearch
         seq_end     = current_orf[sp_clv, current_orf.length]
         if seq_end.match(/#{motif}/)
           sp_data[seq_id + '~~~ - S.P.=> Cleavage Site: ' +
-                  sp_clv.to_s + ':' + cut_off.to_s + 
+                  sp_clv.to_s + ':' + cut_off.to_s +
                   ' | D-value: ' + d_value.to_s] = signalp + '~~~' + seq_end
-        end 
+        end
       end
       if sp_data.empty?
         raise IOError.new("\nCritical Error: No Sequences found that contain" \
@@ -421,6 +428,7 @@ module NpSearch
     end
   end
 end
+
 
 class Hash
   # Converts a hash into a fasta file.
@@ -489,7 +497,12 @@ EOT
   end
 end
 
+
 class Bio::Sequence::AA
+  # Returns an array of all possible Open Reading Frame. Assumes that the stop 
+  #   codon is characterised by a non-word character i.e. '*' (as used by the 
+  #   bioruby translation function). Utilises a Lookahead that advances through 
+  #   a string by a single character at a time.  
   def findorfs(minsize)
     scan(/(?=(M\w{#{minsize},}))./)
   end
