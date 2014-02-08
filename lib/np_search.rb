@@ -75,7 +75,7 @@ module NpSearch
     end
 
     # Adapted from 'database_formatter.rb' from sequenceserver. Checks if the
-    #   character of the file is a '>'. Run from the 'input_file_vldr' method.
+    #   character of the file is a '>'. Run from the 'input_file' method.
     def probably_fasta(input_file)
       File.open(input_file, 'r') do |file_stream|
         first_line = file_stream.readline
