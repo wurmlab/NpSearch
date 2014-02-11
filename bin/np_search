@@ -97,8 +97,9 @@ arg_vldr.arg(opt[:motif], opt[:input_type], opt[:input], opt[:output_dir],
 ############# General Validation...##############
 vldr = NpSearch::Validators.new
 vldr.output_dir(opt[:output_dir])
-sp_dir = vldr.sp(signalp_dir) if opt[:signalp_file] == nil
-
+if opt[:signalp_file] == nil && opt[:extract_orf] == false
+  sp_dir = vldr.sp(signalp_dir)
+end
 ############# Converting input file to Bio::FastaFormat. #############
 input_read = NpSearch::Input.read(opt[:input], opt[:input_type])
 

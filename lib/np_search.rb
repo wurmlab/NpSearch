@@ -26,7 +26,7 @@ module NpSearch
       comp_arg(input_type, 'Input Type ("-t" option)')
       comp_arg(input, 'Input file ("-i option")')
       comp_arg(output_dir, 'Output Folder ("-o" option)')
-      comp_arg_bnnr(input, input_type, motif, output_dir)
+      comp_arg_bnnr(input, input_type, motif, output_dir, extract_orf)
       input_file(input)
       input_type(input_type)
       orf_min_length(orf_min_length)
@@ -43,11 +43,15 @@ module NpSearch
 
     # Display the help banner once if any of the compulsory input arguments are 
     #   empty.
-    def comp_arg_bnnr(input, input_type, motif, output_dir)
-      if input == nil || input_type == nil || motif == nil || output_dir == nil
+    def comp_arg_bnnr(input, input_type, motif, output_dir, extract_orf)
+      if input == nil || input_type == nil || output_dir == nil
         puts @help_banner
         exit
       end
+      if motif == nil && extract_orf == FALSE
+        puts @help_banner
+        exit
+      end  
     end
 
     # Ensures that the input file a) exists b) is not empty and c) is a fasta
