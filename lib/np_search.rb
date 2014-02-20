@@ -526,6 +526,6 @@ class Bio::Sequence::AA
   #   through the Bio::Sequence::AA object (or a string) by a single character
   #   at a time.  
   def findorfs(minsize)
-    scan(/(?=(M\w{#{minsize},}))./)
+    scan(/(?=(M\w{#{minsize},}))./).flatten
   end
 end
