@@ -20,19 +20,17 @@ module NpSearch
     end
 
     # Ensures that the compulsory input arguments are supplied.
-    def arg(motif, input_type, input, output_dir, orf_min_length, extract_orf, 
-            signalp_file)
-      comp_arg(motif, 'Query Motif ("-m" option)') unless extract_orf == TRUE
-      comp_arg(input_type, 'Input Type ("-t" option)')
+    def arg(motif, input, output_dir, orf_min_length, extract_orf, signalp_file,
+            input_type)
+      comp_arg(motif, 'Query Motif ("-m" option)') unless extract_orf == true
       comp_arg(input, 'Input file ("-i option")')
       comp_arg(output_dir, 'Output Folder ("-o" option)')
-      comp_arg_bnnr(input, input_type, motif, output_dir, extract_orf)
-      input_file(input)
-      input_type(input_type)
-      orf_min_length(orf_min_length)
+      comp_arg_bnnr(input, motif, output_dir, extract_orf)
       extract_orf_conflict(input_type, extract_orf)
       input_sp_file_conflict(input_type, signalp_file)
+      orf_min_length(orf_min_length)
     end
+
 
     # Ensures that the compulsory input arguments are not empty. 
     def comp_arg(arg, message)
@@ -41,21 +39,38 @@ module NpSearch
       end
     end
 
-    # Display the help banner once if any of the compulsory input arguments are 
+    # Display the help banner once if any of the compulsory input arguments are
     #   empty.
-    def comp_arg_bnnr(input, input_type, motif, output_dir, extract_orf)
-      if input == nil || input_type == nil || output_dir == nil
+    def comp_arg_bnnr(input, motif, output_dir, extract_orf)
+      if input == nil || output_dir == nil || 
+         (motif == nil && extract_orf == false)
         puts @help_banner
         exit
       end
-      if motif == nil && extract_orf == FALSE
-        puts @help_banner
-        exit
-      end  
+    end
+
+    # Guesses the type of data within the input file on the first 100 lines of 
+    #   the file (ignores all identifiers i.e. lines that start with a '>'.
+    #   It has a 80% threshold.
+    def guess_input_type(input_file)
+      input_file(input_file)
+      seq = []
+      File.open(input_file, 'r') do |file_stream|
+        file_stream.readlines[0..100].each do |line|
+          seq << line.to_s unless line.match(/^>/)
+        end
+      end
+      type = Bio::Sequence.new(seq).guess(0.8)
+      if type.to_s == 'Bio::Sequence::NA'
+        input_type = 'genetic'
+      elsif type.to_s == 'Bio::Sequence::AA'
+        input_type = 'protein'
+      end
+      return input_type
     end
 
     # Ensures that the input file a) exists b) is not empty and c) is a fasta
-    #   file.
+    #   file. Run from the guess_input_type method.
     def input_file(input_file)
       unless File.exist?(input_file)
         puts # a blank line
@@ -69,37 +84,10 @@ module NpSearch
         puts @help_banner
         exit
       end
-      unless probably_fasta(input_file)
+      unless File.probably_fasta?(input_file)
         puts # a blank line
         puts "Critical Error: The input file '#{input_file}' does not seem to" \
              " be in fasta format - the input file must be in fasta format."
-        puts @help_banner
-        exit
-      end
-    end
-
-    # Adapted from 'database_formatter.rb' from sequenceserver. Checks if the
-    #   character of the file is a '>'. Run from the 'input_file' method.
-    def probably_fasta(input_file)
-      File.open(input_file, 'r') do |file_stream|
-        first_line = file_stream.readline
-        if first_line.slice(0, 1) == '>'
-          return TRUE
-        else
-          return FALSE
-        end
-      end
-    end
-
-    # Ensures that the input_type has been provided in the correct format (i.e.
-    #   that it is either 'genetic' or 'protein').
-    def input_type(input_type)
-      unless input_type.downcase == 'genetic' ||
-             input_type.downcase == 'protein'
-        puts # a blank line
-        puts "Usage Error: The input_type: '#{input_type}' is not recognised." \
-             " The input_type option ('-t' option) can either be 'genetic'" \
-             " or 'protein.'"
         puts @help_banner
         exit
       end
@@ -119,7 +107,7 @@ module NpSearch
 
     # Ensures that the extract_orf option is only used with genetic data.
     def extract_orf_conflict(input_type, extract_orf)
-      if input_type == 'protein' && extract_orf == TRUE
+      if input_type == 'protein' && extract_orf == true
         puts # a blank line
         puts 'Usage Error: Conflicting arguments detected - the Extract_ORF' \
              ' option (option "-e") is only available when input file' \
@@ -134,9 +122,12 @@ module NpSearch
     def input_sp_file_conflict(input_type, signalp_file)
       if input_type == 'genetic' && signalp_file != nil
         puts # a blank line
-        puts 'Usage Error: Conflicting arguments detected: the signalp input' \
-             ' option (option "-s") is only available when input file' \
-             ' contains protein data.'
+        puts 'Usage Error: When using the Signal p Input Option (Option "-s")' \
+             ' It is necessary to input (at option "-i") the signal p input' \
+             ' file i.e. this would be protein data.'
+        puts 'If you no longer have this file you can obtain all possible' \
+             ' open reading frames from the genetic data by using the "-e"' \
+             ' option.'
         puts @help_banner
         exit
       end
@@ -219,9 +210,9 @@ module NpSearch
       File.open(input_file, 'r') do |file_stream|
         first_line = file_stream.readline
         if first_line.match(/# SignalP-4.1/)
-          return TRUE
+          return true
         else
-          return FALSE
+          return false
         end
       end
     end
@@ -234,9 +225,9 @@ module NpSearch
         row = secondline.gsub(/\s+/m, ' ').chomp.split(' ')
         if row[1] != 'name' && row[4] != 'Ymax' && row[5] != 'pos' &&
            row[9] != 'D'
-          return TRUE
+          return true
         else
-          return FALSE
+          return false
         end
       end
     end
@@ -281,22 +272,33 @@ module NpSearch
         end
       end
     end
+
+    # Guesses the type of the data in the supplied motif. It ignores all 
+    #   non-word characters (e.g. '|' that is used for regex). It has a 90% 
+    #   threshold.  
+    def motif_type(motif)
+      motif_seq = Bio::Sequence.new(motif.gsub(/\W/, ''))
+      type = motif_seq.guess(0.9)
+      if type.to_s != "Bio::Sequence::AA"
+        raise IOError.new("\nCritical Error: There seems to be an error in" \
+                          " processing the motif. Please ensure that the" \
+                          " motif contains amino acid residues that you wish" \
+                          " to search for.")
+      end
+    end
   end
 
 
   class Input
-    # Reads the input file converting it into a hash [id => seq].
+    # Reads the input file converting it into a hash [id => seq]. Ensures that
+    #   the sequences are Bio::Sequence objects...
     def self.read(input_file, type)
+      LOG.info { "Reading the Input File: #{type.capitalize} data detected." }
       input_read = {}
       biofastafile = Bio::FlatFile.open(Bio::FastaFormat, input_file)
       biofastafile.each_entry do |entry|
-        case type.downcase
-        when 'genetic'
-          seq = entry.naseq
-        when 'protein'
-          seq = entry.aaseq
-        end
-        input_read[entry.entry_id] = seq
+        input_read[entry.entry_id] = entry.naseq if type == 'genetic'
+        input_read[entry.entry_id] = entry.aaseq if type == 'protein'
       end
       if input_read.empty?
         raise IOError.new("\nCritical Error: There was an error in reading" \
@@ -311,7 +313,7 @@ module NpSearch
   class Translation
     # Translates in all 6 frames - with * standing for stop codons
     def self.translate(input_read)
-      LOG.info { 'Step 1: Translating the genomic data in all 6 frames.' }
+      LOG.info { 'Translating the genomic data in all 6 frames.' }
       protein_data = {}
       input_read.each do |id, sequence|
         (1..6).each do |f|
@@ -327,7 +329,7 @@ module NpSearch
 
     # Extract all possible Open Reading Frames.
     def self.extract_orf(protein_data, minimum_length)
-      LOG.info { 'Step 2: Extracting all Open Reading Frames from all 6' \
+      LOG.info { 'Extracting all Open Reading Frames from all 6' \
                  ' possible frames. This is every methionine residue to the' \
                  ' next stop codon.' }
       orf = {}
@@ -347,11 +349,12 @@ module NpSearch
     end
   end
 
+
   class Signalp
     # Runs an external Signal Peptide script from CBS (Center for biological
     #   Sequence Analysis).
     def self.signalp(signalp_dir, input, output)
-      LOG.info { "Step 3: Running a Signal Peptide test on each sequence." \
+      LOG.info { "Running a Signal Peptide test on each sequence." \
                  " \nThis may take some time with large datasets." }
       exit_code = system("#{signalp_dir}/signalp -t euk -f short #{input} > " \
                          "#{output}")
@@ -388,7 +391,7 @@ module NpSearch
     # Extracts the Sequences for each signal peptide positive sequence and the
     #   split the sequence into signal peptide and the rest of the sequence.
     def self.parse(sp_out_file, orf_clean, motif)
-      LOG.info { 'Step 4: Extracting sequences that have at least 1' \
+      LOG.info { 'Extracting sequences that have at least 1' \
                  ' neuropeptide cleavage site after the signal peptide' \
                  ' cleavage site.' }
       sp_data  = {}
@@ -418,7 +421,7 @@ module NpSearch
     # With transcriptome data, alternative splicing means duplicates ORF, so
     #   this method collapses duplicates into one reading.
     def self.flattener(sp_data)
-      LOG.info { 'Step 5: Removing all duplicate entries.' }
+      LOG.info { 'Removing all duplicate entries.' }
       flattened_seq = {}
       sp_data.each do |id, seq|
         flattened_seq[seq] = [] unless flattened_seq[seq]
@@ -502,11 +505,26 @@ EOT
 end
 
 
+class File
+  # Checks if the first character of the file is a '>'.
+  def self.probably_fasta?(input_file)
+    open(input_file, 'r') do |file_stream|
+      if file_stream.readline[0] == '>'
+        return true
+      else
+        return false
+      end
+    end
+  end
+end
+
+
 class Bio::Sequence::AA
   # Returns an array of all possible Open Reading Frame. Assumes that the stop 
   #   codon is characterised by a non-word character i.e. '*' (as used by the 
-  #   bioruby translation function). Utilises a Lookahead that advances through 
-  #   a string by a single character at a time.  
+  #   bioruby translation function). Utilises a lookahead regex that advances 
+  #   through the Bio::Sequence::AA object (or a string) by a single character
+  #   at a time.  
   def findorfs(minsize)
     scan(/(?=(M\w{#{minsize},}))./)
   end

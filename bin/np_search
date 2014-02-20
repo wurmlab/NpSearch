@@ -27,13 +27,6 @@ Banner
     opt[:motif] = motif
   end
 
-  opt[:input_type] = nil
-  opts.on('-t', '--input_type [type]',
-          'The type of data in the input query file. The only two options',
-          'available are "genetic" and "protein".') do |input_type|
-    opt[:input_type] = input_type
-  end
-
   opt[:input] = nil
   opts.on('-i', '--input [file]',
           'The input file. Can be a relative or a full path.') do |input_file|
@@ -91,8 +84,9 @@ optparse.parse!
 
 ############# Argument Validation...##############
 arg_vldr = NpSearch::ArgValidators.new(opt[:verbose], optparse.help())
-arg_vldr.arg(opt[:motif], opt[:input_type], opt[:input], opt[:output_dir], 
-             opt[:cut_off], opt[:extract_orf], opt[:signalp_file])
+input_type = arg_vldr.guess_input_type(opt[:input])
+arg_vldr.arg(opt[:motif], opt[:input], opt[:output_dir], opt[:cut_off],
+             opt[:extract_orf], opt[:signalp_file], input_type)
 
 ############# General Validation...##############
 vldr = NpSearch::Validators.new
@@ -101,10 +95,10 @@ if opt[:signalp_file] == nil && opt[:extract_orf] == false
   sp_dir = vldr.sp(signalp_dir)
 end
 ############# Converting input file to Bio::FastaFormat. #############
-input_read = NpSearch::Input.read(opt[:input], opt[:input_type])
+input_read = NpSearch::Input.read(opt[:input], input_type)
 
 ############# Extract_ORF #############
-if opt[:input_type].downcase == 'genetic'
+if input_type == 'genetic'
   # Translate Sequences in all 6 frames
   translated = NpSearch::Translation.translate(input_read)
   translated.to_fasta('translated seq.', "#{opt[:output_dir]}/1_protein.fa") 
@@ -126,8 +120,9 @@ if opt[:motif] == 'neuro_clv'
 else
   motif = opt[:motif]
 end
+vldr.motif_type(motif)
 
-if opt[:input_type].downcase == 'genetic'
+if input_type == 'genetic'
   sp_input_file = "#{opt[:output_dir]}/2_orf.fa"
   sp_hash = orf
   file_number = 3
