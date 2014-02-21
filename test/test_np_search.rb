@@ -35,8 +35,6 @@ class UnitTests < Test::Unit::TestCase
     @motif                = "KK|KR|RR|R..R|R....R|R......R|H..R|H....R|H......R|K..R|K....R|K......R"
   
     @motif_ar             = ['KR', 'Kr', 'kr']
-    @input_type_ar        = ['genetic', 'GENETIC', 'Genetic', 'GenETIc', 'protein', 'Protein', 'PrOTein']
-    @input_type_ar_neg    = ['protein', 'JUNK', 'asggbfdvac', 'qefr4gwtvwgbr'] # first genetic conflicts with -e option...
     @input_file_ar        = ["#{@dir}/genetic.fa", "#{@dir}/protein.fa"]
     @input_file_ar_neg    = ["#{@dir}/empty_file.fa", "#{@dir}/missing_input.fa", "#{@dir}/not_fasta.fa"]
     @cut_off_ar           = [622, 10, 2 , 1]
@@ -50,8 +48,8 @@ class UnitTests < Test::Unit::TestCase
   end
 
   def test_input_file
-      assert_equal('genetic', @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[0] @dir , @cut_off_ar[0], FALSE, nil))
-      assert_equal('protein', @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[1], @dir , @cut_off_ar[0], FALSE, nil))
+      assert_equal('genetic', @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[0], @dir, @cut_off_ar[0], FALSE, nil))
+      assert_equal('protein', @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[1], @dir, @cut_off_ar[0], FALSE, nil))
     (0..2).each do |i|
       assert_raise( SystemExit ) {@test_arg_vldr.arg(@motif_ar[0], @input_file_ar_neg[i], @dir, @cut_off_ar[0], FALSE, nil)}
     end
