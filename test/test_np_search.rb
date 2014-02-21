@@ -64,11 +64,6 @@ class UnitTests < Test::Unit::TestCase
     end
   end
 
-  # => Test if the signalp validator method works in verifying whether the directory contains the signal p script. 
-  def test_signalp_validator
-    assert_equal("#{@dir}/signalp", @test_vldr.signalp_dir("#{@dir}/signalp"))
-  end
-
   # => Test if the output directory validator works, in ensuring whether an output directory can be found. 
   def test_output_dir_validator
     assert_equal(nil, @test_vldr.output_dir(@dir))
