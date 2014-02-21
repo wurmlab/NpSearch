@@ -45,40 +45,31 @@ class UnitTests < Test::Unit::TestCase
 
   def test_motif
     (0..2).each do |i|
-      assert_equal(nil, @test_arg_vldr.arg(@motif_ar[i], @input_type_ar[0], @input_file_ar[0], @dir, @cut_off_ar[0], FALSE, nil))
-    end
-  end
-
-  def test_input_type
-    (0..6).each do |i|
-      assert_equal(nil, @test_arg_vldr.arg(@motif_ar[0], @input_type_ar[i], @input_file_ar[0], @dir, @cut_off_ar[0], FALSE, nil))
-    end
-    (0..3).each do |i|
-      assert_raise( SystemExit ) {@test_arg_vldr.arg(@motif_ar[0], @input_type_ar_neg[i], @input_file_ar[0], @dir, @cut_off_ar[0], TRUE, nil)}
+      assert_equal(nil, @test_arg_vldr.arg(@motif_ar[i], @input_file_ar[0], @dir, @cut_off_ar[0], FALSE, nil))
     end
   end
 
   def test_input_file
     (0..1).each do |i|
-      assert_equal(nil, @test_arg_vldr.arg(@motif_ar[0], @input_type_ar[0], @input_file_ar[i], @dir , @cut_off_ar[0], FALSE, nil))
+      assert_equal(nil, @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[i], @dir , @cut_off_ar[0], FALSE, nil))
     end
     (0..2).each do |i|
-      assert_raise( SystemExit ) {@test_arg_vldr.arg(@motif_ar[0], @input_type_ar[0], @input_file_ar_neg[i], @dir, @cut_off_ar[0], FALSE, nil)}
+      assert_raise( SystemExit ) {@test_arg_vldr.arg(@motif_ar[0], @input_file_ar_neg[i], @dir, @cut_off_ar[0], FALSE, nil)}
     end
   end
 
   def orf_min_length
     (0..3).each do |i|
-      assert_equal(nil, @test_arg_vldr.arg(@motif_ar[0], @input_type_ar[0], @input_file_ar[0], @dir, @cut_off_ar[i], FALSE, nil))
+      assert_equal(nil, @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[0], @dir, @cut_off_ar[i], FALSE, nil))
     end
     (0..3).each do |i|
-      assert_raise( SystemExit ) {@test_arg_vldr.arg(@motif_ar[0], @input_type_ar[0], @input_file_ar[0], @dir, @cut_off_ar_neg[i], FALSE, nil)}
+      assert_raise( SystemExit ) {@test_arg_vldr.arg(@motif_ar[0], @input_file_ar[0], @dir, @cut_off_ar_neg[i], FALSE, nil)}
     end
   end
 
   # => Test if the signalp validator method works in verifying whether the directory contains the signal p script. 
   def test_signalp_validator
-    assert_equal("#{@dir}/signalp", @test_vldr.sp("#{@dir}/signalp"))
+    assert_equal("#{@dir}/signalp", @test_vldr.sp_results("#{@dir}/signalp"))
   end
 
   # => Test if the output directory validator works, in ensuring whether an output directory can be found. 
