@@ -4,9 +4,6 @@ require 'np_search/version'
 require 'np_search'
 require 'optparse'
 
-# Search for the signal p directory with signal peptide.
-signalp_dir = "#{Dir.home}/SignalPeptide"
-
 opt = {}
 optparse = OptionParser.new do |opts|
   opts.banner = <<Banner
@@ -84,15 +81,14 @@ optparse.parse!
 
 ############# Argument Validation...##############
 arg_vldr = NpSearch::ArgValidators.new(opt[:verbose], optparse.help())
-input_type = arg_vldr.guess_input_type(opt[:input])
-arg_vldr.arg(opt[:motif], opt[:input], opt[:output_dir], opt[:cut_off],
-             opt[:extract_orf], opt[:signalp_file], input_type)
+input_type = arg_vldr.arg(opt[:motif], opt[:input], opt[:output_dir],
+                          opt[:cut_off], opt[:extract_orf], opt[:signalp_file])
 
 ############# General Validation...##############
 vldr = NpSearch::Validators.new
 vldr.output_dir(opt[:output_dir])
 if opt[:signalp_file] == nil && opt[:extract_orf] == false
-  sp_dir = vldr.sp(signalp_dir)
+  sp_dir = vldr.signalp_dir
 end
 ############# Converting input file to Bio::FastaFormat. #############
 input_read = NpSearch::Input.read(opt[:input], input_type)
@@ -101,7 +97,7 @@ input_read = NpSearch::Input.read(opt[:input], input_type)
 if input_type == 'genetic'
   # Translate Sequences in all 6 frames
   translated = NpSearch::Translation.translate(input_read)
-  translated.to_fasta('translated seq.', "#{opt[:output_dir]}/1_protein.fa") 
+  translated.to_fasta('translated seq.', "#{opt[:output_dir]}/1_protein.fa")
   # Extract all possible ORF that are longer than the ORF_min_length
   orf = NpSearch::Translation.extract_orf(translated, opt[:cut_off])
   orf.to_fasta('Open Reading Frames', "#{opt[:output_dir]}/2_orf.fa")

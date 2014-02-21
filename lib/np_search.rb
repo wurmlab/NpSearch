@@ -19,33 +19,33 @@ module NpSearch
       @help_banner = help_banner
     end
 
-    # Ensures that the compulsory input arguments are supplied.
-    def arg(motif, input, output_dir, orf_min_length, extract_orf, signalp_file,
-            input_type)
-      comp_arg(motif, 'Query Motif ("-m" option)') unless extract_orf == true
-      comp_arg(input, 'Input file ("-i option")')
-      comp_arg(output_dir, 'Output Folder ("-o" option)')
-      comp_arg_bnnr(input, motif, output_dir, extract_orf)
+    # Runs all the arguments methof...
+    def arg(motif, input, output_dir, orf_min_length, extract_orf, signalp_file)
+      comp_arg(input, motif, output_dir, extract_orf)
+      input_type = guess_input_type(input)
       extract_orf_conflict(input_type, extract_orf)
       input_sp_file_conflict(input_type, signalp_file)
       orf_min_length(orf_min_length)
+      return input_type
     end
 
-
-    # Ensures that the compulsory input arguments are not empty. 
-    def comp_arg(arg, message)
-      if arg == nil
-        puts 'Usage Error: No ' + message + ' is supplied'
-      end
-    end
-
-    # Display the help banner once if any of the compulsory input arguments are
-    #   empty.
-    def comp_arg_bnnr(input, motif, output_dir, extract_orf)
-      if input == nil || output_dir == nil || 
+    # Ensures that the compulsory input arguments are supplied...
+    def comp_arg(input, motif, output_dir, extract_orf)
+      comp_arg_error(input, 'Input file ("-i option")')
+      comp_arg_error(output_dir, 'Output Folder ("-o" option)')
+      comp_arg_error(motif, 'Query Motif ("-m" option)') if extract_orf == false
+      if input == nil || output_dir == nil ||
          (motif == nil && extract_orf == false)
         puts @help_banner
         exit
+      end
+    end
+
+    # Ensures that a message is provided for all missing compulsory args.
+    #   Run from comp_arg method
+    def comp_arg_error(arg, message)
+      if arg == nil
+        puts 'Usage Error: No ' + message + ' is supplied'
       end
     end
 
@@ -53,14 +53,14 @@ module NpSearch
     #   the file (ignores all identifiers i.e. lines that start with a '>'.
     #   It has a 80% threshold.
     def guess_input_type(input_file)
-      input_file(input_file)
-      seq = []
+      input_file_format(input_file)
+      sequences = []
       File.open(input_file, 'r') do |file_stream|
         file_stream.readlines[0..100].each do |line|
-          seq << line.to_s unless line.match(/^>/)
+          sequences << line.to_s unless line.match(/^>/)
         end
       end
-      type = Bio::Sequence.new(seq).guess(0.8)
+      type = Bio::Sequence.new(sequences).guess(0.8)
       if type.to_s == 'Bio::Sequence::NA'
         input_type = 'genetic'
       elsif type.to_s == 'Bio::Sequence::AA'
@@ -71,10 +71,10 @@ module NpSearch
 
     # Ensures that the input file a) exists b) is not empty and c) is a fasta
     #   file. Run from the guess_input_type method.
-    def input_file(input_file)
+    def input_file_format(input_file)
       unless File.exist?(input_file)
         puts # a blank line
-        puts "Critical Error: The input file '#{input_file}' does not exist"
+        puts "Critical Error: The input file '#{input_file}' does not exist."
         puts @help_banner
         exit
       end
@@ -88,18 +88,6 @@ module NpSearch
         puts # a blank line
         puts "Critical Error: The input file '#{input_file}' does not seem to" \
              " be in fasta format - the input file must be in fasta format."
-        puts @help_banner
-        exit
-      end
-    end
-
-    # Ensures that the ORF minimum length is a number. Any digits after the
-    #   decimal place are ignored.
-    def orf_min_length(orf_min_length)
-      if orf_min_length.to_i < 1
-        puts # a blank line
-        puts 'Usage Error: The Open Reading Frames minimum length can only be' \
-             ' a full integer.'
         puts @help_banner
         exit
       end
@@ -132,7 +120,19 @@ module NpSearch
         exit
       end
     end
-  end
+
+    # Ensures that the ORF minimum length is a number. Any digits after the
+    #   decimal place are ignored.
+    def orf_min_length(orf_min_length)
+      if orf_min_length.to_i < 1
+        puts # a blank line
+        puts 'Usage Error: The Open Reading Frames minimum length can only be' \
+             ' a full integer.'
+        puts @help_banner
+        exit
+      end
+    end
+  end ### End of ArgValidators Class
 
 
   class Validators
@@ -173,8 +173,8 @@ module NpSearch
 
     # Ensures that the Signal P Script is present. If not found in the home
     #   directory, it asks the user for its location.
-    def sp(signalp_dir)
-      if File.exist? "#{signalp_dir}/signalp"
+    def signalp_dir
+      if File.exist? "#{Dir.home}/SignalPeptide/signalp"
         signalp_directory = signalp_dir
       else
         puts # a blank line
@@ -199,6 +199,7 @@ module NpSearch
         signalp_directory = inp
         puts # a blank line
         puts "The Signal P directory has been found at '#{signalp_directory}'"
+        system("ln -s #{signalp_directory} #{Dir.home}/SignalPeptide")
         puts # a blank line
       end
       return signalp_directory
@@ -286,7 +287,7 @@ module NpSearch
                           " to search for.")
       end
     end
-  end
+  end ### End of Validators Class
 
 
   class Input
@@ -307,7 +308,7 @@ module NpSearch
       end
       return input_read
     end
-  end
+  end ### End of Input Class
 
 
   class Translation
@@ -333,7 +334,7 @@ module NpSearch
                  ' possible frames. This is every methionine residue to the' \
                  ' next stop codon.' }
       orf = {}
-      orf_length = minimum_length - 1 # no. of residues after 'M' 
+      orf_length = minimum_length - 1 # no. of residues after 'M'
       protein_data.each do |id, sequence|
         identified_orfs = sequence.findorfs(orf_length)
         (0..(identified_orfs.length - 1)).each do |i|
@@ -347,7 +348,7 @@ module NpSearch
       end
       return orf
     end
-  end
+  end ### End of Translation Class
 
 
   class Signalp
@@ -366,7 +367,7 @@ module NpSearch
       LOG.info { "Writing the Signal Peptide test results to the file " \
                   "'#{output}'." }
     end
-  end
+  end ### End of Signalp Class
 
 
   class Analysis
@@ -381,11 +382,11 @@ module NpSearch
         row = line.gsub(/\s+/m, ' ').chomp.split(' ')
         sp_array[idx][0..row.length - 1] = row # Merge into existing array
       end
-      return sp_array
       if sp_array.empty?
         raise IOError.new("\nCritical Error: No Sequences found that contain" \
                           " a secretory signal peptide.\n")
       end
+      return sp_array
     end
 
     # Extracts the Sequences for each signal peptide positive sequence and the
@@ -433,7 +434,7 @@ module NpSearch
       end
       return flattened_seq.invert # Inverting necessary for outputting.
     end
-  end
+  end ### End of Analysis Class
 end
 
 
@@ -524,7 +525,7 @@ class Bio::Sequence::AA
   #   codon is characterised by a non-word character i.e. '*' (as used by the 
   #   bioruby translation function). Utilises a lookahead regex that advances 
   #   through the Bio::Sequence::AA object (or a string) by a single character
-  #   at a time.  
+  #   at a time.
   def findorfs(minsize)
     scan(/(?=(M\w{#{minsize},}))./).flatten
   end
