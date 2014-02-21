@@ -45,14 +45,13 @@ class UnitTests < Test::Unit::TestCase
 
   def test_motif
     (0..2).each do |i|
-      assert_equal(nil, @test_arg_vldr.arg(@motif_ar[i], @input_file_ar[0], @dir, @cut_off_ar[0], FALSE, nil))
+      assert_equal('genetic', @test_arg_vldr.arg(@motif_ar[i], @input_file_ar[0], @dir, @cut_off_ar[0], FALSE, nil))
     end
   end
 
   def test_input_file
-    (0..1).each do |i|
-      assert_equal(nil, @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[i], @dir , @cut_off_ar[0], FALSE, nil))
-    end
+      assert_equal('genetic', @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[0] @dir , @cut_off_ar[0], FALSE, nil))
+      assert_equal('protein', @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[1], @dir , @cut_off_ar[0], FALSE, nil))
     (0..2).each do |i|
       assert_raise( SystemExit ) {@test_arg_vldr.arg(@motif_ar[0], @input_file_ar_neg[i], @dir, @cut_off_ar[0], FALSE, nil)}
     end
@@ -60,7 +59,7 @@ class UnitTests < Test::Unit::TestCase
 
   def orf_min_length
     (0..3).each do |i|
-      assert_equal(nil, @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[0], @dir, @cut_off_ar[i], FALSE, nil))
+      assert_equal('genetic', @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[0], @dir, @cut_off_ar[i], FALSE, nil))
     end
     (0..3).each do |i|
       assert_raise( SystemExit ) {@test_arg_vldr.arg(@motif_ar[0], @input_file_ar[0], @dir, @cut_off_ar_neg[i], FALSE, nil)}
@@ -69,7 +68,7 @@ class UnitTests < Test::Unit::TestCase
 
   # => Test if the signalp validator method works in verifying whether the directory contains the signal p script. 
   def test_signalp_validator
-    assert_equal("#{@dir}/signalp", @test_vldr.sp_results("#{@dir}/signalp"))
+    assert_equal("#{@dir}/signalp", @test_vldr.signalp_dir("#{@dir}/signalp"))
   end
 
   # => Test if the output directory validator works, in ensuring whether an output directory can be found. 
