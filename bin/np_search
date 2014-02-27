@@ -90,6 +90,7 @@ vldr.output_dir(opt[:output_dir])
 if opt[:signalp_file] == nil && opt[:extract_orf] == false
   sp_dir = vldr.signalp_dir
 end
+
 ############# Converting input file to Bio::FastaFormat. #############
 input_read = NpSearch::Input.read(opt[:input], input_type)
 

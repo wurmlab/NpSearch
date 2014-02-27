@@ -19,7 +19,7 @@ module NpSearch
       @help_banner = help_banner
     end
 
-    # Runs all the arguments methof...
+    # Runs all the arguments method...
     def arg(motif, input, output_dir, orf_min_length, extract_orf, signalp_file)
       comp_arg(input, motif, output_dir, extract_orf)
       input_type = guess_input_type(input)
@@ -174,7 +174,8 @@ module NpSearch
     # Ensures that the Signal P Script is present. If not found in the home
     #   directory, it asks the user for its location.
     def signalp_dir
-      if File.exist? "#{Dir.home}/SignalPeptide/signalp"
+      signalp_dir = "#{Dir.home}/SignalPeptide"
+      if File.exist? "#{signalp_dir}/signalp"
         signalp_directory = signalp_dir
       else
         puts # a blank line
