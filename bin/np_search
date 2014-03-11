@@ -8,7 +8,7 @@ opt = {}
 optparse = OptionParser.new do |opts|
   opts.banner = <<Banner
 
-* Usage: np_search [Options] -m [Motif] -t [Input Type] -i [Input File] -o [Output Folder Name]
+* Usage: np_search [Options] -m [Motif] -i [Input File] -o [Output Folder Name]
 
 * Mandatory Options:
 
@@ -80,9 +80,10 @@ end
 optparse.parse!
 
 ############# Argument Validation...##############
-arg_vldr = NpSearch::ArgValidators.new(opt[:verbose], optparse.help())
+arg_vldr = NpSearch::ArgValidators.new(opt[:verbose])
 input_type = arg_vldr.arg(opt[:motif], opt[:input], opt[:output_dir],
-                          opt[:cut_off], opt[:extract_orf], opt[:signalp_file])
+                          opt[:cut_off], opt[:extract_orf], opt[:signalp_file], 
+                          optparse.help())
 
 ############# General Validation...##############
 vldr = NpSearch::Validators.new

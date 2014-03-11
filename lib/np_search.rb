@@ -14,14 +14,14 @@ module NpSearch
     attr_reader :help_banner
     # Changes the logger level to output extra info when the verbose option is
     #   true.
-    def initialize(verbose_opt, help_banner)
-      LOG.level = Logger::INFO if verbose_opt.to_s == 'true'
-      @help_banner = help_banner
+    def initialize(verbose_opt)
+      LOG.level = Logger::INFO if verbose_opt == true
     end
 
     # Runs all the arguments method...
-    def arg(motif, input, output_dir, orf_min_length, extract_orf, signalp_file)
-      comp_arg(input, motif, output_dir, extract_orf)
+    def arg(motif, input, output_dir, orf_min_length, extract_orf, 
+            signalp_file, help_banner)
+      comp_arg(input, motif, output_dir, extract_orf, help_banner)
       input_type = guess_input_type(input)
       extract_orf_conflict(input_type, extract_orf)
       input_sp_file_conflict(input_type, signalp_file)
@@ -30,13 +30,13 @@ module NpSearch
     end
 
     # Ensures that the compulsory input arguments are supplied...
-    def comp_arg(input, motif, output_dir, extract_orf)
+    def comp_arg(input, motif, output_dir, extract_orf, help_banner)
+      comp_arg_error(motif, 'Query Motif ("-m" option)') if extract_orf == false
       comp_arg_error(input, 'Input file ("-i option")')
       comp_arg_error(output_dir, 'Output Folder ("-o" option)')
-      comp_arg_error(motif, 'Query Motif ("-m" option)') if extract_orf == false
-      if input == nil || output_dir == nil ||
+      if input == nil || output_dir == nil || 
          (motif == nil && extract_orf == false)
-        puts @help_banner
+        puts help_banner
         exit
       end
     end
@@ -61,9 +61,9 @@ module NpSearch
         end
       end
       type = Bio::Sequence.new(sequences).guess(0.8)
-      if type.to_s == 'Bio::Sequence::NA'
+      if type == Bio::Sequence::NA
         input_type = 'genetic'
-      elsif type.to_s == 'Bio::Sequence::AA'
+      elsif type == Bio::Sequence::AA
         input_type = 'protein'
       end
       return input_type
@@ -73,35 +73,29 @@ module NpSearch
     #   file. Run from the guess_input_type method.
     def input_file_format(input_file)
       unless File.exist?(input_file)
-        puts # a blank line
-        puts "Critical Error: The input file '#{input_file}' does not exist."
-        puts @help_banner
-        exit
+        raise ArgumentError, "\n\nCritical Error: The input file" \
+                             " '#{input_file}' does not exist.\n\n"
       end
       if File.zero?(input_file)
-        puts # a blank line
-        puts "Critical Error: The input file '#{input_file}' is empty."
-        puts @help_banner
-        exit
+        raise ArgumentError, "\n\nCritical Error: The input file" \
+                             " '#{input_file}' is empty.\n\n"
       end
       unless File.probably_fasta?(input_file)
-        puts # a blank line
-        puts "Critical Error: The input file '#{input_file}' does not seem to" \
-             " be in fasta format - the input file must be in fasta format."
-        puts @help_banner
-        exit
+        raise ArgumentError, "\n\nCritical Error: The input file" \
+                             " '#{input_file}' does not seem to be in fasta" \
+                             " format. Only input files in fasta format are" \
+                             " supported.\n\n"
       end
     end
 
     # Ensures that the extract_orf option is only used with genetic data.
     def extract_orf_conflict(input_type, extract_orf)
       if input_type == 'protein' && extract_orf == true
-        puts # a blank line
-        puts 'Usage Error: Conflicting arguments detected - the Extract_ORF' \
-             ' option (option "-e") is only available when input file' \
-             ' contains genetic data.'
-        puts @help_banner
-        exit
+        raise ArgumentError, "\n\nUsage Error: Conflicting arguments detected" \
+                             ": Protein data detected within the input file," \
+                             " when using the  Extract_ORF option (option" \
+                             " '-e'). This option is only available when" \
+                             " input file contains genetic data.\n\n"
       end
     end
 
@@ -109,15 +103,13 @@ module NpSearch
     #   the input file when the signal p output file is passed.
     def input_sp_file_conflict(input_type, signalp_file)
       if input_type == 'genetic' && signalp_file != nil
-        puts # a blank line
-        puts 'Usage Error: When using the Signal p Input Option (Option "-s")' \
-             ' It is necessary to input (at option "-i") the signal p input' \
-             ' file i.e. this would be protein data.'
-        puts 'If you no longer have this file you can obtain all possible' \
-             ' open reading frames from the genetic data by using the "-e"' \
-             ' option.'
-        puts @help_banner
-        exit
+        raise ArgumentError, "\n\nUsage Error: Conflicting arguments detected" \
+                             ": Genetic data detected within the input file" \
+                             " when using the Signal P Input Option (Option" \
+                             " '-s'). The Signal P input Option requires the" \
+                             " input of two files: the Signal P Script Result" \
+                             " files (at the '-s' option) and the protein" \
+                             " data file used to run the Signal P Script.\n\n"
       end
     end
 
@@ -125,11 +117,8 @@ module NpSearch
     #   decimal place are ignored.
     def orf_min_length(orf_min_length)
       if orf_min_length.to_i < 1
-        puts # a blank line
-        puts 'Usage Error: The Open Reading Frames minimum length can only be' \
-             ' a full integer.'
-        puts @help_banner
-        exit
+        raise ArgumentError, "\n\nUsage Error: The Open Reading Frames minimum" \
+                       "  length can only be a full integer.\n\n"
       end
     end
   end ### End of ArgValidators Class
@@ -139,7 +128,11 @@ module NpSearch
     # Checks for the presence of the output directory; if not found, it asks
     #   the user whether they want to create the output directory.
     def output_dir(output_dir)
-      unless File.directory? output_dir # If output_dir doesn't exist
+      begin
+        unless File.directory? output_dir # If output_dir doesn't exist
+          raise IOError, "\n\nThe output directory deoes not exist\n\n"
+        end
+      rescue IOError
         puts # a blank line
         puts 'The output directory does not exist.'
         puts # a blank line
@@ -147,7 +140,7 @@ module NpSearch
         puts 'Do you to continue? [y/n]'
         print '> '
         inp = $stdin.gets.chomp
-        until inp.downcase == 'n' || inp.downcase == 'y'
+        until inp.downcase == 'n' || inp.downcase == 'y' || inp == ''
           puts # a blank line
           puts "The input: '#{inp}' is not recognised - 'y' or 'n' are the" \
                " only recognisable inputs."
@@ -158,50 +151,53 @@ module NpSearch
           print '> '
           inp = $stdin.gets.chomp
         end
-        if inp.downcase == 'y'
+        if inp.downcase == 'y' || inp == ''
           FileUtils.mkdir_p "#{output_dir}"
           puts 'Created output directory...'
         elsif inp.downcase == 'n'
-          puts # a blank line
-          puts 'Critical Error: An output directory is required; please' \
-               ' create an output directory and then try again.'
-          puts @help_banner
-          exit
+          raise ArgumentError, "\n\nCritical Error: An output directory is" \
+                         " required; please create an output directory and" \
+                         " then try again.\n\n"
         end
       end
     end
 
     # Ensures that the Signal P Script is present. If not found in the home
     #   directory, it asks the user for its location.
-    def signalp_dir
+   def signalp_dir
       signalp_dir = "#{Dir.home}/SignalPeptide"
       if File.exist? "#{signalp_dir}/signalp"
         signalp_directory = signalp_dir
       else
-        puts # a blank line
-        puts "Error: The Signal Peptide Script directory cannot be found" \
-             " in the following location: '#{signalp_dir}/'."
-        puts # a blank line
-        puts 'Please enter the full path or a relative path to the Signal' \
-             ' Peptide Script directory (i.e. to the folder containing the' \
-             ' SignalP script).'
-        print '> '
-        inp = $stdin.gets.chomp
-        until (File.exist? "#{signalp_dir}/signalp") ||
-              (File.exist? "#{inp}/signalp")
+        begin
+          raise IOError, "\n\nThe Signal P Script directory cannot be found"\
+                         " at the following location: ''#{signalp_dir}/'.\n\n"
+        rescue IOError
           puts # a blank line
-          puts "The Signal P directory cannot be found at the following" \
-               " location: '#{inp}'"
+          puts "Error: The Signal P Script directory cannot be found at the" \
+               " following location: '#{signalp_dir}/'."
+          puts # a blank line
           puts 'Please enter the full path or a relative path to the Signal' \
-               ' Peptide directory again.'
+               ' P Script directory (i.e. to the folder containing the' \
+               ' Signal P script). Refer to the online tutorial for more help'
           print '> '
           inp = $stdin.gets.chomp
+          until (File.exist? "#{signalp_dir}/signalp") ||
+                (File.exist? "#{inp}/signalp")
+            puts # a blank line
+            puts "The Signal P directory cannot be found at the following" \
+                 " location: '#{inp}'"
+            puts 'Please enter the full path or a relative path to the Signal' \
+                 ' Peptide directory again.'
+            print '> '
+            inp = $stdin.gets.chomp
+          end
+          signalp_directory = inp
+          puts # a blank line
+          puts "The Signal P directory has been found at '#{signalp_directory}'"
+          system("ln -s #{signalp_directory} #{Dir.home}/SignalPeptide")
+          puts # a blank line
         end
-        signalp_directory = inp
-        puts # a blank line
-        puts "The Signal P directory has been found at '#{signalp_directory}'"
-        system("ln -s #{signalp_directory} #{Dir.home}/SignalPeptide")
-        puts # a blank line
       end
       return signalp_directory
     end
@@ -266,11 +262,9 @@ module NpSearch
         if inp.downcase == 'y'
           puts 'Continuing.'
         elsif inp.downcase == 'n'
-          puts # a blank line
-          puts 'Critical Error: NpSearch only supports SignalP 4.1' \
-               ' (downloadable form CBS) Please ensure the correct' \
-               ' version of the signal p script is downloaded.'
-          exit
+          raise IOError, "\n\nCritical Error: NpSearch only supports SignalP" \
+                         " 4.1 (downloadable form CBS) Please ensure the" \
+                         " version of the signal p script is downloaded.\n\n"
         end
       end
     end
@@ -282,10 +276,10 @@ module NpSearch
       motif_seq = Bio::Sequence.new(motif.gsub(/\W/, ''))
       type = motif_seq.guess(0.9)
       if type.to_s != "Bio::Sequence::AA"
-        raise IOError.new("\nCritical Error: There seems to be an error in" \
-                          " processing the motif. Please ensure that the" \
-                          " motif contains amino acid residues that you wish" \
-                          " to search for.")
+        raise IOError, "\n\nCritical Error: There seems to be an error in" \
+                       " processing the motif. Please ensure that the" \
+                       " motif contains amino acid residues that you wish" \
+                       " to search for.\n\n"
       end
     end
   end ### End of Validators Class
@@ -303,9 +297,9 @@ module NpSearch
         input_read[entry.entry_id] = entry.aaseq if type == 'protein'
       end
       if input_read.empty?
-        raise IOError.new("\nCritical Error: There was an error in reading" \
-                          " the input and converting it into the required" \
-                          " format.\n")
+        raise IOError, "\n\nCritical Error: There was an error in reading" \
+                       " the input and converting it into the required" \
+                       " format.\n\n"
       end
       return input_read
     end
@@ -323,8 +317,8 @@ module NpSearch
         end
       end
       if protein_data.empty?
-        raise IOError.new("\nCritical Error: There was an error in" \
-                          " translating input data in all 6 frames.\n")
+        raise IOError, "\n\nCritical Error: There was an error in" \
+                       " translating input data in all 6 frames.\n\n"
       end
       return protein_data
     end
@@ -343,9 +337,9 @@ module NpSearch
         end
       end
       if orf.empty?
-        raise IOError.new("\nCritical Error: There was an error in removing " \
-                          " Open Reading Frames that are smaller than the" \
-                          " critical length (ORF_min_length).\n")
+        raise IOError, "\n\nCritical Error: There was an error in removing " \
+                       " Open Reading Frames that are smaller than the" \
+                       " critical length (ORF_min_length).\n\n"
       end
       return orf
     end
@@ -356,14 +350,15 @@ module NpSearch
     # Runs an external Signal Peptide script from CBS (Center for biological
     #   Sequence Analysis).
     def self.signalp(signalp_dir, input, output)
-      LOG.info { "Running a Signal Peptide test on each sequence." \
-                 " \nThis may take some time with large datasets." }
+      LOG.info { "Running a Signal Peptide test on each sequence.\n" \
+                 "                           This may take some time with" \
+                 " large datasets." }
       exit_code = system("#{signalp_dir}/signalp -t euk -f short #{input} > " \
                          "#{output}")
       if exit_code != true
-        raise IOError.new ("\nCritical Error: There seems to be a problem in" \
-                           " running the external Signal P script (" \
-                           " downloadable from CBS).\n")
+        raise IOError, "\n\nCritical Error: There seems to be a problem in" \
+                       " running the external Signal P script (" \
+                       " downloadable from CBS).\n\n"
       end
       LOG.info { "Writing the Signal Peptide test results to the file " \
                   "'#{output}'." }
@@ -384,8 +379,8 @@ module NpSearch
         sp_array[idx][0..row.length - 1] = row # Merge into existing array
       end
       if sp_array.empty?
-        raise IOError.new("\nCritical Error: No Sequences found that contain" \
-                          " a secretory signal peptide.\n")
+        raise IOError, "\n\nCritical Error: No Sequences found that contain" \
+                       " a secretory signal peptide.\n\n"
       end
       return sp_array
     end
@@ -413,9 +408,9 @@ module NpSearch
         end
       end
       if sp_data.empty?
-        raise IOError.new("\nCritical Error: No Sequences found that contain" \
-                          " a secretory signal peptide as well as the" \
-                          " requested motif.\n")
+        raise IOError, "\n\nCritical Error: No Sequences found that contain" \
+                       " a secretory signal peptide as well as the" \
+                       " requested motif.\n\n"
       end
       return sp_data
     end
@@ -430,8 +425,8 @@ module NpSearch
         flattened_seq[seq] = id
       end
       if flattened_seq.empty?
-        raise IOError.new("\nCritical Error: There was a critical error in" \
-                          " removing duplicate data in the output file.\n")
+        raise IOError, "\n\nCritical Error: There was a critical error in" \
+                       " removing duplicate data in the output file.\n\n"
       end
       return flattened_seq.invert # Inverting necessary for outputting.
     end
