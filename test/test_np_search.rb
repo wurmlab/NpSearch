@@ -24,7 +24,7 @@ class UnitTests < Test::Unit::TestCase
     @translation_test     = NpSearch::Translation.new
     @analysis_test        = NpSearch::Analysis.new
     @test_input1          = InputChanged.new
-    @test_arg_vldr        = NpSearch::ArgValidators.new(:is_verbose, 'Help Banner')
+    @test_arg_vldr        = NpSearch::ArgValidators.new(:is_verbose)
     @test_vldr            = NpSearch::Validators.new
     @test_input_read      = NpSearch::Input.read("#{@dir}/genetic.fa", 'genetic')
     @expected_translation = NpSearch::Input.read("#{@dir}/1_protein.fa", 'protein')
@@ -43,24 +43,24 @@ class UnitTests < Test::Unit::TestCase
 
   def test_motif
     (0..2).each do |i|
-      assert_equal('genetic', @test_arg_vldr.arg(@motif_ar[i], @input_file_ar[0], @dir, @cut_off_ar[0], FALSE, nil))
+      assert_equal('genetic', @test_arg_vldr.arg(@motif_ar[i], @input_file_ar[0], @dir, @cut_off_ar[0], FALSE, nil, 'help_banner'))
     end
   end
 
   def test_input_file
-      assert_equal('genetic', @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[0], @dir, @cut_off_ar[0], FALSE, nil))
-      assert_equal('protein', @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[1], @dir, @cut_off_ar[0], FALSE, nil))
+      assert_equal('genetic', @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[0], @dir, @cut_off_ar[0], FALSE, nil, 'help_banner'))
+      assert_equal('protein', @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[1], @dir, @cut_off_ar[0], FALSE, nil, 'help_banner'))
     (0..2).each do |i|
-      assert_raise( SystemExit ) {@test_arg_vldr.arg(@motif_ar[0], @input_file_ar_neg[i], @dir, @cut_off_ar[0], FALSE, nil)}
+      assert_raise( SystemExit ) {@test_arg_vldr.arg(@motif_ar[0], @input_file_ar_neg[i], @dir, @cut_off_ar[0], FALSE, nil, 'help_banner')}
     end
   end
 
   def orf_min_length
     (0..3).each do |i|
-      assert_equal('genetic', @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[0], @dir, @cut_off_ar[i], FALSE, nil))
+      assert_equal('genetic', @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[0], @dir, @cut_off_ar[i], FALSE, nil, 'help_banner'))
     end
     (0..3).each do |i|
-      assert_raise( SystemExit ) {@test_arg_vldr.arg(@motif_ar[0], @input_file_ar[0], @dir, @cut_off_ar_neg[i], FALSE, nil)}
+      assert_raise( SystemExit ) {@test_arg_vldr.arg(@motif_ar[0], @input_file_ar[0], @dir, @cut_off_ar_neg[i], FALSE, nil, help_banner)}
     end
   end
 
