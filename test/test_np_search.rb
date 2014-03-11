@@ -5,15 +5,15 @@ require 'np_search'
 require 'test/unit'
 
 class InputChanged 
-# Changed to include the full entry definition rather than just the id. This 
-#   was necessary for when testing individual parts since this is changed in 
+# Changed to include the full entry definition rather than just the id. This
+#   was necessary for when testing individual parts since this is changed in
 #   pipeline...
   def read(input_file, type)
     input_read = Hash.new
-    biofastafile = Bio::FlatFile.open(Bio::FastaFormat, input_file) 
+    biofastafile = Bio::FlatFile.open(Bio::FastaFormat, input_file)
     biofastafile.each_entry do |entry|
-        ## entry.definition used instead of entry.id 
-      input_read[entry.definition] = entry.aaseq 
+        ## entry.definition used instead of entry.id
+      input_read[entry.definition] = entry.aaseq
     end
     return input_read
   end
@@ -68,17 +68,16 @@ class UnitTests < Test::Unit::TestCase
     end
   end
 
-  def orf_min_length
+  def test_orf_min_length
     (0..3).each do |i|
-      assert_equal('genetic', 
-                   @test_arg_vldr.arg(@motif_ar[0], @input_file_ar[0], @dir, 
-                                      @cut_off_ar[i], FALSE, nil,
-                                      'help_banner'))
+      assert_equal('genetic', @test_arg_vldr.arg(@motif_ar[0],
+                              @input_file_ar[0], @dir, @cut_off_ar[i], FALSE,
+                              nil, 'help_banner'))
     end
     (0..3).each do |i|
-      assert_raise( SystemExit ) {@test_arg_vldr.arg(@motif_ar[0],
+      assert_raise( ArgumentError ) {@test_arg_vldr.arg(@motif_ar[0],
                                   @input_file_ar[0], @dir, @cut_off_ar_neg[i],
-                                  FALSE, nil, help_banner)}
+                                  FALSE, nil, 'help_banner')}
     end
   end
 
