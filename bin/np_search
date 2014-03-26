@@ -16,11 +16,11 @@ Banner
 
   opt[:motif] = nil
   opts.on('-m', '--motif [Query Motif]', 'The query motif to be searched for.',
-          'The period "." can be used to denote any character. Multiple',
-          'motifs query can be used by using a pipeline character ("|")',
-          'between each query and putting the motif query in speech marks',
-          'e.g. "KR|RR|R..R"',
-          'Advanced Users: Regular expressions are supported.') do |motif|
+          ' The period "." can be used to denote any character. Multiple',
+          ' motifs query can be used by using a pipeline character ("|")',
+          ' between each query and putting the motif query in speech marks',
+          ' e.g. "KR|RR|R..R"',
+          ' Advanced Users: Regular expressions are supported.') do |motif|
     opt[:motif] = motif
   end
 
