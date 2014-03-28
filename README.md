@@ -1,4 +1,4 @@
-# NeuroPeptideSearch
+# NeuroPeptideSearch (NpSearch) [![Build Status](https://travis-ci.org/IsmailM/NeuroPeptideSearch.svg?branch=master)](https://travis-ci.org/IsmailM/NeuroPeptideSearch)
 
 ## Abstract
 
@@ -11,8 +11,6 @@ Current methods for neuropeptide precursor identification are homology-based. Ho
 With the increasing availability and accessibility of genomic and transcriptomic sequence data, in silico identification techniques are becoming a preferential and essential means for identifying all possible neuropeptides in a species. Here we report the development of a new computer program that enables such an in silico approach. NpSearch uses common characteristics of neuropeptides and neuropeptide precursors to identify novel neuropeptides. The program has been tested on seven invertebrate species resulting in the discovery of several novel putative neuropeptides that hitherto had not been identified by homology-based searches. Thus, NpSearch is a useful new tool for neuropeptide discovery in the animal kingdom.
 
 ## NpSearch
-
-![alt tag](https://travis-ci.org/IsmailM/NeuroPeptideSearch.svg?branch=master)
 
 NPSearch (NeuroPeptideSearch) is a program that searches for potential neuropeptides precursors based on the motifs commonly found on a neuropeptide. Ideally, the input would be transcriptome or protein data since there are no introns to worry about and the signal peptide would be attached to the front of the precursor. 
 
