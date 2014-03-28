@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["ismail.moghul@gmail.com"]
   spec.description   = %q{Search for Neuropeptides based solely on the common neuropeptide markers (e.g. signal peptide, dibasic cleavage sites etc.) i.e. not based on homology to known neuropeptides.}
   spec.summary       = %q{Search for Neuropeptides based on the common neuropeptides markers}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/IsmailM/NeuroPeptideSearch"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
