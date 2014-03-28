@@ -82,7 +82,7 @@ optparse.parse!
 ############# Argument Validation...##############
 arg_vldr = NpSearch::ArgValidators.new(opt[:verbose])
 input_type = arg_vldr.arg(opt[:motif], opt[:input], opt[:output_dir],
-                          opt[:cut_off], opt[:extract_orf], opt[:signalp_file], 
+                          opt[:cut_off], opt[:extract_orf], opt[:signalp_file],
                           optparse.help())
 
 ############# General Validation...##############

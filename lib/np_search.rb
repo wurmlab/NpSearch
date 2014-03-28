@@ -26,11 +26,11 @@ module NpSearch
     # Changes the logger level to output extra info when the verbose option is
     #   true.
     def initialize(verbose_opt)
-      LOG.level = Logger::INFO if verbose_opt == true      
+      LOG.level = Logger::INFO if verbose_opt == true
     end
 
     # Runs all the arguments method...
-    def arg(motif, input, output_dir, orf_min_length, extract_orf, 
+    def arg(motif, input, output_dir, orf_min_length, extract_orf,
             signalp_file, help_banner)
       comp_arg(input, motif, output_dir, extract_orf, help_banner)
       input_type = guess_input_type(input)
