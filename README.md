@@ -25,9 +25,9 @@ Note: For this program to work, you will need to obtain a copy of Signal P 4.1 f
 ## Installation
 
 1. Simply open the terminal and type this
-
+```
     $ gem install np_search
-
+```
 ## Usage
 
     * Usage: np_search [Options] -m [Motif] -i [Input File] -o [Output Folder Name]
