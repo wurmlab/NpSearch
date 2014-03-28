@@ -9,14 +9,14 @@ LOG.formatter = proc do |severity, datetime, progname, msg|
 end
 LOG.level = Logger::FATAL # set to show no messages...
 
-# Changes the Output of the ArgumentError: Adds an extra blank line before and
-#  after the message, making it stand out 
+# Changes the output format of the ArgumentError: Adds an extra blank line 
+#   before and after the message, making it stand out 
 def ArgumentError(msg)
   raise ArgumentError, "\n\n#{msg}\n\n"
 end
 
-# Changes the Output of the ArgumentError: Adds an extra blank line before and
-#  after the message, making it stand out 
+# Changes the output format of the IOError: Adds an extra blank line 
+#   before and after the message, making it stand out 
 def IOError(msg)
   raise IOError, "\n\n#{msg}\n\n"
 end
