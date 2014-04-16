@@ -14,16 +14,6 @@ optparse = OptionParser.new do |opts|
 
 Banner
 
-  opt[:motif] = nil
-  opts.on('-m', '--motif [Query Motif]', 'The query motif to be searched for.',
-          ' The period "." can be used to denote any character. Multiple',
-          ' motifs query can be used by using a pipeline character ("|")',
-          ' between each query and putting the motif query in speech marks',
-          ' e.g. "KR|RR|R..R"',
-          ' Advanced Users: Regular expressions are supported.') do |motif|
-    opt[:motif] = motif
-  end
-
   opt[:input] = nil
   opts.on('-i', '--input [file]',
           'The input file. Can be a relative or a full path.') do |input_file|
@@ -38,6 +28,16 @@ Banner
 
   opts.separator ''
   opts.separator '* Optional Options:'
+
+  opt[:motif] = 'KR|RR|KK'
+  opts.on('-m', '--motif [Query Motif]', 'The query motif to be searched for.',
+          ' The period "." can be used to denote any character. Multiple',
+          ' motifs query can be used by using a pipeline character ("|")',
+          ' between each query and putting the motif query in speech marks',
+          ' e.g. "KR|RR|R..R"',
+          ' Advanced Users: Regular expressions are supported.') do |motif|
+    opt[:motif] = motif
+  end
 
   opt[:cut_off] = 10
   opts.on('-c', '--cut_off N', Integer, 'Changes the minimum Open Reading',

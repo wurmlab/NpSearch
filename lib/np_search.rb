@@ -205,7 +205,8 @@ module NpSearch
           signalp_directory = inp
           puts # a blank line
           puts "The Signal P directory has been found at '#{signalp_directory}'"
-          system("ln -s #{signalp_directory} #{Dir.home}/SignalPeptide")
+          FileUtils.ln_s "#{signalp_directory}", "#{Dir.home}/SignalPeptide", 
+                          :force => true
           puts # a blank line
         end
       end
