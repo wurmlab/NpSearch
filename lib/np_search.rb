@@ -369,8 +369,8 @@ module NpSearch
         raise IOError('Critical Error: There seems to be a problem in running' \
                       ' the external Signal P script (downloadable from CBS).')
       end
-      LOG.info { "Writing the Signal Peptide test results to the file " \
-                  "'#{output}'." }
+      LOG.info { "Writing the Signal Peptide test results to the file" \
+                  " '#{output}'." }
     end
   end ### End of Signalp Class
 
@@ -407,7 +407,7 @@ module NpSearch
         d_value     = h[8]
         cut_off     = h[4]
         sp_clv      = cut_off.to_i - 1
-        current_orf = orf_clean[seq_id].to_s.gsub('["', '').gsub('"]', '')
+        current_orf = orf_clean[seq_id].to_s.gsub(/[\[\"\]]/, '')
         signalp     = current_orf[0, sp_clv]
         seq_end     = current_orf[sp_clv, current_orf.length]
         if seq_end.match(/#{motif}/)
@@ -450,7 +450,7 @@ class Hash
     output_file = File.new(output, 'w')
     each do |id, seq|
       output_file.puts '>' + id.gsub('~~~', '')
-      sequence = seq.to_s.gsub('~', '').gsub('["', '').gsub('"]', '')
+      sequence = seq.to_s.gsub(/[\[\"\~]]/, '')
       output_file.puts sequence
     end
     output_file.close
