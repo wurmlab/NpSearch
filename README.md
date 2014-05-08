@@ -30,21 +30,23 @@ Note: For this program to work, you will need to obtain a copy of Signal P 4.1 f
 ```
 ## Usage
 
-    * Usage: np_search [Options] -m [Motif] -i [Input File] -o [Output Folder Name]
+    * Usage: np_search [Options] -i [Input File] -o [Output Folder Name]
 
     * Mandatory Options:
 
-        -m, --motif [Query Motif]        The query motif to be searched for.
-                                          The period "." can be used to denote any character. Multiple
-                                          motifs query can be used by using a pipeline character ("|")
-                                          between each query and putting the motif query in speech marks
-                                          e.g. "KR|RR|R..R"
-                                          Advanced Users: Regular expressions are supported.
         -i, --input [file]               The input file. Can be a relative or a full path.
         -o, --output [folder name]       The path to the output folder.
                                           This will be created if the folder does not exist.
 
     * Optional Options:
+        -m, --motif [Query Motif]        By default NpSearch only searches for dibasic cleavage site 
+                                          ("KR", "RR" or "KK"). This option allows one to change the
+                                          set of cleavage sites to be searched.
+                                          The period "." can be used to denote any character. Multiple
+                                          motifs query can be used by using a pipeline character ("|")
+                                          between each query and putting the motif query in speech marks
+                                          e.g. "KR|RR|R..R"
+                                          Advanced Users: Regular expressions are supported.
         -c, --cut_off N                  Changes the minimum Open Reading
                                           Frame from the default 10 amino acid residues to N amino acid
                                           residues.
