@@ -8,7 +8,7 @@ opt = {}
 optparse = OptionParser.new do |opts|
   opts.banner = <<Banner
 
-* Usage: np_search [Options] -m [Motif] -i [Input File] -o [Output Folder Name]
+* Usage: np_search [Options] -i [Input File] -o [Output Folder Name]
 
 * Mandatory Options:
 
@@ -30,7 +30,9 @@ Banner
   opts.separator '* Optional Options:'
 
   opt[:motif] = 'KR|RR|KK'
-  opts.on('-m', '--motif [Query Motif]', 'The query motif to be searched for.',
+  opts.on('-m', '--motif [Query Motif]', 'By default NpSearch only searches',
+          ' for dibasic cleavage site ("KR", "RR" or "KK"). This option allows',
+          ' one to change the set of cleavage sites to be searched.',
           ' The period "." can be used to denote any character. Multiple',
           ' motifs query can be used by using a pipeline character ("|")',
           ' between each query and putting the motif query in speech marks',

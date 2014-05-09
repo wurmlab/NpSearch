@@ -450,7 +450,7 @@ class Hash
     output_file = File.new(output, 'w')
     each do |id, seq|
       output_file.puts '>' + id.gsub('~~~', '')
-      sequence = seq.to_s.gsub(/[\[\"\~]]/, '')
+      sequence = seq.to_s.gsub(/[\[\"\~\]]/, '')
       output_file.puts sequence
     end
     output_file.close
