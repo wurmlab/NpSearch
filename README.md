@@ -38,12 +38,11 @@ Note: For this program to work, you will need to obtain a copy of Signal P 4.1 f
     * Usage: np_search [Options] -i [Input File] -o [Output Folder Name]
 
     * Mandatory Options:
-                          | 
-        ------------------|-------------------
 
-        -i, --input [file]  | The input file (in fasta format). Can be a relative or a full path.
-
-        -o, --output [folder name] |      The path to the output folder. This will be created if the folder does not exist.
+        -i, --input [file]               The input file (in fasta format). Can be a relative or a full 
+                                          path.
+        -o, --output [folder name]       The path to the output folder. This will be created if the 
+                                          folder does not exist.
 
     * Optional Options:
         -m, --motif [Query Motif]        By default NpSearch only searches for dibasic cleavage site 
@@ -63,8 +62,7 @@ Note: For this program to work, you will need to obtain a copy of Signal P 4.1 f
                                           isn't suplied, then NpSearch will try to run a local version
                                           of the Signal P script.
         -e, --extract_orf                Only extracts the Open Reading Frames.
-        -v, --verbose                    Provides more information on each step taken
-                                          in this program.
+        -v, --verbose                    Provides more information on each step taken in this program.
         -h, --help                       Display this screen
             --version                    Shows version
 
