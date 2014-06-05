@@ -2,7 +2,6 @@
 [![Gem Version](https://badge.fury.io/rb/NpSearch.svg)](http://badge.fury.io/rb/NpSearch)
 [![Build Status](https://travis-ci.org/IsmailM/NeuroPeptideSearch.svg?branch=master)](https://travis-ci.org/IsmailM/NeuroPeptideSearch)
 [![Dependency Status](https://gemnasium.com/IsmailM/NeuroPeptideSearch.svg)](https://gemnasium.com/IsmailM/NeuroPeptideSearch)
-[![Coverage Status](https://coveralls.io/repos/IsmailM/NeuroPeptideSearch/badge.png)](https://coveralls.io/r/IsmailM/NeuroPeptideSearch)
 [![Inline docs](http://inch-ci.org/github/IsmailM/NeuroPeptideSearch.png?branch=master)](http://inch-ci.org/github/IsmailM/NeuroPeptideSearch)
 
 ## Abstract
