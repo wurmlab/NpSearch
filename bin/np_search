@@ -16,7 +16,8 @@ Banner
 
   opt[:input] = nil
   opts.on('-i', '--input [file]',
-          'The input file. Can be a relative or a full path.') do |input_file|
+          'The input file (in fasta format). Can be a relative or a' ,
+          ' full path.') do |input_file|
     opt[:input] = input_file
   end
 

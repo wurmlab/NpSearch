@@ -3,6 +3,9 @@
 require 'bio'
 require 'np_search'
 require 'test/unit'
+require 'coveralls'
+
+Coveralls.wear!
 
 class InputChanged 
 # Changed to include the full entry definition rather than just the id. This

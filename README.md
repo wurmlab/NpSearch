@@ -1,4 +1,9 @@
-# NeuroPeptideSearch (NpSearch) [![Build Status](https://travis-ci.org/IsmailM/NeuroPeptideSearch.svg?branch=master)](https://travis-ci.org/IsmailM/NeuroPeptideSearch)
+[![Gem Version](https://badge.fury.io/rb/NpSearch.svg)](http://badge.fury.io/rb/NpSearch)
+[![Build Status](https://travis-ci.org/IsmailM/NeuroPeptideSearch.svg?branch=master)](https://travis-ci.org/IsmailM/NeuroPeptideSearch)
+[![Dependency Status](https://gemnasium.com/IsmailM/NeuroPeptideSearch.svg)](https://gemnasium.com/IsmailM/NeuroPeptideSearch)
+[![Inline docs](http://inch-ci.org/github/IsmailM/NeuroPeptideSearch.png?branch=master)](http://inch-ci.org/github/IsmailM/NeuroPeptideSearch)
+
+# NeuroPeptideSearch (NpSearch)
 
 ## Abstract
 
@@ -34,7 +39,7 @@ Note: For this program to work, you will need to obtain a copy of Signal P 4.1 f
 
     * Mandatory Options:
 
-        -i, --input [file]               The input file. Can be a relative or a full path.
+        -i, --input [file]               The input file (in fasta format). Can be a relative or a full path.
         -o, --output [folder name]       The path to the output folder.
                                           This will be created if the folder does not exist.
 
