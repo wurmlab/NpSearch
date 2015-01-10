@@ -21,7 +21,28 @@ def IOError(msg)
   raise IOError, "\n\n#{msg}\n\n"
 end
 
+
+
+#########################
+#### :::::TODO::::
+# 1. Create NpSearch.run - Runs the program...
+# 2. Iterate through the input file and create the 
+#
+#
+#
+#
+#########################
+
 module NpSearch
+
+  # class <<self 
+
+  #   def run
+
+
+  #   end
+  # end
+
   class Input
     # Reads the input file converting it into a hash [id => seq]. Ensures that
     #   the sequences are Bio::Sequence objects...
@@ -89,7 +110,7 @@ module NpSearch
       LOG.info { "Running a Signal Peptide test on each sequence.\n" \
                  "                           This may take some time with" \
                  " large datasets." }
-      d_value = '-U 0.34 -u 0.34' : ''
+      d_value = '-U 0.34 -u 0.34'
       exit_code = system("#{signalp_dir}/signalp -t euk -f short #{d_value}" \
                          "  #{input} > #{output}")
       if exit_code != true
