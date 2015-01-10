@@ -5,6 +5,7 @@ Coveralls.wear!
 
 require 'bio'
 require 'np_search'
+require 'np_search/arg_validator'
 require 'test/unit'
 
 
