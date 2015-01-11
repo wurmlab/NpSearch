@@ -2,6 +2,7 @@
 
 require 'np_search/version'
 require 'np_search'
+require 'np_search/arg_validator'
 require 'optparse'
 
 opt = {}
