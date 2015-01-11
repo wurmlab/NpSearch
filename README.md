@@ -4,6 +4,10 @@
 [![Dependency Status](https://gemnasium.com/IsmailM/NeuroPeptideSearch.svg)](https://gemnasium.com/IsmailM/NeuroPeptideSearch)
 [![Inline docs](http://inch-ci.org/github/IsmailM/NeuroPeptideSearch.png?branch=master)](http://inch-ci.org/github/IsmailM/NeuroPeptideSearch)
 
+
+<strong>NOTE: This is an Alpha Version...</strong>
+
+
 ## Abstract
 
 Neuropeptides and peptide hormones are important signalling molecules that mediate endocrine, paracrine and autocrine cellular signalling. These molecules are the communicating link between the nervous system and the mechanisms governing an organism’s behaviour, development and physiology.
@@ -25,6 +29,10 @@ NpSearch produces a number of files - the final output files is produced as a fa
 Note: For this program to work, you will need to obtain a copy of Signal P 4.1 from cbs at "http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?signalp" and link this to the program. Alternatively you will require an output text file from the Signal P which you can input into the program.
 
 ** Currently only supported on Mac OS & Linux
+
+If you use this program, please cite us:
+
+Moghul MI, Rowe M, Wurm Y, ELphick MR <em>(in prep)</em> NpSearch: A tool to identify novel Neuropeptides
     
 ## Installation
 
