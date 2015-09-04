@@ -1,0 +1,47 @@
+doctype html
+html lang="en"
+  head
+    meta charset="utf-8"
+    meta content="IE=edge" http-equiv="X-UA-Compatible"
+    meta content="width=device-width, initial-scale=1" name="viewport"
+    meta content="NpSearch | Identify Novel Neuropeptides" name="description"
+    meta content="Wurmlab" name="author"
+    title NpSearch | Identify Novel Neuropeptides
+    css:
+      html { position: relative; min-height: 100%; }
+      body {margin:0 0 100px; background-color:#F5F5F5; font-family:"Helvetica Neue", Helvetica, Arial, sans-serif; font-size:15px; line-height:1.42857143; color:#2c3e50;}
+      .container {margin-right:auto; margin-left:auto; padding-left:15px; padding-right:15px; max-width:1170px; width:95%;}
+      footer {bottom:0; width:100%; margin:0 auto; position:absolute; height:100px; overflow:hidden; border-top:2px solid #DBDBDB; color:#b4bcc2;text-align:center;}
+      a{color:#18bc9c; text-decoration:none}a:hover,a:focus{color:#18bc9c; text-decoration:underline}
+      p {margin:0 0 10.5px}
+      .id {font-weight:bold;}
+      .sequence {word-break: break-all;}
+  body
+    .container
+      h1 NpSearch Results
+      .results
+        - @sorted_sequences.each do |seq|
+          p.sequence
+            span.id
+              | >#{seq.id}
+            br
+            span.seq
+              | #{seq.seq}
+      br
+      br
+      br
+    footer
+      p
+        | Please cite "Moghul I, Rowe M, Priyam A, Elphick M &amp; Wurm Y 
+        em
+          | (in prep) 
+        | NpSearch: A tool to identify novel neuropeptides"
+        br
+        |  Developed at 
+        a href="https://wurmlab.github.io" target="_blank" Wurm Lab
+        | , 
+        a href="http://www.sbcs.qmul.ac.uk" target="_blank" QMUL
+        br
+        | This page was created by 
+        a href="https://github.com/wurmlab/NpSearch" target="_blank"  NpSearch 
+        | v#{NpSearch::VERSION}

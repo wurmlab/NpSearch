@@ -1,0 +1,165 @@
+#!/usr/bin/env ruby
+require 'optparse'
+
+require 'npsearch'
+require 'npsearch/arg_validator'
+require 'npsearch/version'
+
+opt = {}
+optparse = OptionParser.new do |opts|
+  opts.banner = <<Banner
+
+* Usage: npsearch [Options] -i [Input File] -o [Output Folder Name]
+
+* Mandatory Options:
+
+Banner
+
+  opt[:input_file] = nil
+  opts.on('-i', '--input [file]', 'Path to the input fasta file') do |f|
+    opt[:input_file] = f
+  end
+
+  opts.separator ''
+  opts.separator '* Optional Options:'
+
+  opt[:motif] = 'KR|RR|KK'
+  opts.on('-m', '--motif [Query Motif]', 'By default NpSearch only searches',
+          ' for dibasic cleavage site ("KR", "RR" or "KK"). This option allows',
+          ' one to change the set of cleavage sites to be searched.',
+          ' The period "." can be used to denote any character. Multiple',
+          ' motifs query can be used by using a pipeline character ("|")',
+          ' between each query and putting the motif query in speech marks',
+          ' e.g. "KR|RR|R..R"',
+          ' Advanced Users: Regular expressions are supported.') do |motif|
+    opt[:motif] = motif
+  end
+
+  opt[:cut_off] = 10
+  opts.on('-c', '--cut_off N', Integer, 'Changes the minimum Open Reading',
+          ' Frame from the default 10 amino acid residues to N amino acid',
+          ' residues.') do |n|
+    opt[:cut_off] = n
+  end
+
+  opt[:signalp_file] = nil
+  opts.on('-s', '--signalp_file [file]',
+          'Is used to supply the signal peptide results to the program. These',
+          ' signal peptide results must be created using the SignalP program',
+          " (Version 4.x), downloadable from CBS. If this argument isn't ",
+          ' suplied, then NpSearch will try to run a local version of the',
+          ' Signal P script.') do |signalp_file|
+    opt[:signalp_file] = signalp_file
+  end
+
+  opt[:extract_orf] = false
+  opts.on('-e', '--extract_orf', 'Only extracts the Open Reading Frames.') do
+    opt[:extract_orf] = true
+  end
+
+  opt[:verbose] = false
+  opts.on('-v', '--verbose', 'Provides more information on each step taken',
+          ' in this program.') do
+    opt[:verbose] = true
+  end
+
+  opts.on('-h', '--help', 'Display this screen') do
+    puts opts
+    exit
+  end
+
+  opts.on('--version', 'Shows version') do
+    puts NpSearch::VERSION
+    exit
+  end
+end
+optparse.parse!
+
+NpSearch.init(opt)
+NpSearch.run
+
+
+
+
+# ############# Argument Validation...##############
+# arg_vldr = NpSearch::ArgValidators.new(opt[:verbose])
+# input_type = arg_vldr.arg(opt[:motif], opt[:input], opt[:output_dir],
+#                           opt[:cut_off], opt[:extract_orf], opt[:signalp_file],
+#                           optparse.help)
+
+# ############# General Validation...##############
+# vldr = NpSearch::Validators.new
+# vldr.output_dir(opt[:output_dir])
+# if opt[:signalp_file].nil? && opt[:extract_orf] == false
+#   sp_dir = vldr.signalp_dir
+# end
+
+# ############# Converting input file to Bio::FastaFormat. #############
+# input_read = NpSearch::Input.read(opt[:input], input_type)
+
+# ############# Extract_ORF #############
+# if input_type == 'genetic'
+#   # Translate Sequences in all 6 frames
+#   translated = NpSearch::Translation.translate(input_read)
+#   translated.to_fasta('translated seq.', "#{opt[:output_dir]}/1_protein.fa")
+#   # Extract all possible ORF that are longer than the ORF_min_length
+#   orf = NpSearch::Translation.extract_orf(translated, opt[:cut_off])
+#   orf.to_fasta('Open Reading Frames', "#{opt[:output_dir]}/2_orf.fa")
+
+#   if opt[:extract_orf]
+#     puts "\nSuccess: All output files created in the directory:" \
+#          "#{opt[:output_dir]}'.\n "
+#     exit
+#   end
+# end
+
+# ############# Setting up more variables...##############
+# if opt[:motif] == 'neuro_clv'
+#   motif = 'KK|KR|RR|' \
+#           'R..R|R....R|R......R|H..R|H....R|H......R|K..R|K....R|K......R'
+# else
+#   motif = opt[:motif]
+# end
+# vldr.motif_type(motif)
+
+# if input_type == 'genetic'
+#   sp_input_file = "#{opt[:output_dir]}/2_orf.fa"
+#   sp_hash = orf
+#   file_number = 3
+# else # i.e. if the input is protein
+#   sp_input_file = opt[:input]
+#   sp_hash = input_read
+#   file_number = 1
+# end
+
+# if opt[:signalp_file].nil?
+#   sp_out_file = "#{opt[:output_dir]}/#{file_number}_signalp_out.txt"
+#   file_number += 1
+#   NpSearch::Signalp.signalp(sp_dir, sp_input_file, sp_out_file)
+# else
+#   sp_out_file = opt[:signalp_file]
+#   file_number = 1
+# end
+
+# ############# Signal P Results file Validation #############
+# vldr.sp_results(sp_out_file)
+
+# ############# Extract sequences with a signal peptide #############
+# secretome = NpSearch::Analysis.parse(sp_out_file, sp_hash, motif)
+# secretome.to_fasta('secretome file',
+#                    "#{opt[:output_dir]}/#{file_number}_secretome.fa")
+# file_number += 1
+
+# ############# Remove any duplicate data #############
+# flattened_seq = NpSearch::Analysis.flattener(secretome)
+
+# ############# Creating Output Files #############
+# flattened_seq.to_fasta('fasta output file',
+#                        "#{opt[:output_dir]}/#{file_number}_output.fa")
+# flattened_seq.to_html(motif,
+#                       "#{opt[:output_dir]}/#{file_number}_output.html")
+
+# ############# Success #############
+# puts # a blank line.
+# puts "Success: All output files created in the directory:'#{opt[:output_dir]}'."
+# puts # a blank line
