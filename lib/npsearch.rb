@@ -18,10 +18,6 @@ module NpSearch
     attr_accessor :sequences
     attr_reader :sorted_sequences
 
-    def logger
-      @logger ||= Logger.new(STDERR, @opt[:verbose])
-    end
-
     def init(opt)
       # @opt = args_validation(opt)
       @opt        = opt
@@ -65,7 +61,10 @@ module NpSearch
 
     def initialise_protein_seq(id, seq)
       sp = Signalp.analyse_sequence(seq)
-      @sequences << Sequence.new(id, seq, sp) if sp[:sp] == 'Y'
+      return unless sp[:sp] == 'Y'
+      seq = Sequence.new(id, seq, sp)
+      ScoreSequence.run(seq)
+      @sequences << seq
     end
 
     def initialise_transcriptomic_seq(id, naseq)

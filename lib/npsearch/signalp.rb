@@ -1,4 +1,3 @@
-require 'csv'
 require 'forwardable'
 require 'tempfile'
 
@@ -8,19 +7,6 @@ module NpSearch
     class << self
       extend Forwardable
       def_delegators NpSearch, :opt
-
-      def analyse_file(file)
-        sp_out = []
-        sp_headers = %w(name cmax cmax_pos ymax ymax_pos smax smax_pos smean d
-                        sp dmaxcut networks)
-        sp = `#{opt[:signalp_path]} -t euk -f short -U 0.34 -u 0.34 #{file}`
-        lines = CSV.parse(sp.gsub(/ +/, ','), col_sep: ',', skip_lines: /^#/,
-                                              header_converters: :symbol,
-                                              converters: :all,
-                                              headers: sp_headers)
-        lines.each { |line| sp_out << line.to_hash }
-        sp_out
-      end
 
       def analyse_sequence(seq)
         sp_headers = %w(name cmax cmax_pos ymax ymax_pos smax smax_pos smean d
