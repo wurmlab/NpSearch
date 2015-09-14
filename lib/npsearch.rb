@@ -22,10 +22,7 @@ module NpSearch
       @opt        = opt
       @sequences  = []
       @sorted_sequences = nil
-      @opt[:num_threads] = 8
       @opt[:type] = guess_sequence_type
-      @opt[:signalp_path] = '/Volumes/Data/data/programs/signalp-4.1/signalp'
-      @opt[:usearch_path] = '/Volumes/Data/data/programs/bin/uclust'
       @pool       = Pool.new(@opt[:num_threads]) if @opt[:num_threads] > 1
     end
 
