@@ -12,7 +12,8 @@ Gem::Specification.new do |s|
   s.description   = 'Search for Neuropeptides based solely on the common' \
                     ' neuropeptide markers (e.g. signal peptide, dibasic' \
                     ' cleavage sites etc.) i.e. not based on homology to' \
-                    ' known neuropeptides.'
+                    " known neuropeptides.\n\n" \
+                    ' For more information: https://github.com/wurmlab/npsearch'
   s.summary       = 'Search for neuropeptides based on the common' \
                     ' neuropeptides markers'
   s.homepage      = 'https://github.com/IsmailM/NeuroPeptideSearch'
