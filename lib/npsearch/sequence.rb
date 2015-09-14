@@ -1,10 +1,6 @@
-require 'forwardable'
-
 module NpSearch
   # A class to hold sequence data
   class Sequence
-    extend Forwardable
-    def_delegators NpSearch, :opt
 
     attr_reader :id
     attr_reader :seq
