@@ -1,7 +1,7 @@
 require 'bio'
 require 'fileutils'
 
-# require 'npsearch/arg_validator'
+require 'npsearch/arg_validator'
 require 'npsearch/output'
 require 'npsearch/pool'
 require 'npsearch/scoresequence'
@@ -11,19 +11,15 @@ require 'npsearch/signalp'
 # Top level module / namespace.
 module NpSearch
   class <<self
-    MIN_ORF_SIZE = 30 # amino acids (including potential signal peptide)
-
     attr_accessor :opt
     attr_accessor :sequences
     attr_reader :sorted_sequences
 
     def init(opt)
-      # @opt = args_validation(opt)
-      @opt        = opt
-      @sequences  = []
+      @opt              = ArgumentsValidators.run(opt)
+      @sequences        = []
       @sorted_sequences = nil
-      @opt[:type] = guess_sequence_type
-      @pool       = Pool.new(@opt[:num_threads]) if @opt[:num_threads] > 1
+      @pool             = Pool.new(@opt[:num_threads]) if @opt[:num_threads] > 1
     end
 
     def run
@@ -66,7 +62,8 @@ module NpSearch
     def initialise_transcriptomic_seq(id, naseq)
       (1..6).each do |f|
         translated_seq = naseq.translate(f)
-        orfs = translated_seq.to_s.scan(/(?=(M\w{#{MIN_ORF_SIZE},}))./).flatten
+        orfs = translated_seq.to_s.scan(/(?=(M\w{#{@opt[:min_orf_length]},}))./)
+               .flatten
         initialise_orfs(id, orfs, f)
       end
     end
@@ -82,15 +79,6 @@ module NpSearch
         # same orf so break loop once signal peptide is found.
         break if sp[:sp] == 'Y'
       end
-    end
-
-    def guess_sequence_type
-      fasta_content = IO.binread(@opt[:input_file])
-      # removing non-letter and ambiguous characters
-      cleaned_sequence = fasta_content.gsub(/[^A-Z]|[NX]/i, '')
-      return nil if cleaned_sequence.length < 10 # conservative
-      type = Bio::Sequence.new(cleaned_sequence).guess(0.9)
-      (type == Bio::Sequence::NA) ? :nucleotide : :protein
     end
   end
 end
