@@ -4,24 +4,22 @@ module NpSearch
     class << self
       def run(opt)
         @opt = opt
-        assert_input_file_present
+        assert_file_present('input fasta file', @opt[:input_file])
         assert_input_file_not_empty
         assert_input_file_probably_fasta
         @opt[:type] = guess_sequence_type
         assert_input_sequence
         check_num_threads
-        check_signalp_path
-        check_usearch_path
+        assert_binaries
         @opt
       end
 
       private
 
-      def assert_input_file_present
-        file = @opt[:input_file]
+      def assert_file_present(desc, file, exit_code = 1)
         return if file && File.exist?(File.expand_path(file))
-        $stderr.puts "*** Error: Couldn't find the input_file: #{file}."
-        exit 1
+        $stderr.puts "*** Error: Couldn't find the #{desc}: #{file}."
+        exit exit_code
       end
 
       def assert_input_file_not_empty
@@ -71,10 +69,20 @@ module NpSearch
                      ' unusually high.'
       end
 
-      def check_signalp_path
+      def assert_binaries
+        check_bin('SignalP 4.1 Script', @opt[:signalp_path], '-V')
+        check_bin('Usearch Script', @opt[:usearch_path], '--version')
       end
 
-      def check_usearch_path
+      def check_bin(desc, bin, sub_command)
+        assert_file_present(desc, bin)
+        return if command?("#{bin} #{sub_command}")
+        $stderr.puts "NpSearch is unable to use the #{desc} at #{bin}"
+      end
+
+      # Return `true` if the given command exists and is executable.
+      def command?(command)
+        system("which #{command} > /dev/null 2>&1")
       end
     end
   end
