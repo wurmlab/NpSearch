@@ -10,16 +10,14 @@ module NpSearch
     attr_reader :seq
     attr_reader :signalp
     attr_reader :translated_frame
-    attr_reader :orf_index
     attr_accessor :score
     attr_accessor :potential_cleaved_nps
 
-    def initialize(id, seq, signalp_output, frame = nil, orf_index = nil)
+    def initialize(id, seq, signalp_output, frame = nil)
       @id                    = id
       @seq                   = seq
       @signalp               = signalp_output
       @translated_frame      = frame
-      @orf_index             = orf_index
       @score                 = 0
       @potential_cleaved_nps = nil
     end

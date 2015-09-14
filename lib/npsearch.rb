@@ -72,14 +72,12 @@ module NpSearch
     end
 
     def initialise_orfs(id, orfs, frame)
-      idx = 0
       orfs.each do |orf|
         sp = Signalp.analyse_sequence(orf)
         next if sp[:sp] == 'N'
-        seq = Sequence.new(id, orf, sp, frame, idx)
+        seq = Sequence.new(id, orf, sp, frame)
         ScoreSequence.run(seq)
         @sequences << seq
-        idx += 1
         # The remaining ORF in this frame are simply shorter versions of the
         # same orf so break loop once signal peptide is found.
         break if sp[:sp] == 'Y'
