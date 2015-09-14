@@ -2,7 +2,6 @@ require 'bio'
 require 'fileutils'
 
 # require 'npsearch/arg_validator'
-require 'npsearch/logger'
 require 'npsearch/output'
 require 'npsearch/pool'
 require 'npsearch/scoresequence'
