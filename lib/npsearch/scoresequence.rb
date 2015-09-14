@@ -21,6 +21,8 @@ module NpSearch
         acidic_spacers
       end
 
+      private
+
       def split_into_neuropeptides
         potential_nps = []
         results = @sequence.seq.scan(/(?<=^|#{NP_CLV})(\w+?)(?=#{NP_CLV}|$)/i)
@@ -32,17 +34,24 @@ module NpSearch
 
       def count_np_cleavage_sites
         @sequence.potential_cleaved_nps.each do |e|
-          case e[:di_clv_end]
-          when 'KR'
-            @sequence.score += 0.09
-          when 'RR', 'KK'
-            @sequence.score += 0.05
-          end
-          if !e[:mono_2_clv_end].nil? || !e[:mono_4_clv_end].nil? ||
-             !e[:mono_6_clv_end].nil?
-            @sequence.score += 0.02
-          end
+          count_dibasic_np_clv(e[:di_clv_end])
+          count_mono_basic_np_clv(e[:mono_2_clv_end], e[:mono_4_clv_end],
+                                  e[:mono_6_clv_end])
         end
+      end
+
+      def count_dibasic_np_clv(dibasic_clv)
+        case dibasic_clv
+        when 'KR'
+          @sequence.score += 0.09
+        when 'RR', 'KK'
+          @sequence.score += 0.05
+        end
+      end
+
+      def count_mono_basic_np_clv(mono_2_clv, mono_4_clv, mono_6_clv)
+        return if mono_2_clv.nil? && mono_4_clv.nil? && mono_6_clv.nil?
+        @sequence.score += 0.02
       end
 
       # Counts the number of C-terminal glycines
