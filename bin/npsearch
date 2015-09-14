@@ -8,24 +8,15 @@ require 'npsearch/version'
 opt = {}
 optparse = OptionParser.new do |opts|
   opts.banner = <<Banner
+* Description: A tool to identify novel neuropeptides.
 
-* Usage: npsearch [Options] -i [Input File]
+* Usage: npsearch [Options] [Input File]
 
-* Mandatory Options:
-
+* Options
 Banner
 
-  opt[:input_file] = nil
-  opts.on('-i', '--input [file]',
-          'Path to the input fasta file') do |f|
-    opt[:input_file] = f
-  end
-
-  opts.separator ''
-  opts.separator '* Optional Options:'
-
   opt[:signalp_path] = File.join(ENV['HOME'], 'signalp/signalp')
-  opts.on('-s', '--signalp_path', String,
+  opts.on('-s', '--signalp_path path_to_signalp',
           'The full path to the signalp script. This can be downloaded from',
           ' CBS. See https://www.github.com/wurmlab/NpSearch for more',
           ' information') do |p|
@@ -33,7 +24,7 @@ Banner
   end
 
   opt[:usearch_path] = File.join(ENV['HOME'], 'bin/uclust')
-  opts.on('-u', '--usearch_path', String,
+  opts.on('-u', '--usearch_path path_to_usearch',
           'The full path to the usearch binary. This script can be downloaded',
           ' from .... See https://www.github.com/wurmlab/NpSearch for more',
           ' information') do |p|
@@ -41,7 +32,7 @@ Banner
   end
 
   opt[:num_threads] = 1
-  opts.on('-n', '--num_threads', Integer,
+  opts.on('-n', '--num_threads num_of_threads', Integer,
           'The number of threads to use when analysing the input file') do |n|
     opt[:num_threads] = n
   end
@@ -63,12 +54,23 @@ Banner
     exit
   end
 end
-optparse.parse!
+begin
+  optparse.parse!
+  if ARGV.length > 1
+    $stderr.puts "Error: It seems that you have #{ARGV.length} input fasta" \
+                 ' files. Please ensure that you have a single input fasta' \
+                 " file\n"
+    exit 1
+  elsif ARGV.length == 0
+    $stderr.puts optparse
+    exit 1
+  end
+rescue OptionParser::ParseError
+  $stderr.print 'Error: ' + $ERROR_INFO.to_s + '\n'
+  exit 1
+end
 
-# Temporary hard coding my defaults...
-opt[:num_threads] = 8
-opt[:signalp_path] = '/Volumes/Data/data/programs/signalp-4.1/signalp'
-opt[:usearch_path] = '/Volumes/Data/data/programs/bin/usearch'
+opt[:input_file] = ARGV[0]
 
 NpSearch.init(opt)
 NpSearch.run
