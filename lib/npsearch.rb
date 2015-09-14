@@ -29,7 +29,7 @@ module NpSearch
     def run
       iterate_input_file
       @sorted_sequences = @sequences.sort_by(&:score).reverse
-      Output.to_fasta(@opt[:input_file], @sorted_sequences)
+      Output.to_fasta(@opt[:input_file], @sorted_sequences, @opt[:type])
       Output.to_html(@opt[:input_file])
     end
 

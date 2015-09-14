@@ -15,7 +15,12 @@ html lang="en"
       a{color:#18bc9c; text-decoration:none}a:hover,a:focus{color:#18bc9c; text-decoration:underline}
       p {margin:0 0 10.5px}
       .id {font-weight:bold;}
-      .sequence {word-break: break-all;}
+      .sequence {word-break:break-all; font-family:Courier New, Courier, Mono;}
+      .signalp {color:#007AC0; font-weight:bold;}
+      .np_clv {color:#00B050; font-weight:bold;}
+      .mono_np_clv {color:#00B050; font-weight:bold;}
+      .glycine {color:#FF0000; font-weight:bold;}
+      .cysteine {text-decoration: underline; font-weight:bold;}
   body
     .container
       h1 NpSearch Results
@@ -23,10 +28,12 @@ html lang="en"
         - @sorted_sequences.each do |seq|
           p.sequence
             span.id
-              | >#{seq.id}
+              - if @opt[:type] == :protein
+                | >#{seq.id}
+              - elsif @opt[:type] == :nucleotide
+                | >#{seq.id}-(frame:#{seq.translated_frame})
             br
-            span.seq
-              | #{seq.seq}
+            span.seq== seq.html_seq
       br
       br
       br

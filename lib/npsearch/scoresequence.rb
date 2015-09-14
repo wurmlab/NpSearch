@@ -22,10 +22,8 @@ module NpSearch
       end
 
       def split_into_neuropeptides
-        sp_cleavage_site = @sequence.signalp[:ymax_pos].to_i
-        seq = @sequence.seq[sp_cleavage_site..-1]
         potential_nps = []
-        results = seq.scan(/(?<=^|#{NP_CLV})(\w+?)(?=#{NP_CLV}|$)/i)
+        results = @sequence.seq.scan(/(?<=^|#{NP_CLV})(\w+?)(?=#{NP_CLV}|$)/i)
         headers = %w(di_clv_st mono_2_clv_st mono_4_clv_st mono_6_clv_st np
                      di_clv_end mono_2_clv_end mono_4_clv_end mono_6_clv_end)
         results.each { |e| potential_nps << Hash[headers.map(&:to_sym).zip(e)] }

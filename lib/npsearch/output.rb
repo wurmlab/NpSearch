@@ -13,11 +13,16 @@ module NpSearch
         File.open(output_file, 'w') { |f| f.puts html_content }
       end
 
-      def to_fasta(input_file, sorted_sequences)
+      def to_fasta(input_file, sorted_sequences, input_type)
         output_file = "#{input_file}.out.fa"
         File.open(output_file, 'w') do |f|
           sorted_sequences.each do |s|
-            f.puts ">#{s.id}_f#{s.translated_frame}\n#{s.seq}"
+            if input_type == :protein
+              f.puts ">#{s.id}\n#{s.signalp}#{s.seq}"
+            elsif input_type == :nucleotide
+              f.puts ">#{s.id}-(frame:#{s.translated_frame})"
+              f.puts "#{s.signalp}#{s.seq}"
+            end
           end
         end
       end
