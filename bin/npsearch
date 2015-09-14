@@ -37,11 +37,11 @@ Banner
     opt[:num_threads] = n
   end
 
-  opt[:orf_min_length] = 30
-  opts.on('-m', '--orf_min_length N', Integer,
+  opt[:min_orf_length] = 30
+  opts.on('-m', '--min_orf_length N', Integer,
           'The minimum length of a potential neuropeptide precursor.',
           ' Default: 30') do |n|
-    opt[:orf_min_length] = n
+    opt[:min_orf_length] = n
   end
 
   opts.on('-h', '--help', 'Display this screen') do
