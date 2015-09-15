@@ -28,6 +28,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'bundler', '~> 1.6'
   s.add_development_dependency 'rake', '~>10.3'
   s.add_development_dependency 'coveralls'
+  s.add_development_dependency 'minitest', '~> 5.4'
 
   s.add_dependency 'bio', '~> 1.4'
   s.add_dependency 'slim', '~> 3.0'
