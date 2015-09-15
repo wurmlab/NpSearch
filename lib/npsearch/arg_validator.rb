@@ -7,7 +7,6 @@ module NpSearch
         assert_file_present('input fasta file', @opt[:input_file])
         assert_input_file_not_empty
         assert_input_file_probably_fasta
-        @opt[:type] = guess_sequence_type
         assert_input_sequence
         check_num_threads
         assert_binaries
@@ -39,19 +38,29 @@ module NpSearch
         exit 1
       end
 
-      def guess_sequence_type
-        fasta_content = IO.binread(@opt[:input_file])
+      def guess_sequence_type(seq)
         # removing non-letter and ambiguous characters
-        cleaned_sequence = fasta_content.gsub(/[^A-Z]|[NX]/i, '')
+        cleaned_sequence = seq.gsub(/[^A-Z]|[NX]/i, '')
         return nil if cleaned_sequence.length < 10 # conservative
         type = Bio::Sequence.new(cleaned_sequence).guess(0.9)
         (type == Bio::Sequence::NA) ? :nucleotide : :protein
       end
 
+      def type_of_sequences
+        fasta_content = IO.binread(@opt[:input_file])
+        # the first sequence does not need to have a fasta definition line
+        sequences = fasta_content.split(/^>.*$/).delete_if(&:empty?)
+        # get all sequence types
+        sequence_types = sequences.collect { |seq| guess_sequence_type(seq) }
+                         .uniq.compact
+        return nil if sequence_types.empty?
+        sequence_types.first if sequence_types.length == 1
+      end
+
       def assert_input_sequence
-        return if @opt[:type] == :nucleotide || @opt[:type] == :protein
-        $stderr.puts '*** Error: The input files does not contain just protein'
-        $stderr.puts '    or nucleotide data, but seems to be a mixture of'
+        @opt[:type] = type_of_sequences
+        return unless @opt[:type].nil?
+        $stderr.puts '*** Error: The input files seems to contain a mixture of'
         $stderr.puts '    both protein and nucleotide data.'
         $stderr.puts '    Please correct this and try again.'
         exit 1
