@@ -31,6 +31,14 @@ Banner
     opt[:usearch_path] = p
   end
 
+  opt[:temp_dir] = File.join(Dir.pwd, '.temp')
+  opts.on('-d', '--temp_dir path_to_temp_dir',
+          'The full path to the temp dir. NpSearch will create the folder and',
+          ' then delete the folder once it has finished using them.',
+          ' Default: Hidden folder in the current working dirctory') do |p|
+    opt[:temp_dir] = p
+  end
+
   opt[:num_threads] = 1
   opts.on('-n', '--num_threads num_of_threads', Integer,
           'The number of threads to use when analysing the input file') do |n|
