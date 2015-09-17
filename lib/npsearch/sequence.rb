@@ -1,3 +1,4 @@
+# Top level module / namespace.
 module NpSearch
   # A class to hold sequence data
   class Sequence

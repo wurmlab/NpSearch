@@ -1,5 +1,6 @@
 require 'slim'
 
+# Top level module / namespace.
 module NpSearch
   # Class that generates the output
   class Output

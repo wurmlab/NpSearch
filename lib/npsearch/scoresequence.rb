@@ -1,5 +1,6 @@
 require 'csv'
 
+# Top level module / namespace.
 module NpSearch
   # A class to score the Sequences
   class ScoreSequence
