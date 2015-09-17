@@ -20,6 +20,7 @@ module NpSearch
       @sequences        = []
       @sorted_sequences = nil
       @pool             = Pool.new(@opt[:num_threads]) if @opt[:num_threads] > 1
+      create_temp_dir
     end
 
     def run
@@ -27,6 +28,7 @@ module NpSearch
       @sorted_sequences = @sequences.sort_by(&:score).reverse
       Output.to_fasta(@opt[:input_file], @sorted_sequences, @opt[:type])
       Output.to_html(@opt[:input_file])
+      remove_temp_dir
     end
 
     private
@@ -56,7 +58,7 @@ module NpSearch
       return unless sp[:sp] == 'Y'
       seq = Sequence.new(id, sequence, sp)
       puts id
-      ScoreSequence.run(seq)
+      ScoreSequence.run(seq, @opt[:temp_dir])
       @sequences << seq
     end
 
@@ -75,12 +77,22 @@ module NpSearch
         next if sp[:sp] == 'N'
         puts id
         seq = Sequence.new(id, orf, sp, frame)
-        ScoreSequence.run(seq)
+        ScoreSequence.run(seq, @opt[:temp_dir])
         @sequences << seq
         # The remaining ORF in this frame are simply shorter versions of the
         # same orf so break loop once signal peptide is found.
         break if sp[:sp] == 'Y'
       end
+    end
+
+    def create_temp_dir
+      return if File.directory?(@opt[:temp_dir])
+      FileUtils.mkdir_p(@opt[:temp_dir])
+    end
+
+    def remove_temp_dir
+      return unless File.directory?(@opt[:temp_dir])
+      FileUtils.rm_rf(@opt[:temp_dir])
     end
   end
 end

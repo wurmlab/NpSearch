@@ -1,5 +1,4 @@
 require 'csv'
-require 'tempfile'
 
 module NpSearch
   # A class to score the Sequences
@@ -12,12 +11,12 @@ module NpSearch
       NP_CLV = "(#{DI_CLV})|(#{MONO_NP_CLV_2})|(#{MONO_NP_CLV_4})|" \
                "(#{MONO_NP_CLV_6})"
 
-      def run(sequence)
+      def run(sequence, temp_dir)
         @sequence = sequence
         split_into_neuropeptides
         count_np_cleavage_sites
         count_c_terminal_glycines
-        np_similarity
+        np_similarity(temp_dir)
         acidic_spacers
       end
 
@@ -73,8 +72,8 @@ module NpSearch
         end
       end
 
-      def np_similarity
-        results = run_uclust
+      def np_similarity(temp_dir)
+        results = run_uclust(temp_dir)
         results.gsub!(/^[^C].*\n/, '')
         results.each_line do |c|
           cluster = c.split(/\t/)
@@ -85,15 +84,12 @@ module NpSearch
         end
       end
 
-      def run_uclust
-        f = Tempfile.new('uclust')
-        fo = Tempfile.new('uclust_out')
+      def run_uclust(temp_dir)
+        f = Tempfile.new('uclust', temp_dir)
+        fo = Tempfile.new('uclust_out', temp_dir)
         write_sequence_content_to_tempfile(f)
         `usearch -cluster_fast #{f.path} -id 0.5 -uc #{fo.path} >/dev/null 2>&1`
         IO.read(fo.path)
-      ensure
-        f.unlink
-        fo.unlink
       end
 
       def write_sequence_content_to_tempfile(tempfile)
