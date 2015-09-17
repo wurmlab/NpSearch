@@ -3,14 +3,13 @@ module NpSearch
   class ArgumentsValidators
     class << self
       def run(opt)
-        @opt = opt
-        assert_file_present('input fasta file', @opt[:input_file])
-        assert_input_file_not_empty
-        assert_input_file_probably_fasta
-        assert_input_sequence
-        check_num_threads
-        assert_binaries
-        @opt
+        assert_file_present('input fasta file', opt[:input_file])
+        assert_input_file_not_empty(opt[:input_file])
+        assert_input_file_probably_fasta(opt[:input_file])
+        opt[:type] = assert_input_sequence(opt[:input_file])
+        opt[:num_threads] = check_num_threads(opt[:num_threads])
+        assert_binaries(opt[:signalp_path], opt[:usearch_path])
+        opt
       end
 
       private
@@ -21,21 +20,41 @@ module NpSearch
         exit exit_code
       end
 
-      def assert_input_file_not_empty
-        return unless File.zero?(File.expand_path(@opt[:input_file]))
-        $stderr.puts "*** Error: The input_file (#{@opt[:input_file]})" \
+      def assert_input_file_not_empty(file)
+        return unless File.zero?(File.expand_path(file))
+        $stderr.puts "*** Error: The input_file (#{file})" \
                      ' seems to be empty.'
         exit 1
       end
 
-      def assert_input_file_probably_fasta
-        File.open(@opt[:input_file], 'r') do |f|
+      def assert_input_file_probably_fasta(file)
+        File.open(file, 'r') do |f|
           fasta = (f.readline[0] == '>') ? true : false
           return fasta if fasta
         end
-        $stderr.puts "*** Error: The input_file (#{@opt[:input_file]})" \
+        $stderr.puts "*** Error: The input_file (#{file})" \
                      ' does not seems to be a fasta file.'
         exit 1
+      end
+
+      def assert_input_sequence(file)
+        type = type_of_sequences(file)
+        return type unless type.nil?
+        $stderr.puts '*** Error: The input files seems to contain a mixture of'
+        $stderr.puts '    both protein and nucleotide data.'
+        $stderr.puts '    Please correct this and try again.'
+        exit 1
+      end
+
+      def type_of_sequences(file)
+        fasta_content = IO.binread(file)
+        # the first sequence does not need to have a fasta definition line
+        sequences = fasta_content.split(/^>.*$/).delete_if(&:empty?)
+        # get all sequence types
+        sequence_types = sequences.collect { |seq| guess_sequence_type(seq) }
+                         .uniq.compact
+        return nil if sequence_types.empty?
+        sequence_types.first if sequence_types.length == 1
       end
 
       def guess_sequence_type(seq)
@@ -46,45 +65,24 @@ module NpSearch
         (type == Bio::Sequence::NA) ? :nucleotide : :protein
       end
 
-      def type_of_sequences
-        fasta_content = IO.binread(@opt[:input_file])
-        # the first sequence does not need to have a fasta definition line
-        sequences = fasta_content.split(/^>.*$/).delete_if(&:empty?)
-        # get all sequence types
-        sequence_types = sequences.collect { |seq| guess_sequence_type(seq) }
-                         .uniq.compact
-        return nil if sequence_types.empty?
-        sequence_types.first if sequence_types.length == 1
-      end
-
-      def assert_input_sequence
-        @opt[:type] = type_of_sequences
-        return unless @opt[:type].nil?
-        $stderr.puts '*** Error: The input files seems to contain a mixture of'
-        $stderr.puts '    both protein and nucleotide data.'
-        $stderr.puts '    Please correct this and try again.'
-        exit 1
-      end
-
-      def check_num_threads
-        @opt[:num_threads] = Integer(@opt[:num_threads])
-        unless @opt[:num_threads] > 0
+      def check_num_threads(num_threads)
+        num_threads = Integer(num_threads)
+        unless num_threads > 0
           $stderr.puts 'Number of threads can not be lower than 0'
           $stderr.puts 'Setting number of threads to 1'
-          @opt[:num_threads] = 1
+          num_threads = 1
         end
-        return unless @opt[:num_threads] > 256
-        $stderr.puts "Number of threads set at #{@opt[:num_threads]} is" \
+        return num_threads unless num_threads > 256
+        $stderr.puts "Number of threads set at #{num_threads} is" \
                      ' unusually high.'
       end
 
-      def assert_binaries
-        check_bin('SignalP 4.1 Script', @opt[:signalp_path], '-V')
-        check_bin('Usearch Script', @opt[:usearch_path], '--version')
+      def assert_binaries(signalp_path, usearch_path)
+        check_bin('SignalP 4.1 Script', signalp_path) unless signalp_path.nil?
+        check_bin('Usearch Script', usearch_path) unless usearch_path.nil?
       end
 
-      def check_bin(desc, bin, sub_command)
-        assert_file_present(desc, bin)
+      def check_bin(desc, bin)
         return if command?("#{bin}")
         $stderr.puts "NpSearch is unable to use the #{desc} at #{bin}"
       end
