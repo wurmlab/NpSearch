@@ -85,7 +85,7 @@ module NpSearch
 
       def check_bin(desc, bin, sub_command)
         assert_file_present(desc, bin)
-        return if command?("#{bin} #{sub_command}")
+        return if command?("#{bin}")
         $stderr.puts "NpSearch is unable to use the #{desc} at #{bin}"
       end
 
