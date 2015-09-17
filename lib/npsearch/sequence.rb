@@ -28,7 +28,7 @@ module NpSearch
     def format_seq_for_html
       seq = @seq.gsub(/C/, '<span class=cysteine>C</span>')
       seq.gsub!(/#{DI_NP_CLV}/i, '<span class=np_clv>\0</span>')
-      seq.gsub!(/#{MONO_NP_CLV}/i, '\0::NP_CLV::') # so that we can target R >>
+      seq.gsub!(/#{MONO_NP_CLV}/i, '\0::NP_CLV::') # so that we can target 'R'
       seq.gsub!('R::NP_CLV::', '<span class=mono_np_clv>R</span>')
       seq.gsub!('G<span class=np_clv>',
                 '<span class=glycine>G</span><span class=np_clv>')
