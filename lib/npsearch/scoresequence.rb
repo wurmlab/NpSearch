@@ -33,6 +33,7 @@ module NpSearch
       end
 
       def count_np_cleavage_sites
+        return if @sequence.potential_cleaved_nps.length == 0
         @sequence.potential_cleaved_nps.each do |e|
           count_dibasic_np_clv(e[:di_clv_end])
           count_mono_basic_np_clv(e[:mono_2_clv_end], e[:mono_4_clv_end],
@@ -56,6 +57,7 @@ module NpSearch
 
       # Counts the number of C-terminal glycines
       def count_c_terminal_glycines
+        return if @sequence.potential_cleaved_nps.length == 0
         @sequence.potential_cleaved_nps.each do |e|
           if e[:np] =~ /G$/ && e[:di_clv_end] == 'KR'
             @sequence.score += 0.25
@@ -88,18 +90,20 @@ module NpSearch
       def run_uclust(temp_dir)
         f = Tempfile.new('uclust', temp_dir)
         fo = Tempfile.new('uclust_out', temp_dir)
-        write_sequence_content_to_tempfile(f)
+        return unless write_sequence_content_to_tempfile(f)
         `usearch -cluster_fast #{f.path} -id 0.5 -uc #{fo.path} >/dev/null 2>&1`
         IO.read(fo.path)
       end
 
       def write_sequence_content_to_tempfile(tempfile)
+        return false if @sequence.potential_cleaved_nps.length == 0
         content = ''
         @sequence.potential_cleaved_nps.each_with_index do |e, i|
           content += ">seq#{i}\n#{e[:np]}\n"
         end
         tempfile.write(content)
         tempfile.close
+        true
       end
     end
   end
