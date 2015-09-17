@@ -51,10 +51,11 @@ module NpSearch
       end
     end
 
-    def initialise_protein_seq(id, seq)
-      sp = Signalp.analyse_sequence(seq)
+    def initialise_protein_seq(id, sequence)
+      sp = Signalp.analyse_sequence(sequence)
       return unless sp[:sp] == 'Y'
-      seq = Sequence.new(id, seq, sp)
+      seq = Sequence.new(id, sequence, sp)
+      puts id
       ScoreSequence.run(seq)
       @sequences << seq
     end
@@ -72,6 +73,7 @@ module NpSearch
       orfs.each do |orf|
         sp = Signalp.analyse_sequence(orf)
         next if sp[:sp] == 'N'
+        puts id
         seq = Sequence.new(id, orf, sp, frame)
         ScoreSequence.run(seq)
         @sequences << seq
