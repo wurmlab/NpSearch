@@ -58,7 +58,7 @@ module NpSearch
       return unless sp[:sp] == 'Y'
       seq = Sequence.new(id, sequence, sp)
       puts id
-      ScoreSequence.run(seq, @opt[:temp_dir])
+      ScoreSequence.run(seq, @opt)
       @sequences << seq
     end
 
@@ -77,7 +77,7 @@ module NpSearch
         next if sp[:sp] == 'N'
         puts id
         seq = Sequence.new(id, orf, sp, frame)
-        ScoreSequence.run(seq, @opt[:temp_dir])
+        ScoreSequence.run(seq, @opt)
         @sequences << seq
         # The remaining ORF in this frame are simply shorter versions of the
         # same orf so break loop once signal peptide is found.

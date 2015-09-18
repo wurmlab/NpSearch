@@ -12,11 +12,11 @@ module NpSearch
       NP_CLV = "(#{DI_CLV})|(#{MONO_NP_CLV_2})|(#{MONO_NP_CLV_4})|" \
                "(#{MONO_NP_CLV_6})"
 
-      def run(sequence, temp_dir)
+      def run(sequence, opt)
         split_into_neuropeptides(sequence)
         count_np_cleavage_sites(sequence)
         count_c_terminal_glycines(sequence)
-        np_similarity(sequence, temp_dir)
+        np_similarity(sequence, opt[:usearch_path], opt[:tempdir])
         acidic_spacers(sequence)
       end
 
@@ -29,7 +29,6 @@ module NpSearch
                      di_clv_end mono_2_clv_end mono_4_clv_end mono_6_clv_end)
         results.each { |e| potential_nps << Hash[headers.map(&:to_sym).zip(e)] }
         sequence.potential_cleaved_nps = potential_nps
-        sequence
       end
 
       def count_np_cleavage_sites(sequence)
@@ -75,23 +74,24 @@ module NpSearch
         end
       end
 
-      def np_similarity(sequence, temp_dir)
-        results = run_uclust(sequence, temp_dir)
+      def np_similarity(sequence, temp_dir, usearch_path, results = nil)
+        results = run_uclust(sequence, temp_dir, usearch_path) if results.nil?
         results.gsub!(/^[^C].*\n/, '')
         results.each_line do |c|
-          cluster = c.split(/\t/)
-          no_of_seq_in_cluster = cluster[3].to_i
+          cluster = c.split(/\W/)
+          no_of_seq_in_cluster = cluster[2].to_i
           if no_of_seq_in_cluster > 1
             sequence.score += (0.15 * no_of_seq_in_cluster)
           end
         end
       end
 
-      def run_uclust(sequence, temp_dir)
+      def run_uclust(sequence, temp_dir, usearch_path)
         f = Tempfile.new('uclust', temp_dir)
         fo = Tempfile.new('uclust_out', temp_dir)
         return unless write_sequence_content_to_tempfile(sequence, f)
-        `usearch -cluster_fast #{f.path} -id 0.5 -uc #{fo.path} >/dev/null 2>&1`
+        `#{usearch_path} -cluster_fast #{f.path} -id 0.5 -uc #{fo.path} \
+         >/dev/null 2>&1`
         IO.read(fo.path)
       end
 
