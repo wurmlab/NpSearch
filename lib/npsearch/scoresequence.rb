@@ -58,7 +58,9 @@ module NpSearch
       def count_c_terminal_glycines(sequence)
         return if sequence.potential_cleaved_nps.length == 0
         sequence.potential_cleaved_nps.each do |e|
-          if e[:np] =~ /G$/ && e[:di_clv_end] == 'KR'
+          if e[:np] =~ /FG$/ && e[:di_clv_end] == 'KR'
+            sequence.score += 0.40
+          elsif e[:np] =~ /G$/ && e[:di_clv_end] == 'KR'
             sequence.score += 0.25
           elsif e[:np] =~ /G$|GK$|GR$/
             sequence.score += 0.10
