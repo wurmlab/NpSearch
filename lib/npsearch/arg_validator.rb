@@ -71,7 +71,7 @@ module NpSearch
         num_threads = Integer(num_threads)
         unless num_threads > 0
           $stderr.puts 'Number of threads can not be lower than 0'
-          $stderr.puts 'Setting number of threads to 1'
+          $stderr.puts 'Changing number of threads to 1'
           num_threads = 1
         end
         return num_threads unless num_threads > 256
@@ -80,8 +80,8 @@ module NpSearch
       end
 
       def assert_binaries(signalp_path, usearch_path)
-        check_bin('SignalP 4.1 Script', signalp_path) unless signalp_path.nil?
-        check_bin('Usearch Script', usearch_path) unless usearch_path.nil?
+        check_bin('SignalP 4.1 Script', signalp_path)
+        check_bin('Usearch Script', usearch_path)
       end
 
       def check_bin(desc, bin)

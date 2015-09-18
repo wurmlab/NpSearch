@@ -15,7 +15,7 @@ optparse = OptionParser.new do |opts|
 * Options
 Banner
 
-  opt[:signalp_path] = nil
+  opt[:signalp_path] = 'signalp'
   opts.on('-s', '--signalp_path path_to_signalp',
           'The full path to the signalp script. This can be downloaded from',
           ' CBS. See https://www.github.com/wurmlab/NpSearch for more',
@@ -23,7 +23,7 @@ Banner
     opt[:signalp_path] = p
   end
 
-  opt[:usearch_path] = nil
+  opt[:usearch_path] = 'usearch'
   opts.on('-u', '--usearch_path path_to_usearch',
           'The full path to the usearch binary. This script can be downloaded',
           ' from .... See https://www.github.com/wurmlab/NpSearch for more',
