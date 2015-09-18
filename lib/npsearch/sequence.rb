@@ -1,5 +1,6 @@
 # Top level module / namespace.
 module NpSearch
+  # Adapted from GeneValidator's Query Class..
   # A class to hold sequence data
   class Sequence
     DI_NP_CLV = 'KR|KK|RR'
@@ -9,7 +10,6 @@ module NpSearch
     attr_reader :signalp
     attr_reader :seq
     attr_reader :html_seq
-    attr_reader :signalp_output
     attr_reader :translated_frame
     attr_accessor :score
     attr_accessor :potential_cleaved_nps
