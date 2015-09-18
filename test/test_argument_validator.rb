@@ -1,5 +1,4 @@
 require_relative 'test_helper'
-require 'minitest/autorun'
 
 require 'npsearch/arg_validator'
 
@@ -19,56 +18,33 @@ class TestInputArgumentValidator < Minitest::Test
     end
   end
 
-  # def test_assert_input_file_not_empty
-  #   @opt[:input_file] = 'test/files/genetic.fa'
-  #   @c.send(:assert_input_file_not_empty, @opt)
-  #   @opt[:input_file] = 'test/files/empty_file.fa'
-  #   assert_raises(SystemExit) { @c.send(:assert_input_file_not_empty) }
-  # end
+  def test_assert_input_file_not_empty
+    f = 'test/files/genetic.fa'
+    @c.send(:assert_input_file_not_empty, f)
+    f = 'test/files/empty_file.fa'
+    assert_raises(SystemExit) { @c.send(:assert_input_file_not_empty, f) }
+  end
 
-  # def test_no_file_present
-  #   opt = { }
-  #   NpSearch.init(opt)
-  # rescue SystemExit
-  #   error = true
-  #   assert_equal(true, error)
-  # end
+  def test_assert_input_file_probably_fasta
+    f = 'test/files/genetic.fa'
+    @c.send(:assert_input_file_probably_fasta, f)
+    f = 'test/files/not_fasta.fa'
+    assert_raises(SystemExit) { @c.send(:assert_input_file_probably_fasta, f) }
+  end
 
-  # def test_empty_input_file
-  #   opt = { input_file: 'test/files/empty_file.fa', num_threads: 1,
-  #           min_orf_length: 30 }
-  #   NpSearch.init(opt)
-  # rescue SystemExit
-  #   error = true
-  #   assert_equal(true, error)
-  # end
+  def test_assert_input_sequence
+    f = 'test/files/genetic.fa'
+    @c.send(:assert_input_sequence, f)
+    f = 'test/files/protein.fa'
+    @c.send(:assert_input_sequence, f)
+    f = 'test/files/mixed_content.fa'
+    assert_raises(SystemExit) { @c.send(:assert_input_sequence, f) }
+  end
 
-  # def test_non_fasta_file
-  #   opt = { input_file: 'test/files/not_fasta.fa', num_threads: 1,
-  #           min_orf_length: 30 }
-  #   NpSearch.init(opt)
-  # rescue SystemExit
-  #   error = true
-  #   assert_equal(true, error)
-  # end
-
-  # def test_mixed_seqeunce_content
-  #   opt = { input_file: 'test/files/mixed_content.fa', num_threads: 1,
-  #           min_orf_length: 30 }
-  #   NpSearch.init(opt)
-  # rescue SystemExit
-  #   error = true
-  #   assert_equal(true, error)
-  # end
-
-  # def test_string_integer_num_threads
-  #   opt = { input_file: 'test/files/genetic.fa', num_threads: '1',
-  #           min_orf_length: 30 }
-  #   NpSearch.init(opt)
-  # rescue SystemExit
-  #   error = true
-  #   assert_equal(true, error)
-  # end
+  def test_check_num_threads
+    [1, 50, 300].each do |t|
+      @c.send(:check_num_threads, t)
+    end
+    assert_equal(1, @c.send(:check_num_threads, -3))
+  end
 end
-# Non existing Signalp path
-# Non existing Usearch path
