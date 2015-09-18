@@ -1,3 +1,4 @@
+require 'bio'
 # Top level module / namespace.
 module NpSearch
   # A class that validates the command line opts
