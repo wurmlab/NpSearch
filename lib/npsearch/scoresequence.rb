@@ -68,11 +68,15 @@ module NpSearch
         end
       end
 
+      # Adds 0.10 if the acidic spacer is detected.
+      # Acidic Spacer is defined as being less than 25% of the precursor length
+      # (not including the Signalp) && having more than 50% D and E amino acids.
       def acidic_spacers(sequence)
         sequence.potential_cleaved_nps.each do |e|
+          next if e[:np].length / sequence.seq.length > 0.25
           acidic_residue = e[:np].count('DE')
           percentage_acidic = acidic_residue / e[:np].length
-          sequence.score += 0.02 if percentage_acidic > 0.5
+          sequence.score += 0.10 if percentage_acidic > 0.5
         end
       end
 
