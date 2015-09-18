@@ -100,7 +100,7 @@ class TestScoreSequences < Minitest::Test
 
   def test_np_similarity
     @seq.score = 0
-    uclust_output =<<EOS
+    uclust_output = <<EOS
 S 0 18  * . * * * seq6  *
 H 0 18  83.3  . 0 0 18M seq8  seq6
 H 0 18  83.3  . 0 0 18M seq10 seq6
