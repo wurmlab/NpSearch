@@ -16,7 +16,7 @@ module NpSearch
         split_into_neuropeptides(sequence)
         count_np_cleavage_sites(sequence)
         count_c_terminal_glycines(sequence)
-        np_similarity(sequence, opt[:usearch_path], opt[:tempdir])
+        np_similarity(sequence, opt[:temp_dir], opt[:usearch_path])
         acidic_spacers(sequence)
       end
 
