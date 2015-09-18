@@ -70,7 +70,7 @@ module NpSearch
         sequence.potential_cleaved_nps.each do |e|
           acidic_residue = e[:np].count('DE')
           percentage_acidic = acidic_residue / e[:np].length
-          sequence.score += 0.10 if percentage_acidic > 0.5
+          sequence.score += 0.02 if percentage_acidic > 0.5
         end
       end
 
