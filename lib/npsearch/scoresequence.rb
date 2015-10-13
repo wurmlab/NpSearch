@@ -13,16 +13,16 @@ module NpSearch
                "(#{MONO_NP_CLV_6})"
 
       def run(sequence, opt)
-        split_into_neuropeptides(sequence)
+        split_into_potential_neuropeptides(sequence)
         count_np_cleavage_sites(sequence)
         count_c_terminal_glycines(sequence)
-        np_similarity(sequence, opt[:temp_dir], opt[:usearch_path])
+        np_similarity(sequence, opt[:temp_dir])
         acidic_spacers(sequence)
       end
 
       private
 
-      def split_into_neuropeptides(sequence)
+      def split_into_potential_neuropeptides(sequence)
         potential_nps = []
         results = sequence.seq.scan(/(?<=^|#{NP_CLV})(\w+?)(?=#{NP_CLV}|$)/i)
         headers = %w(di_clv_st mono_2_clv_st mono_4_clv_st mono_6_clv_st np
@@ -74,40 +74,37 @@ module NpSearch
       def acidic_spacers(sequence)
         sequence.potential_cleaved_nps.each do |e|
           next if e[:np].length / sequence.seq.length > 0.25
-          acidic_residue = e[:np].count('DE')
-          percentage_acidic = acidic_residue / e[:np].length
-          sequence.score += 0.10 if percentage_acidic > 0.5
+          sequence.score += 0.10 if e[:np].count('DE') / e[:np].length > 0.5
         end
       end
 
-      def np_similarity(sequence, temp_dir, usearch_path, results = nil)
-        results = run_uclust(sequence, temp_dir, usearch_path) if results.nil?
-        results.gsub!(/^[^C].*\n/, '')
-        results.each_line do |c|
-          cluster = c.split(/\W/)
-          no_of_seq_in_cluster = cluster[2].to_i
-          if no_of_seq_in_cluster > 1
-            sequence.score += (0.15 * no_of_seq_in_cluster)
+      def np_similarity(sequence, temp_dir)
+        results  = run_cdhit(sequence, temp_dir)
+        clusters = results.split(/^>Cluster \d+\n/)
+        clusters.each do |c|
+          next if c.nil?
+          no_of_seqs_in_cluster = c.split("\n").length
+          if no_of_seqs_in_cluster > 1
+            sequence.score += (0.15 * no_of_seqs_in_cluster)
           end
         end
       end
 
-      def run_uclust(sequence, temp_dir, usearch_path)
-        f = Tempfile.new('uclust', temp_dir)
-        fo = Tempfile.new('uclust_out', temp_dir)
-        return unless write_sequence_content_to_tempfile(sequence, f)
-        `#{usearch_path} -cluster_fast #{f.path} -id 0.5 -uc #{fo.path} \
-         >/dev/null 2>&1`
-        IO.read(fo.path)
+      def run_cdhit(sequence, temp_dir)
+        f = Tempfile.new('clust', temp_dir)
+        fo = Tempfile.new('clust_out', temp_dir)
+        return unless write_potential_peptides_to_tempfile(sequence, f)
+        `cd-hit -c 0.5 -n 3 -l 4 -i #{f.path} -o #{fo.path}`
+        IO.read("#{fo.path}.clstr")
       end
 
-      def write_sequence_content_to_tempfile(sequence, tempfile)
+      def write_potential_peptides_to_tempfile(sequence, tempfile)
         return false if sequence.potential_cleaved_nps.length == 0
-        content = ''
+        sequences = ''
         sequence.potential_cleaved_nps.each_with_index do |e, i|
-          content += ">seq#{i}\n#{e[:np]}\n"
+          sequences += ">seq#{i}\n#{e[:np]}\n"
         end
-        tempfile.write(content)
+        tempfile.write(sequences)
         tempfile.close
         true
       end

@@ -32,8 +32,7 @@ NpSearch orders the results based on the following characteristics:
 ### Installation Requirements
 * Ruby (>= 2.0.0)
 * SignalP 4.1 (Available from [here](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?signalp))
-* USearch (Available from [here]())
-* A web browser.
+* CD-HIT (Available from [here]() - Suggested Installation via [Homebrew]() - `brew install homebrew/science/cd-hit`)
 
 ## Installation
 Simply run the following command in the terminal.
