@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
                     ' For more information: https://github.com/wurmlab/npsearch'
   s.summary       = 'Search for neuropeptides based on the common' \
                     ' neuropeptides markers'
-  s.homepage      = 'https://github.com/IsmailM/NeuroPeptideSearch'
+  s.homepage      = 'https://github.com/wurmlab/npsearch'
   s.license       = 'AGPL'
 
   s.files         = `git ls-files -z`.split("\x0")
