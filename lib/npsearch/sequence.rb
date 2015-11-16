@@ -7,6 +7,7 @@ module NpSearch
     MONO_NP_CLV = '[KRH]..R|[KRH]....R|[KRH]......R'
 
     attr_reader :id
+    attr_reader :defline
     attr_reader :signalp
     attr_reader :seq
     attr_reader :html_seq
@@ -14,8 +15,9 @@ module NpSearch
     attr_accessor :score
     attr_accessor :potential_cleaved_nps
 
-    def initialize(id, seq, signalp_output, frame = nil)
+    def initialize(id, defline, seq, signalp_output, frame = nil)
       @id                    = id
+      @defline               = defline
       sp_cleavage_site_idx   = signalp_output[:ymax_pos].to_i - 1
       @signalp               = seq[0..(sp_cleavage_site_idx - 1)]
       @seq                   = seq[sp_cleavage_site_idx..-1]

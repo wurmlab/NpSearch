@@ -47,9 +47,10 @@ module NpSearch
 
     def initialise_seqs(entry)
       if @opt[:type] == :protein
-        initialise_protein_seq(entry.entry_id, entry.aaseq)
+        initialise_protein_seq(entry.entry_id, entry.definition, entry.aaseq)
       else
-        initialise_transcriptomic_seq(entry.entry_id, entry.naseq)
+        initialise_transcriptomic_seq(entry.entry_id, entry.definition,
+                                      entry.naseq)
       end
     end
 

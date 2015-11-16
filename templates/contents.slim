@@ -29,9 +29,9 @@ html lang="en"
           p.sequence
             span.id
               - if @opt[:type] == :protein
-                | >#{seq.id}
+                | >#{seq.defline}
               - elsif @opt[:type] == :nucleotide
-                | >#{seq.id}-(frame:#{seq.translated_frame})
+                | >#{seq.defline}-(frame:#{seq.translated_frame})
             br
             span.seq== seq.html_seq
       br
