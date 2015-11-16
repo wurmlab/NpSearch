@@ -10,7 +10,7 @@ module NpSearch
                                                     'templates/contents.slim'))
         contents_temp = File.read(templates_path)
         html_content = Slim::Template.new { contents_temp }.render(NpSearch)
-        File.open("#{input_file}.out.html", 'w') { |f| f.puts html_content }
+        File.open("#{input_file}.npsearch.html", 'w') { |f| f.puts html_content }
       end
 
       def to_fasta(input_file, sorted_sequences, input_type)
