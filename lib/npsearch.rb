@@ -54,32 +54,32 @@ module NpSearch
       end
     end
 
-    def initialise_protein_seq(id, sequence)
+    def initialise_protein_seq(id, defline, sequence)
       return if sequence.length > @opt[:max_seq_length]
       sp = Signalp.analyse_sequence(sequence)
       return if sp[:sp] == 'N'
-      seq = Sequence.new(id, sequence, sp)
+      seq = Sequence.new(id, defline, sequence, sp)
       puts id
       ScoreSequence.run(seq, @opt)
       @sequences << seq
     end
 
-    def initialise_transcriptomic_seq(id, naseq)
+    def initialise_transcriptomic_seq(id, defline, naseq)
       (1..6).each do |f|
         translated_seq = naseq.translate(f)
         orfs = translated_seq.to_s.scan(/(?=(M\w{#{@opt[:min_orf_length]},}))./)
                .flatten
-        initialise_orfs(id, orfs, f)
+        initialise_orfs(id, defline, orfs, f)
       end
     end
 
-    def initialise_orfs(id, orfs, frame)
+    def initialise_orfs(id, defline, orfs, frame)
       orfs.each do |orf|
         next if orf.length > @opt[:max_seq_length]
         sp = Signalp.analyse_sequence(orf)
         next if sp[:sp] == 'N'
         puts id
-        seq = Sequence.new(id, orf, sp, frame)
+        seq = Sequence.new(id, defline, orf, sp, frame)
         ScoreSequence.run(seq, @opt)
         @sequences << seq
         # The remaining ORF in this frame are simply shorter versions of the
