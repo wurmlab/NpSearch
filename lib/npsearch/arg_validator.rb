@@ -10,7 +10,7 @@ module NpSearch
         assert_input_file_probably_fasta(opt[:input_file])
         opt[:type] = assert_input_sequence(opt[:input_file])
         opt[:num_threads] = check_num_threads(opt[:num_threads])
-        assert_binaries(opt[:signalp_path], opt[:usearch_path])
+        assert_binaries('SignalP 4.1 Script', opt[:signalp_path])
         opt
       end
 
@@ -79,12 +79,7 @@ module NpSearch
                      ' unusually high.'
       end
 
-      def assert_binaries(signalp_path, usearch_path)
-        check_bin('SignalP 4.1 Script', signalp_path)
-        check_bin('Usearch Script', usearch_path)
-      end
-
-      def check_bin(desc, bin)
+      def assert_binaries(desc, bin)
         return if command?("#{bin}")
         $stderr.puts "NpSearch is unable to use the #{desc} at #{bin}"
       end

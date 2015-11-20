@@ -23,14 +23,6 @@ Banner
     opt[:signalp_path] = p
   end
 
-  opt[:usearch_path] = 'usearch'
-  opts.on('-u', '--usearch_path path_to_usearch',
-          'The full path to the usearch binary. This script can be downloaded',
-          ' from .... See https://www.github.com/wurmlab/NpSearch for more',
-          ' information') do |p|
-    opt[:usearch_path] = p
-  end
-
   opt[:temp_dir] = File.join(Dir.pwd, '.temp')
   opts.on('-d', '--temp_dir path_to_temp_dir',
           'The full path to the temp dir. NpSearch will create the folder and',
