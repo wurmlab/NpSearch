@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'optparse'
+require 'english'
 
 require 'npsearch'
 require 'npsearch/arg_validator'
@@ -73,7 +74,7 @@ begin
     exit 1
   end
 rescue OptionParser::ParseError
-  $stderr.print 'Error: ' + $ERROR_INFO.to_s + '\n'
+  $stderr.print 'Error: ' + $ERROR_INFO.to_s + "\n"
   exit 1
 end
 
