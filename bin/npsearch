@@ -1,10 +1,7 @@
 #!/usr/bin/env ruby
 require 'optparse'
 require 'english'
-
-require 'npsearch'
-require 'npsearch/arg_validator'
-require 'npsearch/version'
+require 'tempfile'
 
 opt = {}
 optparse = OptionParser.new do |opts|
@@ -24,7 +21,8 @@ Banner
     opt[:signalp_path] = p
   end
 
-  opt[:temp_dir] = File.join(Dir.pwd, '.temp')
+  opt[:temp_dir] = File.join(Dir.pwd, '.temp',
+                             Dir::Tmpname.make_tmpname('', nil))
   opts.on('-d', '--temp_dir path_to_temp_dir',
           'The full path to the temp dir. NpSearch will create the folder and',
           ' then delete the folder once it has finished using them.',
@@ -58,6 +56,7 @@ Banner
   end
 
   opts.on('-v', '--version', 'Shows version') do
+    require 'npsearch/version'
     puts NpSearch::VERSION
     exit
   end
@@ -69,7 +68,7 @@ begin
                  ' files. Please ensure that you have a single input fasta' \
                  " file\n"
     exit 1
-  elsif ARGV.length == 0
+  elsif ARGV.empty?
     $stderr.puts optparse
     exit 1
   end
@@ -79,6 +78,9 @@ rescue OptionParser::ParseError
 end
 
 opt[:input_file] = ARGV[0]
+
+require 'npsearch'
+require 'npsearch/arg_validator'
 
 NpSearch.init(opt)
 NpSearch.run

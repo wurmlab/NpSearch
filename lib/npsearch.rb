@@ -20,11 +20,13 @@ module NpSearch
       @sequences        = []
       @sorted_sequences = nil
       @pool             = Pool.new(@opt[:num_threads]) if @opt[:num_threads] > 1
-      create_temp_dir
+      FileUtils.mkdir_p(@opt[:temp_dir])
+      extract_orf if @opt[:type] == :genetic
     end
 
     def run
-      iterate_input_file
+      input_file = @opt[:type] == :protein ? @opt[:input_file] : @opt[:orf]
+      iterate_input_file(input_file)
       @sorted_sequences = @sequences.sort_by(&:score).reverse
       Output.to_fasta(@opt[:input_file], @sorted_sequences, @opt[:type])
       Output.to_html(@opt[:input_file])
@@ -33,9 +35,15 @@ module NpSearch
 
     private
 
-    def iterate_input_file
-      biofastafile = Bio::FlatFile.open(Bio::FastaFormat, @opt[:input_file])
-      biofastafile.each_entry do |entry|
+    # Uses getorf from EMBOSS package to extract all ORF
+    def extract_orf(input = @opt[:input_file], minsize = 90)
+      @opt[:orf] = File.join(@opt[:temp_dir], 'input.orf.fa')
+      system "getorf -sequence #{input} -outseq #{@opt[:orf]}" \
+             " -minsize #{minsize} >/dev/null 2>&1"
+    end
+
+    def iterate_input_file(input_file)
+      Bio::FlatFile.open(Bio::FastaFormat, input_file).each_entry do |entry|
         if @opt[:num_threads] > 1
           @pool.schedule(entry) { |e| initialise_seqs(e) }
         else
@@ -46,51 +54,13 @@ module NpSearch
     end
 
     def initialise_seqs(entry)
-      if @opt[:type] == :protein
-        initialise_protein_seq(entry.entry_id, entry.definition, entry.aaseq)
-      else
-        initialise_transcriptomic_seq(entry.entry_id, entry.definition,
-                                      entry.naseq)
-      end
-    end
-
-    def initialise_protein_seq(id, defline, sequence)
-      return if sequence.length > @opt[:max_seq_length]
-      sp = Signalp.analyse_sequence(sequence)
+      return if entry.aaseq.length > @opt[:max_seq_length]
+      sp = Signalp.analyse_sequence(entry.aaseq)
       return if sp[:sp] == 'N'
-      seq = Sequence.new(id, defline, sequence, sp)
-      puts id
+      # seq = Sequence.new(entry.entry_id, entry.definition, entry.aaseq, sp)
+      seq = Sequence.new(entry, sp)
       ScoreSequence.run(seq, @opt)
       @sequences << seq
-    end
-
-    def initialise_transcriptomic_seq(id, defline, naseq)
-      (1..6).each do |f|
-        translated_seq = naseq.translate(f)
-        orfs = translated_seq.to_s.scan(/(?=(M\w{#{@opt[:min_orf_length]},}))./)
-               .flatten
-        initialise_orfs(id, defline, orfs, f)
-      end
-    end
-
-    def initialise_orfs(id, defline, orfs, frame)
-      orfs.each do |orf|
-        next if orf.length > @opt[:max_seq_length]
-        sp = Signalp.analyse_sequence(orf)
-        next if sp[:sp] == 'N'
-        puts id
-        seq = Sequence.new(id, defline, orf, sp, frame)
-        ScoreSequence.run(seq, @opt)
-        @sequences << seq
-        # The remaining ORF in this frame are simply shorter versions of the
-        # same orf so break loop once signal peptide is found.
-        break if sp[:sp] == 'Y'
-      end
-    end
-
-    def create_temp_dir
-      return if File.directory?(@opt[:temp_dir])
-      FileUtils.mkdir_p(@opt[:temp_dir])
     end
 
     def remove_temp_dir

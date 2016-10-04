@@ -1,7 +1,7 @@
 # coding: utf-8
 # From http://burgestrand.se/code/ruby-thread-pool/
 #
-# Copyright © 2012, Kim Burgestrand kim@burgestrand.se
+# Copyright 2012, Kim Burgestrand kim@burgestrand.se
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal

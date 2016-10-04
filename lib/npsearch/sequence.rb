@@ -3,8 +3,8 @@ module NpSearch
   # Adapted from GeneValidator's Query Class..
   # A class to hold sequence data
   class Sequence
-    DI_NP_CLV = 'KR|KK|RR'
-    MONO_NP_CLV = '[KRH]..R|[KRH]....R|[KRH]......R'
+    DI_NP_CLV   = 'KR|KK|RR'.freeze
+    MONO_NP_CLV = '[KRH]..R|[KRH]....R|[KRH]......R'.freeze
 
     attr_reader :id
     attr_reader :defline
@@ -15,12 +15,12 @@ module NpSearch
     attr_accessor :score
     attr_accessor :potential_cleaved_nps
 
-    def initialize(id, defline, seq, signalp_output, frame = nil)
-      @id                    = id
-      @defline               = defline
-      sp_cleavage_site_idx   = signalp_output[:ymax_pos].to_i - 1
-      @signalp               = seq[0..(sp_cleavage_site_idx - 1)]
-      @seq                   = seq[sp_cleavage_site_idx..-1]
+    def initialize(entry, sp, frame = nil)
+      @id                    = entry.entry_id
+      @defline               = entry.definition
+      sp_cleavage_site_idx   = sp[:ymax_pos].to_i - 1
+      @signalp               = sp[:orf][0..(sp_cleavage_site_idx - 1)]
+      @seq                   = sp[:orf][sp_cleavage_site_idx..-1]
       @html_seq              = format_seq_for_html
       @translated_frame      = frame
       @score                 = 0

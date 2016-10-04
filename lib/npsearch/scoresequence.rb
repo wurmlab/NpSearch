@@ -3,12 +3,12 @@ module NpSearch
   # A class to score the Sequences
   class ScoreSequence
     class << self
-      DI_CLV = 'KR|RR|KK'
-      MONO_NP_CLV_2 = '[KR]..R'
-      MONO_NP_CLV_4 = '[KR]....R'
-      MONO_NP_CLV_6 = '[KR]......R'
+      DI_CLV        = 'KR|RR|KK'.freeze
+      MONO_NP_CLV_2 = '[KR]..R'.freeze
+      MONO_NP_CLV_4 = '[KR]....R'.freeze
+      MONO_NP_CLV_6 = '[KR]......R'.freeze
       NP_CLV = "(#{DI_CLV})|(#{MONO_NP_CLV_2})|(#{MONO_NP_CLV_4})|" \
-               "(#{MONO_NP_CLV_6})"
+               "(#{MONO_NP_CLV_6})".freeze
 
       def run(sequence, opt)
         split_into_potential_neuropeptides(sequence)
@@ -30,7 +30,7 @@ module NpSearch
       end
 
       def count_np_cleavage_sites(sequence)
-        return if sequence.potential_cleaved_nps.length == 0
+        return if sequence.potential_cleaved_nps.empty?
         sequence.potential_cleaved_nps.each do |e|
           count_dibasic_np_clv(sequence, e[:di_clv_end])
           count_mono_basic_np_clv(sequence, e[:mono_2_clv_end],
@@ -54,7 +54,7 @@ module NpSearch
 
       # Counts the number of C-terminal glycines
       def count_c_terminal_glycines(sequence)
-        return if sequence.potential_cleaved_nps.length == 0
+        return if sequence.potential_cleaved_nps.empty?
         sequence.potential_cleaved_nps.each do |e|
           if e[:np] =~ /FG$/ && e[:di_clv_end] == 'KR'
             sequence.score += 0.40
@@ -97,7 +97,7 @@ module NpSearch
       end
 
       def write_potential_peptides_to_tempfile(sequence, tempfile)
-        return false if sequence.potential_cleaved_nps.length == 0
+        return false if sequence.potential_cleaved_nps.empty?
         sequences = ''
         sequence.potential_cleaved_nps.each_with_index do |e, i|
           sequences += ">seq#{i}\n#{e[:np]}\n"

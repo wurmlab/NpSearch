@@ -54,7 +54,7 @@ module NpSearch
         sequences = fasta_content.split(/^>.*$/).delete_if(&:empty?)
         # get all sequence types
         sequence_types = sequences.collect { |seq| guess_sequence_type(seq) }
-                         .uniq.compact
+                                  .uniq.compact
         return nil if sequence_types.empty?
         sequence_types.first if sequence_types.length == 1
       end
@@ -64,7 +64,7 @@ module NpSearch
         cleaned_sequence = seq.gsub(/[^A-Z]|[NX]/i, '')
         return nil if cleaned_sequence.length < 10 # conservative
         type = Bio::Sequence.new(cleaned_sequence).guess(0.9)
-        (type == Bio::Sequence::NA) ? :nucleotide : :protein
+        type == Bio::Sequence::NA ? :genetic : :protein
       end
 
       def check_num_threads(num_threads)
@@ -80,7 +80,7 @@ module NpSearch
       end
 
       def assert_binaries(desc, bin)
-        return if command?("#{bin}")
+        return if command?(bin.to_s)
         $stderr.puts "NpSearch is unable to use the #{desc} at #{bin}"
       end
 

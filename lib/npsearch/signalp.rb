@@ -10,10 +10,34 @@ module NpSearch
 
       def analyse_sequence(seq)
         sp_headers = %w(name cmax cmax_pos ymax ymax_pos smax smax_pos smean d
-                        sp dmaxcut networks)
-        s = `echo ">seq\n#{seq}\n" | #{opt[:signalp_path]} -t euk -f short \
-             -U 0.3 -u 0.3`
-        Hash[sp_headers.map(&:to_sym).zip(s.gsub(/^#.*\n/, '').split)]
+                        sp dmaxcut networks orf)
+        data       = setup_analysis(seq)
+        orf_results = []
+        s = `echo "#{data[:fasta]}\n" | #{opt[:signalp_path]} -t euk \
+             -f short -U 0.34 -u 0.34`
+        sp_results = s.split("\n").delete_if { |l| l[0] == '#' }
+        sp_results.each_with_index do |line, idx|
+          line = line + ' ' + data[:seq][idx].to_s
+          orf_results << Hash[sp_headers.map(&:to_sym).zip(line.split)]
+        end
+        orf_results.sort_by { |h| h[:d] }.reverse[0]
+      end
+
+      def setup_analysis(seq)
+        if opt[:type] == :protein
+          data = { seq: [seq], fasta: ">seq\n#{seq}" }
+        else
+          orfs = seq.scan(/(?=(M\w+))./).flatten
+          orfs.unshift(seq)
+          data = { seq: orfs, fasta: create_orf_fasta(orfs) }
+        end
+        data
+      end
+
+      def create_orf_fasta(m_orf)
+        fasta = ''
+        m_orf.each_with_index { |seq, idx| fasta << ">#{idx}\n#{seq}\n" }
+        fasta
       end
     end
   end
