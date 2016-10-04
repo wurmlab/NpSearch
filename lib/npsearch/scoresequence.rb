@@ -76,8 +76,8 @@ module NpSearch
         end
       end
 
-      def np_similarity(sequence, temp_dir)
-        results  = run_cdhit(sequence, temp_dir)
+      def np_similarity(sequence, temp_dir, results = nil)
+        results  = run_cdhit(sequence, temp_dir) if results.nil?
         clusters = results.split(/^>Cluster \d+\n/)
         clusters.each do |c|
           next if c.nil?
