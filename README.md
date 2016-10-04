@@ -33,6 +33,8 @@ NpSearch orders the results based on the following characteristics:
 * Ruby (>= 2.0.0)
 * SignalP 4.1 (Available from [here](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?signalp))
 * CD-HIT (Available from [here](http://weizhongli-lab.org/cd-hit/) - Suggested Installation via [Homebrew](http://brew.sh) or [Linuxbrew](http://linuxbrew.sh) - `brew install homebrew/science/cd-hit`)
+* EMBOSS (Available from [here](http://emboss.sourceforge.net) - Suggested Installation via [Homebrew](http://brew.sh) or [Linuxbrew](http://linuxbrew.sh) - `brew install homebrew/science/emboss`)
+
 
 ## Installation
 Simply run the following command in the terminal.
