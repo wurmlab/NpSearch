@@ -3,24 +3,34 @@
 [![Gem Version](https://badge.fury.io/rb/npsearch.svg)](http://badge.fury.io/rb/npsearch)
 [![Dependency Status](https://gemnasium.com/wurmlab/NpSearch.svg)](https://gemnasium.com/wurmlab/NpSearch)
 
-
+<strong>Please note this currently in beta. We are currently working on something faster and better (that even has a clicky pointy interface); so watch this place.</strong>
 
 ## Introduction
-NpSearch is a tool that helps identify novel neuropeptides. As such it is not based on homology to existing neuropeptides - rather NpSearch is based on the common characteristics of neuropeptides and their precursors.
+NpSearch is a tool that helps identify novel neuropeptides. As such it is not based on homology to existing neuropeptides - rather NpSearch is based on the common characteristics of neuropeptides and their precursors. In other words, it is a feature based tool.
+
+The results produced includes the entire secretome ordered in the likelihood of the sequence encoding a neuropeptide. As such, it is expected that you only need to analyse the top half of the results. 
+
+Importantly, NpSearch produces a highly visual html file where the signal peptide and potential cleavage sites are highlighted. Additionally, NpSearch produces a fasta file of the results (i.e. the ordered secretome) that can easily be used in your own pipelines.
 
 If you use this program, please cite us:
 
 >Moghul I, Rowe M, Priyam A, ELphick M & Wurm Y <em>(in prep)</em> NpSearch: A Tool to Identify Novel Neuropeptides
 
-NpSearch produces a fasta file and highly visual html file that are ordered by the likelihood of a sequence encoding a neuropeptide precursor.
+NpSearch requires an input of a transcriptomic or predicted proteomic dataset, where each sequence is analysed and awarded a relative score of its likelihood of encoding a neuropeptide precursor. When provided with transcriptomic data, NpSearch translates each contig in all six frames and thereafter extracts all potential open reading frame (methionine to stop codon). Each predicted protein sequence is then analysed for the following neuropeptide-related characteristics:
 
-NpSearch orders the results based on the following characteristics:
+**Signal peptide**: All neuropeptide precursors must have a signal peptide. This is due to the fact that the final bioactive neuropeptide has to be secreted from the cell of synthesis in order to be functionally active.
 
-  - **Signal peptide**: All neuropeptide precursors must have a signal peptide. This is due to the fact that the final bioactive neuropeptide has to be secreted from the cell of synthesis in order to be functionally active.
-  - **Cleavage sites**: Being derived from a precursor, the bioactive neuropeptide has to be cleaved out from the precursor. Prohormone convertase enzymes cleave these bioactive peptides at specific cleavage sites. Since certain cleavage motifs are more likely to be cleaved, NpSearch awards sequences with cleavage site motifs that are more likely to be cleaved with a higher score.
-  - **C-terminal Glycine**: A significant number of bioactive neuropeptides have a C-terminal glycine, that is amidated during post-translation modification. NpSearch awards sequences that have a potential neuropeptide with a C-terminal glycine a higher score.
-  - **Repeated peptides**: Some neuropeptide precursors contain numerous copies of the same neuropeptides (usually with slight sequence differences). NpSearch attempts to detect this by aligning all potential neuropeptides within a sequence. If a sequence is found to have multiple, similar predicted NPs, NpSearch awards it with a higher score.
-  - **Acidic spacer regions**: Neuropeptide precursors that contain multiple neuropeptide copies tend to have highly acidic spacer regions that separate the NP copies. If detected by NpSearch, the sequence is awarded with a higher score.
+**Cleavage sites**: Being derived from a precursor, the bioactive neuropeptide has to be cleaved out from the precursor. Prohormone convertase enzymes cleave these bioactive peptides at specific cleavage sites. As certain cleavage motifs are more likely to be cleaved than other cleavage motifs, NpSearch awards sequences based on the type and number of cleavage sites present.
+
+**C-terminal Glycine**: A significant number of bioactive neuropeptides have a C-terminal glycine that is amidated during post-translation modification. Thus such sequences are awarded with a higher score.
+
+**Repeated peptides**: Numerous neuropeptide precursors are made up of multiple copies of the same neuropeptide. NpSearch attempts to clustering all potential cleaved neuropeptides, and then awarding sequences that produce larger clusters with a higher score.
+
+**Acidic spacer regions**: Neuropeptide precursors that contain multiple neuropeptide copies tend to have highly acidic regions that separate these copies. If detected by NpSearch, the sequence is awarded with a higher score.
+
+
+After analysing each sequence in the input dataset, NpSearch produces a visual html file and a fasta file, where sequences that are more likely to encode a neuropeptides precursor are placed at the top of the file. These results files can then be easily inspected and curated by researchers.
+
 
 
 
@@ -31,12 +41,15 @@ NpSearch orders the results based on the following characteristics:
 
 ### Installation Requirements
 * Ruby (>= 2.0.0)
-* SignalP 4.1 (Available from [here](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?signalp))
+* SignalP 4.1.*z (Available from [here](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?signalp))
 * CD-HIT (Available from [here](http://weizhongli-lab.org/cd-hit/) - Suggested Installation via [Homebrew](http://brew.sh) or [Linuxbrew](http://linuxbrew.sh) - `brew install homebrew/science/cd-hit`)
 * EMBOSS (Available from [here](http://emboss.sourceforge.net) - Suggested Installation via [Homebrew](http://brew.sh) or [Linuxbrew](http://linuxbrew.sh) - `brew install homebrew/science/emboss`)
 
 
 ## Installation
+
+<strong>While in beta, it is suggested that you run NpSearch from source (i.e. the non-recommended method below)</strong>
+
 Simply run the following command in the terminal.
 
 ```bash
@@ -52,7 +65,7 @@ It is also possible to run from source. However, this is not recommended.
 # Clone the repository.
 git clone https://github.com/wurmlab/npsearch.git
 
-# Move into NpSearch source directory.
+# Move into the NpSearch source directory.
 cd NpSearch
 
 # Install bundler
@@ -86,35 +99,31 @@ npsearch
 You should see the following output.
 
 ```bash
-* Usage: npsearch [Options] -i [Input File]
+* Description: A tool to identify novel neuropeptides.
 
-* Mandatory Options:
+* Usage: npsearch [Options] [Input File]
 
-    -i, --input [file]               Path to the input fasta file
-
-* Optional Options:
-    -s, --signalp_path               The full path to the signalp script. This can be downloaded from
-                                      CBS. See https://www.github.com/wurmlab/NpSearch for more
+* Options
+    -s path_to_signalp,              The full path to the SignalP script. This can be downloaded from
+        --signalp_path                CBS. See https://www.github.com/wurmlab/NpSearch for more
                                       information
-    -u, --usearch_path               The full path to the usearch binary. This script can be downloaded
-                                      from .... See https://www.github.com/wurmlab/NpSearch for more
-                                      information
-    -n, --num_threads                The number of threads to use when analysing the input file
-    -m, --orf_min_length N           The minimum length of a potential neuropeptide precursor.
+    -d, --temp_dir path_to_temp_dir  The full path to the temp dir. NpSearch will create the folder and
+                                      then delete the folder once it has finished using them.
+                                      Default: Hidden folder in the current working directory
+    -n, --num_threads num_of_threads The number of threads to use when analysing the input file
+    -l, --min_orf_length N           The minimum length of a potential neuropeptide precursor.
                                       Default: 30
+    -m, --max_seq_length N           The maximum length of a potential neuropeptide precursor.
+                                      Default: 600
     -h, --help                       Display this screen
     -v, --version                    Shows version
-
 ```
 
 
-### Example Usage Scenario
+### Exemplar Usage Scenario
 The following runs NpSearch on an input fasta dataset.
 
 ```bash
-npsearch -i INPUT_FASTA_FILE -s /path/to/signalp -u /path/to/usearch -n NUM_THREADS
+npsearch -s /path/to/signalp -n NUM_THREADS INPUT_FASTA_FILE
 ```
-
-## Output
-The output produced by NpSearch is presented in two manners. NpSearch produces a highly visual HTML file that can be open in any browsers (an example can seen [here]()) and a fasta file.
 

@@ -26,7 +26,7 @@ Banner
   opts.on('-d', '--temp_dir path_to_temp_dir',
           'The full path to the temp dir. NpSearch will create the folder and',
           ' then delete the folder once it has finished using them.',
-          ' Default: Hidden folder in the current working dirctory') do |p|
+          ' Default: Hidden folder in the current working directory') do |p|
     opt[:temp_dir] = p
   end
 
@@ -37,7 +37,7 @@ Banner
   end
 
   opt[:min_orf_length] = 30
-  opts.on('-m', '--min_orf_length N', Integer,
+  opts.on('-l', '--min_orf_length N', Integer,
           'The minimum length of a potential neuropeptide precursor.',
           ' Default: 30') do |n|
     opt[:min_orf_length] = n
