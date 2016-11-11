@@ -5,7 +5,7 @@ html lang="en"
     meta content="IE=edge" http-equiv="X-UA-Compatible"
     meta content="width=device-width, initial-scale=1" name="viewport"
     meta content="NpSearch | Identify Novel Neuropeptides" name="description"
-    meta content="Wurmlab" name="author"
+    meta content="Moghul et al." name="author"
     title NpSearch | Identify Novel Neuropeptides
     css:
       html { position: relative; min-height: 100%; }
@@ -28,10 +28,7 @@ html lang="en"
         - @sorted_sequences.each do |seq|
           p.sequence
             span.id
-              - if @opt[:type] == :protein
-                | >#{seq.defline}
-              - elsif @opt[:type] == :genetic
-                | >#{seq.defline}-(frame:#{seq.translated_frame})
+              | >#{seq.defline}
             br
             span.seq== seq.html_seq
       br
@@ -39,13 +36,15 @@ html lang="en"
       br
     footer
       p
-        | Please cite "Moghul I, Rowe M, Priyam A, Elphick M &amp; Wurm Y 
+        | Please cite "Moghul  
         em
-          | (in prep) 
-        | NpSearch: A tool to identify novel neuropeptides"
+          |  et al. (in prep) 
+        | NpSearch: Identify Novel Neuropeptides"
         br
         |  Developed at 
-        a href="https://wurmlab.github.io" target="_blank" Wurm Lab
+        a href="https://wurmlab.github.io" target="_blank" Wurm Lab 
+        | &amp; 
+        a href="http://www.sbcs.qmul.ac.uk/staff/mauriceelphick.html" target="_blank" Elphick Lab
         | , 
         a href="http://www.sbcs.qmul.ac.uk" target="_blank" QMUL
         br

@@ -43,11 +43,11 @@ Banner
     opt[:min_orf_length] = n
   end
 
-  opt[:max_seq_length] = 600
-  opts.on('-m', '--max_seq_length N', Integer,
+  opt[:max_orf_length] = 600
+  opts.on('-m', '--max_orf_length N', Integer,
           'The maximum length of a potential neuropeptide precursor.',
           ' Default: 600') do |n|
-    opt[:max_seq_length] = n
+    opt[:max_orf_length] = n
   end
 
   opts.on('-h', '--help', 'Display this screen') do

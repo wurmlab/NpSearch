@@ -54,8 +54,8 @@ module NpSearch
     end
 
     def initialise_seqs(entry)
-      return if entry.aaseq.length > @opt[:max_seq_length]
-      sp = Signalp.analyse_sequence(entry.aaseq)
+      return if entry.aaseq.length > @opt[:max_orf_length]
+      sp = Signalp.analyse_sequence(entry.aaseq.to_s)
       return if sp[:sp] == 'N'
       # seq = Sequence.new(entry.entry_id, entry.definition, entry.aaseq, sp)
       seq = Sequence.new(entry, sp)
