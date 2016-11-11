@@ -30,7 +30,7 @@ html lang="en"
             span.id
               - if @opt[:type] == :protein
                 | >#{seq.defline}
-              - elsif @opt[:type] == :nucleotide
+              - elsif @opt[:type] == :genetic
                 | >#{seq.defline}-(frame:#{seq.translated_frame})
             br
             span.seq== seq.html_seq

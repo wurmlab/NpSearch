@@ -1,4 +1,5 @@
 require 'forwardable'
+require 'open3'
 
 # Top level module / namespace.
 module NpSearch
@@ -13,9 +14,24 @@ module NpSearch
                         sp dmaxcut networks orf)
         data       = setup_analysis(seq)
         orf_results = []
+<<<<<<< Updated upstream
+        cmd = "echo '#{data[:fasta]}\n' | #{opt[:signalp_path]} -t euk" \
+              " -f short -U 0.34 -u 0.34"
+        stdin, stdout, stderr, wait_thr = Open3.popen3(cmd)
+        sp_results = stdout.gets(nil).split("\n").delete_if { |l| l[0] == '#' }
+        stdin.close; stdout.close; stderr.close
+=======
+        data.each do |seq|
+          cmd = "echo '>seq\n#{seq}\n' | #{opt[:signalp_path]} -t euk" \
+                " -f short -U 0.34 -u 0.34"
+
+
+        end
+
         s = `echo "#{data[:fasta]}\n" | #{opt[:signalp_path]} -t euk \
              -f short -U 0.34 -u 0.34`
         sp_results = s.split("\n").delete_if { |l| l[0] == '#' }
+>>>>>>> Stashed changes
         sp_results.each_with_index do |line, idx|
           line = line + ' ' + data[:seq][idx].to_s
           orf_results << Hash[sp_headers.map(&:to_sym).zip(line.split)]

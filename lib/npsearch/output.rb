@@ -18,7 +18,7 @@ module NpSearch
           sorted_sequences.each do |s|
             if input_type == :protein
               f.puts ">#{s.defline}\n#{s.signalp}#{s.seq}"
-            elsif input_type == :nucleotide
+            elsif input_type == :genetic
               f.puts ">#{s.defline}-(frame:#{s.translated_frame})"
               f.puts "#{s.signalp}#{s.seq}"
             end

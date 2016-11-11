@@ -3,7 +3,7 @@
 [![Gem Version](https://badge.fury.io/rb/npsearch.svg)](http://badge.fury.io/rb/npsearch)
 [![Dependency Status](https://gemnasium.com/wurmlab/NpSearch.svg)](https://gemnasium.com/wurmlab/NpSearch)
 
-<strong>Please note this currently in beta. We are currently working on something faster and better (that even has a clicky pointy interface); so watch this place.</strong>
+<strong>Please note this currently in beta. We are currently working on something faster (i.e. few seconds ) and better (that even has an amazing clicky, pointy interface); so watch this place.</strong>
 
 ## Introduction
 NpSearch is a tool that helps identify novel neuropeptides. As such it is not based on homology to existing neuropeptides - rather NpSearch is based on the common characteristics of neuropeptides and their precursors. In other words, it is a feature based tool.
@@ -127,3 +127,7 @@ The following runs NpSearch on an input fasta dataset.
 npsearch -s /path/to/signalp -n NUM_THREADS INPUT_FASTA_FILE
 ```
 
+## Note
+
+- With the current version of NpSearch, there is an issue with the number of threads used - it seems to use more threads than that specified in the command line argument 
+- NpSearch is expected to produce a high system load (as shown in `top` / `htop`) - this is because NpSearch runs SignalP as a separate process for each sequence (to speed things up). As such the system load (which is the number of processes called per unit time) can be higher than expected. This is normally not a reason for concern - however, we will probably try and find the middle ground between the speed and the number of processes called (or maybe someone could rewrite SignalP in C with multicore support)...

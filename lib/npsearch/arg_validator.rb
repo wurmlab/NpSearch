@@ -6,6 +6,7 @@ module NpSearch
     class << self
       def run(opt)
         assert_file_present('input fasta file', opt[:input_file])
+        opt[:input_file] = File.expand_path(opt[:input_file])
         assert_input_file_not_empty(opt[:input_file])
         assert_input_file_probably_fasta(opt[:input_file])
         opt[:type] = assert_input_sequence(opt[:input_file])
@@ -48,8 +49,9 @@ module NpSearch
         exit 1
       end
 
+      # determine file sequence type based on first 500 lines
       def type_of_sequences(file)
-        fasta_content = IO.binread(file)
+        fasta_content = File.foreach(file).first(500).join("\n")
         # the first sequence does not need to have a fasta definition line
         sequences = fasta_content.split(/^>.*$/).delete_if(&:empty?)
         # get all sequence types
