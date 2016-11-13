@@ -17,3 +17,5 @@ test/version_tmp
 tmp
 coverage
 .temp
+exemplar_data/genetic_data.fa.npsearch.fa
+exemplar_data/genetic_data.fa.npsearch.html
