@@ -29,9 +29,15 @@ module NpSearch
                 " -f short -U 0.34 -u 0.34"
           stdin, stdout, stderr, wait_thr = Open3.popen3(cmd)
           out = stdout.gets(nil).split("\n").delete_if { |l| l[0] == '#' }
+          if out.nil? || out.empty?
+            print stdout
+            print stderr
+            raise ArgumentError, 'Signalp failed to run sucessfully :('
+          else
+            result = out[0] + ' ' + seq
+            return Hash[sp_headers.map(&:to_sym).zip(result.split)]
+          end
           stdin.close; stdout.close; stderr.close
-          result = out[0] + ' ' + seq
-          return Hash[sp_headers.map(&:to_sym).zip(result.split)]
         end
       rescue Timeout::Error
         no_results = [0,0,1,1,1,1,1,1,1,'N',1,1, seq]

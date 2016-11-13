@@ -6,9 +6,8 @@ require 'npsearch/version'
 Gem::Specification.new do |s|
   s.name          = 'npsearch'
   s.version       = NpSearch::VERSION
-  s.authors       = ['Ismail Moghul', 'Matthew Rowe', 'Anurag Priyam',
-                     'Maurice Elphick', 'Yannick Wurm']
-  s.email         = ['y.wurm@qmul.ac.uk']
+  s.authors       = ['Moghul et al.']
+  s.email         = ['ismail.moghul@gmail.com']
   s.description   = 'Search for Neuropeptides based solely on the common' \
                     ' neuropeptide markers (e.g. signal peptide, dibasic' \
                     ' cleavage sites etc.) i.e. not based on homology to' \
