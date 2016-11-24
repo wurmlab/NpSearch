@@ -23,7 +23,7 @@ Banner
 
   opt[:temp_dir] = File.join(Dir.pwd, '.temp',
                              Dir::Tmpname.make_tmpname('', nil))
-  opts.on('-d', '--temp_dir path_to_temp_dir',
+  opts.on('-t', '--temp_dir path_to_temp_dir',
           'The full path to the temp dir. NpSearch will create the folder and',
           ' then delete the folder once it has finished using them.',
           ' Default: Hidden folder in the current working directory') do |p|
