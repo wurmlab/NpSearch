@@ -36,6 +36,11 @@ Banner
     opt[:num_threads] = n
   end
 
+  opt[:debug] = false
+  opts.on('-d', '--debug', 'Run in debug mode') do
+    opt[:debug] = true
+  end
+
   opt[:min_orf_length] = 30
   opts.on('-l', '--min_orf_length N', Integer,
           'The minimum length of a potential neuropeptide precursor.',
