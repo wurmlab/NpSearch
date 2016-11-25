@@ -1,5 +1,5 @@
 require 'bio'
-require 'english'
+require 'English'
 require 'fileutils'
 
 require 'npsearch/arg_validator'
