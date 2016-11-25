@@ -17,7 +17,7 @@ class TestSequences < Minitest::Test
     sp = { name: 'test_sequences', cmax: '0.492', cmax_pos: '31', ymax: '0.612',
            ymax_pos: '31', smax: '0.950', smax_pos: '17', smean: '0.786',
            d: '0.706', sp: 'Y', dmaxcut: '0.300', networks: 'SignalP-noTM',
-           orf: sequence.seq}
+           orf: sequence.seq }
     @seq = NpSearch::Sequence.new(sequence, sp, 2)
   end
 

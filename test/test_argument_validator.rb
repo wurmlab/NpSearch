@@ -1,12 +1,13 @@
 require_relative 'test_helper'
-
+require 'npsearch'
 require 'npsearch/arg_validator'
 
 # Class to test the how well the CLI arguments are validated.
 class TestInputArgumentValidator < Minitest::Test
   def setup
+    NpSearch.logger = Logger.new(STDOUT, true)
     @c = NpSearch::ArgumentsValidators
-    @opt = { num_threads: 1, min_orf_length: 30 }
+    @opt = { num_threads: 1, min_orf_length: 30, debug: true }
   end
 
   def test_assert_file_present

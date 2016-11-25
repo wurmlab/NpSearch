@@ -37,11 +37,11 @@ module NpSearch
       remove_temp_dir
     end
 
-    private
-
     def logger
       @logger ||= Logger.new(STDOUT, @opt[:debug])
     end
+
+    private
 
     def initialise_thread_pool
       return if @opt[:num_threads] == 1
