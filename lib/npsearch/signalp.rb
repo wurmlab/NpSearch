@@ -24,7 +24,7 @@ module NpSearch
       private
 
       def run_signalp(seq, sp_headers)
-        timeout(300) do
+        Timeout.timeout(300) do
           cmd = "echo '>seq\n#{seq}\n' | #{opt[:signalp_path]} -t euk" \
                 ' -f short -U 0.34 -u 0.34'
           stdin, stdout, stderr = Open3.popen3(cmd)
