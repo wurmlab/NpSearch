@@ -104,16 +104,17 @@ You should see the following output.
 * Usage: npsearch [Options] [Input File]
 
 * Options
-    -s path_to_signalp,              The full path to the SignalP script. This can be downloaded from
+    -s path_to_signalp,              The full path to the signalp script. This can be downloaded from
         --signalp_path                CBS. See https://www.github.com/wurmlab/NpSearch for more
                                       information
-    -d, --temp_dir path_to_temp_dir  The full path to the temp dir. NpSearch will create the folder and
+    -t, --temp_dir path_to_temp_dir  The full path to the temp dir. NpSearch will create the folder and
                                       then delete the folder once it has finished using them.
                                       Default: Hidden folder in the current working directory
     -n, --num_threads num_of_threads The number of threads to use when analysing the input file
+    -d, --debug                      Run in debug mode
     -l, --min_orf_length N           The minimum length of a potential neuropeptide precursor.
                                       Default: 30
-    -m, --max_seq_length N           The maximum length of a potential neuropeptide precursor.
+    -m, --max_orf_length N           The maximum length of a potential neuropeptide precursor.
                                       Default: 600
     -h, --help                       Display this screen
     -v, --version                    Shows version
@@ -126,6 +127,40 @@ The following runs NpSearch on an input fasta dataset.
 ```bash
 npsearch -s /path/to/signalp -n NUM_THREADS INPUT_FASTA_FILE
 ```
+
+## Debugging
+Have an issue. No Problemo - Just try the following to produce a debugging log from NpSearch and send this to me at ismail.moghul@gmail.com or raise an issue above.
+
+1. First step would be to uninstall and reinstall npsearch
+
+```bash
+gem uninstall npsearch # Select all when it asks what versions
+to uninstall
+gem install npsearch
+npsearch --version # you should see 2.1.4
+```
+
+2. Ensure all dependencies are installed.
+
+```bash
+# Check if cd-hit is installed
+cd-hit # you should see an output showing the cd-hit output.
+# Check if `getorf` from the EMBOSS package is installed
+getorf -version
+# you should see: 'EMBOSS: 6.6.0.0
+```
+
+3. Rerun your analysis with the debug flag (also specify the temporary directory to be on the safe side)
+
+```bash 
+cd /path/to/analysis/folder
+mkdir temp
+npsearch -h # to double check whether npsearch works
+npsearch -n 10 -s /path/to/signalp/script -d -t
+/path/to/temp/dir /path/to/Trinity.fasta > debug.log
+```
+
+4. Raise an issue (here)[] or send me an email at ismail.moghul@gmail.com. Be sure to attached the debug.log that you have just created and fully explain the issues that you are seeing.
 
 ## Note
 
