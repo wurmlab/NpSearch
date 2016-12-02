@@ -3,7 +3,7 @@
 [![Gem Version](https://badge.fury.io/rb/npsearch.svg)](http://badge.fury.io/rb/npsearch)
 [![Dependency Status](https://gemnasium.com/wurmlab/NpSearch.svg)](https://gemnasium.com/wurmlab/NpSearch)
 
-<strong>Please note this currently in beta. We are currently working on something that is amazingly fast (i.e. a few seconds to run) and a lot better in every sense (it even has an easy-to-use clicky, pointy interface). So watch this place.</strong>
+<strong>Please note this currently in beta. We are currently working on something new that is amazingly fast (i.e. a few seconds to run) and a lot better in every sense (it even has an easy-to-use clicky, pointy interface). So watch this place.</strong>
 
 ## Introduction
 NpSearch is a tool that helps identify novel neuropeptides. As such it is not based on homology to existing neuropeptides - rather NpSearch is based on the common characteristics of neuropeptides and their precursors. In other words, it is a feature based tool.
@@ -14,7 +14,7 @@ Importantly, NpSearch produces a highly visual html file where the signal peptid
 
 If you use this program, please cite us:
 
->Moghul I, Rowe M, Priyam A, ELphick M & Wurm Y <em>(in prep)</em> NpSearch: A Tool to Identify Novel Neuropeptides
+> Moghul <em>et al.</em> <em>(in prep)</em> NpSearch: A Tool to Identify Novel Neuropeptides
 
 NpSearch requires an input of a transcriptomic or predicted proteomic dataset, where each sequence is analysed and awarded a relative score of its likelihood of encoding a neuropeptide precursor. When provided with transcriptomic data, NpSearch translates each contig in all six frames and thereafter extracts all potential open reading frame (methionine to stop codon). Each predicted protein sequence is then analysed for the following neuropeptide-related characteristics:
 
