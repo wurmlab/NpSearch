@@ -84,6 +84,10 @@ module NpSearch
       sp = Signalp.analyse_sequence(entry.aaseq.to_s)
       return if sp[:sp] == 'N'
       seq = Sequence.new(entry, sp)
+      if seq.seq =~ /[^A-Za-z]/ # Contains illegal characters
+        logger.debug "-- Skipping: '#{entry.definition}' - Contains illegal characters."
+        return
+      end
       ScoreSequence.run(seq, @opt)
       @sequences << seq
     end
