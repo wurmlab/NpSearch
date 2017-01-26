@@ -9,6 +9,7 @@ require 'npsearch/pool'
 require 'npsearch/scoresequence'
 require 'npsearch/sequence'
 require 'npsearch/signalp'
+require 'npsearch/version'
 
 # Top level module / namespace.
 module NpSearch
