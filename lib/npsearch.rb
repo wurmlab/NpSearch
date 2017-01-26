@@ -84,6 +84,7 @@ module NpSearch
       return if entry.aaseq.length > @opt[:max_orf_length]
       sp = Signalp.analyse_sequence(entry.aaseq.to_s)
       return if sp[:sp] == 'N'
+      logger.debug "-- SignalP  : #{sp}"
       seq = Sequence.new(entry, sp)
       if seq.seq =~ /[^A-Za-z]/ # Contains illegal characters
         logger.debug "-- Skipping: '#{entry.definition}' - Contains illegal characters."
